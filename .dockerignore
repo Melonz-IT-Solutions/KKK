@@ -5,8 +5,6 @@ build
 coverage
 .git
 .gitignore
-.env
-.env.*
 *.pem
 *.tsbuildinfo
 npm-debug.log*

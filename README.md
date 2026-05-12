@@ -10,17 +10,22 @@ or via HTTPS
 ```bash
 git clone https://github.com/Melonz-IT-Solutions/KKK.git
 ```
+```bash
+cd KKK
+```
 
-Once cloned install the node modules
+Once cloned, build the app using this command (make sure docker is running)
 
 ```bash
-make npm-install
+make build
 ```
-Create local dot env (mac users)
+It will automatically copy the .env.example file and its contents and create a new .env file
+
+If .env doesn't exists we can create it manually (bash user)
 ```bash
 cp .env.example .env
 ```
-For non-mac users just simply create .env file in the root folder and 
+For non-bash users just simply create .env file in the root folder and 
 ask for DATABASE_URL on other devs
 
 If you want to use local DB set this on your .env file
@@ -28,11 +33,52 @@ If you want to use local DB set this on your .env file
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/kkk_db"
 ```
 
-Then run it locally via docker
-```bash
-make build
-```
-By default it will run in port 3000.
-Simply open [http://localhost:3000](http://localhost:3000) with your browser.
+By default the app will run in port 3000.
 
-## Project Structure (WIP)
+Open [http://localhost:3000](http://localhost:3000) with your browser.
+
+## Project Structure (Initial)
+```text
+KKK/
+├── app/                    # Next.js App Router
+│   ├── api/                # API routes
+│   ├── auth/               # Authentication pages
+│   ├── dashboard/          # Protected pages
+│   ├── layout.tsx
+│   ├── page.tsx
+│   └── globals.css
+│
+├── components/             # Reusable UI components
+│   ├── ui/
+│   ├── forms/
+│   └── layouts/
+│
+├── lib/                    # Shared utilities
+│   ├── prisma.ts
+│   ├── auth.ts
+│   ├── validations/
+│   └── helpers/
+│
+├── prisma/
+│   ├── schema.prisma
+│   ├── migrations/
+│   └── seed.ts
+│
+├── public/                 # Static assets
+│
+├── services/               # Business logic / API services
+│
+├── hooks/                  # Custom React hooks
+│
+├── types/                  # Global TypeScript types
+│
+├── middleware.ts
+├── next.config.js
+├── tsconfig.json
+├── package.json
+├── Dockerfile
+├── docker-compose.yml
+├── Makefile
+├── .env
+└── README.md
+```

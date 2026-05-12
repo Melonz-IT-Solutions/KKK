@@ -21,11 +21,16 @@ Create local dot env (mac users)
 cp .env.example .env
 ```
 For non-mac users just simply create .env file in the root folder and 
-ask for DATABASE_URL on other developers
+ask for DATABASE_URL on other devs
 
-Then run it locally
+If you want to use local DB set this on your .env file
 ```bash
-npm run dev
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/kkk_db"
+```
+
+Then run it locally via docker
+```bash
+make build
 ```
 By default it will run in port 3000.
 Simply open [http://localhost:3000](http://localhost:3000) with your browser.

@@ -41,6 +41,10 @@ migrate-reset:
 db-push:
 	docker compose exec -T app npx prisma db push
 
+# ── Node ───────────────────────────────────────────────────────────────────────
+npm-install:
+	docker compose exec -T app npm install
+
 # ── Linting ───────────────────────────────────────────────────────────────────
 
 lint:

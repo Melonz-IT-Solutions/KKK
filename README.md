@@ -14,7 +14,7 @@ git clone https://github.com/Melonz-IT-Solutions/KKK.git
 Once cloned install the node modules
 
 ```bash
-npm install
+make npm-install
 ```
 Create local dot env (mac users)
 ```bash

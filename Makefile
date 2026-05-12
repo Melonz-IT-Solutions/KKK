@@ -26,15 +26,17 @@ db-shell:
 	docker compose exec db psql -U postgres -d kkk_db
 
 # ── Prisma ────────────────────────────────────────────────────────────────────
+prisma-gui:
+	docker compose exec app npx prisma studio --port 51212 --browser none
 
 migrate:
 	docker compose exec -T app npx prisma migrate deploy
 
 migrate-dev:
-	docker compose exec app npx prisma migrate dev
+	docker compose exec -T app npx prisma migrate dev
 
 migrate-reset:
-	docker compose exec app npx prisma migrate reset
+	docker compose exec -T app npx prisma migrate reset
 
 db-push:
 	docker compose exec -T app npx prisma db push

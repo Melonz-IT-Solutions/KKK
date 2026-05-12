@@ -1,4 +1,4 @@
-.PHONY: up down restart logs build shell db-shell migrate migrate-dev migrate-reset lint
+.PHONY: up down restart logs build shell db-shell migrate migrate-dev migrate-reset lint lint-fix
 
 # ── Docker ────────────────────────────────────────────────────────────────────
 
@@ -28,7 +28,7 @@ db-shell:
 # ── Prisma ────────────────────────────────────────────────────────────────────
 
 migrate:
-	docker compose exec app npx prisma migrate deploy
+	docker compose exec -T app npx prisma migrate deploy
 
 migrate-dev:
 	docker compose exec app npx prisma migrate dev
@@ -37,9 +37,12 @@ migrate-reset:
 	docker compose exec app npx prisma migrate reset
 
 db-push:
-	docker compose exec app npx prisma db push
+	docker compose exec -T app npx prisma db push
 
 # ── Linting ───────────────────────────────────────────────────────────────────
 
 lint:
-	docker compose exec app npm run lint
+	docker compose exec -T app npm run lint
+
+lint-fix:
+	docker compose exec -T app npm run lint -- --fix

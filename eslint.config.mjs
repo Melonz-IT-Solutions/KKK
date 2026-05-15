@@ -8,6 +8,7 @@ const eslintConfig = defineConfig([
   {
     rules: {
       quotes: ['error', 'single', { avoidEscape: true }],
+      'react-hooks/set-state-in-effect': 'off',
     },
   },
   // Override default ignores of eslint-config-next.

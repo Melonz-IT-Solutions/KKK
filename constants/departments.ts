@@ -4,7 +4,12 @@ export const DEPARTMENTS = [
     name: 'Finance',
     description: 'Financial planning and accounting',
   },
-] as const
+  {
+    id: 'engineering',
+    name: 'Engineering',
+    description: 'Engineering Department',
+  },
+]
 
 // Type utilities
 export type Department = (typeof DEPARTMENTS)[number]
@@ -18,6 +23,13 @@ export const getDepartmentById = (id: string): Department | undefined => {
 
 export const getDepartmentName = (id: string): string | undefined => {
   return getDepartmentById(id)?.name
+}
+
+export const getDepartmentNameByInitial = (name: string): string | undefined => {
+  return name
+    .split(' ')
+    .map(word => word[0].toUpperCase())
+    .join('')
 }
 
 export const DEPARTMENT_IDS = DEPARTMENTS.map(dept => dept.id)

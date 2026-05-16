@@ -3,9 +3,9 @@ import type { NextRequest } from 'next/server'
 
 export function proxy(request: NextRequest) {
   // Redirect root path to login
-  if (request.nextUrl.pathname === '/') {
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
+  // if (request.nextUrl.pathname === '/') {
+  //   return NextResponse.redirect(new URL('/login', request.url))
+  // }
 
   return NextResponse.next()
 }

@@ -81,7 +81,7 @@ KKK/
 │
 ├── types/                  # Global TypeScript types
 │
-├── middleware.ts
+├── proxy.ts (middleware)   # https://nextjs.org/docs/messages/middleware-to-proxy
 ├── next.config.js
 ├── tsconfig.json
 ├── package.json

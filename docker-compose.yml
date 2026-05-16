@@ -10,6 +10,7 @@ services:
       - /app/.next
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/kkk_db
+      WATCHPACK_POLLING: "true"
     depends_on:
       db:
         condition: service_healthy

@@ -25,13 +25,6 @@ export const getDepartmentName = (id: string): string | undefined => {
   return getDepartmentById(id)?.name
 }
 
-export const getDepartmentNameByInitial = (name: string): string | undefined => {
-  return name
-    .split(' ')
-    .map(word => word[0].toUpperCase())
-    .join('')
-}
-
 export const DEPARTMENT_IDS = DEPARTMENTS.map(dept => dept.id)
 export const DEPARTMENT_NAMES = DEPARTMENTS.map(dept => dept.name)
 

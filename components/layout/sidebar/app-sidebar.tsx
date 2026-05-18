@@ -12,23 +12,13 @@ import {
   SidebarHeader,
   SidebarRail,
 } from '@/components/ui/sidebar'
-import {
-  GalleryVerticalEndIcon,
-  AudioLinesIcon,
-  TerminalIcon,
-  FrameIcon,
-  PieChartIcon,
-  MapIcon,
-} from 'lucide-react'
 import { NavigationItems } from '@/constants/navigation-items'
 import { DEPARTMENTS } from '@/constants/departments'
 
-const data = {
-  user: {
-    name: 'shadcn',
-    email: 'm@example.com',
-    avatar: '/avatars/shadcn.jpg',
-  },
+const user = {
+  name: 'Super Admin',
+  email: 'super-admin@kkk.com',
+  avatar: '/avatars/avatar.jpg',
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -41,7 +31,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={NavigationItems} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

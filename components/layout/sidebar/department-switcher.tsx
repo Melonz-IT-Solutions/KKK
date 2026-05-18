@@ -8,7 +8,6 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
@@ -17,10 +16,10 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { ChevronsUpDownIcon, LogOut, PlusIcon } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { getDepartmentNameByInitial } from '@/constants/departments'
+import { ChevronsUpDownIcon, Undo2 } from 'lucide-react'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import Logo from '../logo'
+import { getNameByInitial } from '@/lib/utils'
 
 export function DepartmentSwitcher({
   departments,
@@ -31,9 +30,9 @@ export function DepartmentSwitcher({
   }[]
 }) {
   const { isMobile } = useSidebar()
-  const [activeTeam, setActiveTeam] = React.useState(departments[0])
+  const [activeDepartment, setActiveDepartment] = React.useState(departments[0])
 
-  if (!activeTeam) {
+  if (!activeDepartment) {
     return null
   }
 
@@ -51,7 +50,7 @@ export function DepartmentSwitcher({
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-bold">{process.env.NEXT_PUBLIC_APP_NAME}</span>
-                <span className="truncate text-xs">{activeTeam.name}</span>
+                <span className="truncate text-xs">{activeDepartment.name}</span>
               </div>
               <ChevronsUpDownIcon className="ml-auto" />
             </SidebarMenuButton>
@@ -69,12 +68,12 @@ export function DepartmentSwitcher({
             {departments.map(department => (
               <DropdownMenuItem
                 key={department.name}
-                onClick={() => setActiveTeam(department)}
+                onClick={() => setActiveDepartment(department)}
                 className="gap-2 p-2"
               >
                 <div className="mr-2 flex size-6 items-center justify-center rounded-md border">
                   <Avatar>
-                    <AvatarFallback>{getDepartmentNameByInitial(department.name)}</AvatarFallback>
+                    <AvatarFallback>{getNameByInitial(department.name)}</AvatarFallback>
                   </Avatar>
                 </div>
                 {department.name}
@@ -83,9 +82,11 @@ export function DepartmentSwitcher({
             <DropdownMenuSeparator />
             <DropdownMenuItem className="gap-2 p-2">
               <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
-                <LogOut className="size-4" />
+                <Undo2 className="size-4" />
               </div>
-              <div className="text-muted-foreground font-medium">Back to Super Admin</div>
+              <div className="font-medium text-black" onClick={() => {}}>
+                Switch to Super Admin
+              </div>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -1,20 +1,10 @@
-import {
-  Home,
-  Users,
-  Settings,
-  TerminalSquareIcon,
-  BotIcon,
-  BookOpenIcon,
-  Settings2Icon,
-  User2Icon,
-} from 'lucide-react'
+import { Home, Users, Settings2Icon, User2Icon } from 'lucide-react'
 
 export const NavigationItems = [
   {
     title: 'Dashboard',
     url: '/dashboard',
     icon: <Home />,
-    isActive: true,
   },
   {
     title: 'Members',

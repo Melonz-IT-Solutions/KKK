@@ -18,6 +18,8 @@ git clone https://github.com/Melonz-IT-Solutions/KKK.git
 cd KKK
 ```
 
+### For Docker User
+
 Once cloned, build the app using this command (make sure docker is running)
 
 ```bash

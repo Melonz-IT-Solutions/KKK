@@ -1,7 +1,7 @@
 export default function MembersPage() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <h1>{process.env.NEXT_PUBLIC_APP_NAME}</h1>
+    <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+      <div className="bg-muted/50 min-h-screen flex-1 rounded-xl md:min-h-min" />
     </div>
   )
 }

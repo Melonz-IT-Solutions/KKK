@@ -4,7 +4,12 @@ export const DEPARTMENTS = [
     name: 'Finance',
     description: 'Financial planning and accounting',
   },
-] as const
+  {
+    id: 'engineering',
+    name: 'Engineering',
+    description: 'Engineering Department',
+  },
+]
 
 // Type utilities
 export type Department = (typeof DEPARTMENTS)[number]

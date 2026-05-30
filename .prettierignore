@@ -11,7 +11,7 @@ build
 
 # Generated files
 .prisma
-lib/generated
+prisma/generated
 
 # Cache
 .turbo

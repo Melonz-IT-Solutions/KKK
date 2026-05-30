@@ -1,12 +1,7 @@
-import React from 'react'
+import Login from '@/modules/Login'
 
 const page = () => {
-  return (
-    <div>
-      <p className="text-primary text-lg">page</p>
-      <p className="text-secondary text-sm">page</p>
-    </div>
-  )
+  return <Login />
 }
 
 export default page

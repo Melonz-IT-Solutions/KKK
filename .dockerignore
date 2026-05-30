@@ -9,4 +9,4 @@ coverage
 *.tsbuildinfo
 npm-debug.log*
 .DS_Store
-lib/generated/prisma
+prisma/generated

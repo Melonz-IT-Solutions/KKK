@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
+// import { SessionProvider } from 'next-auth/react'
 import './globals.css'
 
 const inter = Inter({
@@ -18,8 +19,10 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
+    // <SessionProvider>
     <html lang="en" className={`${inter.className} ${inter.className} h-full antialiased`}>
       <body className="flex min-h-full flex-col">{children}</body>
     </html>
+    // </SessionProvider>
   )
 }

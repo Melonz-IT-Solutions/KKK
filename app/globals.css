@@ -31,6 +31,8 @@
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
   --color-muted: var(--muted);
+  --color-tertiary-foreground: var(--tertiary-foreground);
+  --color-tertiary: var(--tertiary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-secondary: var(--secondary);
   --color-primary-foreground: var(--primary-foreground);
@@ -46,20 +48,30 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  --text-48: 3rem; /* 48px */
+  --text-30: 1.875rem; /* 30px */
+  --text-24: 1.5rem; /* 24px */
+  --text-20: 1.25rem; /* 20px */
+  --text-18: 1.125rem; /* 18px */
+  --text-16: 1rem; /* 16px */
+  --text-14: 0.875rem; /* 14px */
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --background: oklab(97.248% -0.00493 0.00529);
+  --foreground: oklab(22.645% 0 -0.00003);
+  --card: oklab(97.248% -0.00493 0.00529);
+  --card-foreground: #1c1c1c;
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
   --primary: oklch(0.42 0.11 145);
   --primary-foreground: oklch(0.985 0 0);
   --ring: oklch(0.42 0.11 145);
-  --secondary: oklch(0.97 0 0);
+  --secondary: oklab(72.564% -0.08105 0.05869);
   --secondary-foreground: oklch(0.205 0 0);
+  --tertiary: oklab(35.125% -0.06137 0.03283);
+  --tertiary-foreground: oklab(35.125% -0.06137 0.03283);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
@@ -84,15 +96,16 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
+  --tertiary: #1a4528;
+  --background: oklab(22.645% 0 -0.00003);
+  --foreground: #f4f7f2;
+  --card: #1c1c1c;
+  --card-foreground: #f4f7f2;
+  --popover: oklab(20.463% 0 -0.00002);
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.55 0.11 145);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.269 0 0);
+  --secondary: #7fb77e;
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
   --muted-foreground: oklch(0.708 0 0);
@@ -123,8 +136,10 @@
   }
   body {
     @apply bg-background text-foreground;
+    background-color: #f4f7f2 !important;
   }
   html {
     @apply font-sans;
+    background-color: #f4f7f2 !important;
   }
 }

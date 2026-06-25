@@ -1,4 +1,4 @@
-import { Home, Users, Settings2Icon, User2Icon } from 'lucide-react'
+import { Home, Users, Settings2Icon, User2Icon, ChartColumn } from 'lucide-react'
 
 export const NavigationItems = [
   {
@@ -21,5 +21,10 @@ export const NavigationItems = [
     url: '/settings',
     icon: <Settings2Icon />,
     items: [],
+  },
+  {
+    title: 'Reports',
+    url: '/reports',
+    icon: <ChartColumn />,
   },
 ]

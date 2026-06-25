@@ -4,10 +4,10 @@ import { auth } from '@/auth' // adjust path if needed
 
 export async function proxy(request: NextRequest) {
   const session = await auth()
-  if (!session) {
+  // if (!session) {
     // Not authenticated, redirect to login
-    return NextResponse.redirect(new URL('/login', request.url))
-  }
+  //   return NextResponse.redirect(new URL('/login', request.url))
+  // }
   // Authenticated, allow access
   return NextResponse.next()
 }

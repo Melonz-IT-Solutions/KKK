@@ -22,8 +22,6 @@ const Login = () => {
         redirect: false,
       })
 
-      console.log('signIn result', result)
-
       if (result?.error) {
         setAuthError('Invalid username or password')
       } else if (result?.ok) {

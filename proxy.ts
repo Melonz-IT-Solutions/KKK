@@ -4,6 +4,8 @@ import { auth } from '@/auth' // adjust path if needed
 
 export async function proxy(request: NextRequest) {
   const session = await auth()
+
+
   if (!session) {
     // Not authenticated, redirect to login
     return NextResponse.redirect(new URL('/login', request.url))

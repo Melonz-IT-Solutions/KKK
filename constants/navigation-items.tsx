@@ -1,6 +1,5 @@
-import { Home, Users, Settings2Icon,  History, IdCard } from 'lucide-react'
+import { Home, Users, Settings2Icon, History, IdCard } from 'lucide-react'
 import { ur } from 'zod/v4/locales'
-
 
 export const NavigationItems = [
   {
@@ -8,9 +7,7 @@ export const NavigationItems = [
     url: '/dashboard',
     icon: <Home />,
     items: [
-      {title: 'Finance',
-      url: '/dashboard/finance',
-      },
+      { title: 'Finance', url: '/dashboard/finance' },
       {
         title: 'Engineering',
         url: '/dashboard/engineering',
@@ -22,9 +19,7 @@ export const NavigationItems = [
     url: '/department',
     icon: <Home />,
     items: [
-      {title: 'Data Table',
-      url: '/department/finance',
-      },
+      { title: 'Data Table', url: '/department/finance' },
       {
         title: 'Export Function',
         url: '/department/engineering',
@@ -36,9 +31,7 @@ export const NavigationItems = [
     url: '/members',
     icon: <Users />,
     items: [
-      {title: 'Data Table',
-      url: '/members/datatable',
-      },
+      { title: 'Data Table', url: '/members/datatable' },
       {
         title: 'Export Function',
         url: '/members/exportfunction',

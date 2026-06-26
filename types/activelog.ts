@@ -5,5 +5,4 @@ export interface ActiveLog {
   status: 'Success' | 'Failed' | 'Pending'
   timestamp: string
   minutesOnline: number
-
 }

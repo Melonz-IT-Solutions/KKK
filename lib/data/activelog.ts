@@ -1,4 +1,4 @@
-import { ActiveLog } from '@/types/activelog';
+import { ActiveLog } from '@/types/activelog'
 
 export const activeLogs: ActiveLog[] = [
   {
@@ -25,4 +25,4 @@ export const activeLogs: ActiveLog[] = [
     timestamp: '2026-06-12 10:01 AM',
     minutesOnline: 50,
   },
-];
+]

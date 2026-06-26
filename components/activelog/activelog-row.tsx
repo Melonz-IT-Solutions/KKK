@@ -1,11 +1,11 @@
-import { ActiveLog } from '@/types/activelog';
+import { ActiveLog } from '@/types/activelog'
 
-import { TableCell, TableRow } from '@/components/ui/table';
+import { TableCell, TableRow } from '@/components/ui/table'
 
-import ActiveLogStatusBadge from './activelog-status-badge';
+import ActiveLogStatusBadge from './activelog-status-badge'
 
 interface Props {
-  log: ActiveLog;
+  log: ActiveLog
 }
 
 export default function ActiveLogRow({ log }: Props) {
@@ -21,5 +21,5 @@ export default function ActiveLogRow({ log }: Props) {
 
       <TableCell>{log.timestamp}</TableCell>
     </TableRow>
-  );
+  )
 }

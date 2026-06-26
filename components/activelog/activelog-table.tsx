@@ -1,13 +1,13 @@
-import { ActiveLog } from '@/types/activelog';
+import { ActiveLog } from '@/types/activelog'
 
-import ActiveLogRow from '@/components/activelog/activelog-row';
-import ActiveLogHeader from '@/components/activelog/activelog-header';
-import ActiveLogColumns from '@/components/activelog/activelog-columns';
+import ActiveLogRow from '@/components/activelog/activelog-row'
+import ActiveLogHeader from '@/components/activelog/activelog-header'
+import ActiveLogColumns from '@/components/activelog/activelog-columns'
 
-import { Table, TableBody } from '@/components/ui/table';
+import { Table, TableBody } from '@/components/ui/table'
 
 interface Props {
-  data: ActiveLog[];
+  data: ActiveLog[]
 }
 
 export default function ActiveLogTable({ data }: Props) {
@@ -23,11 +23,11 @@ export default function ActiveLogTable({ data }: Props) {
         <ActiveLogColumns />
 
         <TableBody>
-          {data.map((log) => (
+          {data.map(log => (
             <ActiveLogRow key={log.id} log={log} />
           ))}
         </TableBody>
       </Table>
     </div>
-  );
+  )
 }

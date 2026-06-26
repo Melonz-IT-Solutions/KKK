@@ -9,7 +9,7 @@ export const SETTINGS_OPTIONS = [
     title: 'Change password',
     description: 'Update your security credentials.',
   },
-] as const;
+] as const
 
 export const ACCOUNT_FIELDS = [
   {
@@ -28,4 +28,4 @@ export const ACCOUNT_FIELDS = [
     key: 'contactNumber',
     label: 'Contact Number',
   },
-] as const;
+] as const

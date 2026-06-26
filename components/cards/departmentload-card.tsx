@@ -1,15 +1,7 @@
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 import { Progress } from '@/components/ui/progress'
-import {
-  SquareChartGantt,
-  SquareArrowOutUpRight,
-} from 'lucide-react'
+import { SquareChartGantt, SquareArrowOutUpRight } from 'lucide-react'
 
 const departments = [
   {
@@ -26,22 +18,17 @@ export default function DepartmentLoadCard() {
   return (
     <Card className="h-full w-full">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold">
-          Department Load
-        </CardTitle>
+        <CardTitle className="text-base font-semibold">Department Load</CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-5">
         {departments.map((dept, index) => (
           <div key={index} className="space-y-2">
-
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-bold text-green-700">
-                  {dept.percentage}%
-                </p>
+                <p className="text-2xl font-bold text-green-700">{dept.percentage}%</p>
 
-                <p className="text-[11px] font-semibold tracking-wide text-muted-foreground">
+                <p className="text-muted-foreground text-[11px] font-semibold tracking-wide">
                   {dept.name}
                 </p>
               </div>
@@ -55,14 +42,10 @@ export default function DepartmentLoadCard() {
               </div>
             </div>
 
-            <Progress
-              value={dept.percentage}
-              className="h-2 [&>div]:bg-green-700"
-            />
+            <Progress value={dept.percentage} className="h-2 [&>div]:bg-green-700" />
           </div>
         ))}
       </CardContent>
-
     </Card>
   )
 }

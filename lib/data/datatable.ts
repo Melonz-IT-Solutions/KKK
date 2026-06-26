@@ -1,4 +1,4 @@
-import { Users, Wallet, FolderKanban, ShieldCheck } from 'lucide-react';
+import { Users, Wallet, FolderKanban, ShieldCheck } from 'lucide-react'
 
 export const reports = [
   {
@@ -33,4 +33,4 @@ export const reports = [
     iconBg: 'bg-gray-100',
     iconColor: 'text-gray-600',
   },
-];
+]

@@ -5,9 +5,9 @@ export const DEPARTMENTS = [
     description: 'Financial planning and accounting',
   },
   {
-    id: 'engineering',
-    name: 'Engineering',
-    description: 'Engineering Department',
+    id: 'mis',
+    name: 'MIS',
+    description: 'MIS Department',
   },
 ]
 

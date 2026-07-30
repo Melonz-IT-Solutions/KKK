@@ -1,4 +1,4 @@
-import { Home, Users, Settings2Icon, User2Icon } from 'lucide-react'
+import { Home, Users, Settings2Icon, User2Icon, FilePenLine, Book } from 'lucide-react'
 
 export const NavigationItems = [
   {
@@ -20,6 +20,15 @@ export const NavigationItems = [
     title: 'Settings',
     url: '/settings',
     icon: <Settings2Icon />,
-    items: [],
+  },
+  {
+    title: 'Reports',
+    url: '/reports',
+    icon: <FilePenLine />,
+  },
+  {
+    title: 'Activity Logs',
+    url: '/activity-logs',
+    icon: <Book />,
   },
 ]

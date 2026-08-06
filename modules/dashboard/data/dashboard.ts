@@ -1,4 +1,4 @@
-import { UserRoundCheck, UserRoundX, Users } from 'lucide-react';
+import { UserRoundCheck, UserRoundX, Users } from 'lucide-react'
 
 export const reports = [
   {
@@ -22,4 +22,4 @@ export const reports = [
     value: '3',
     icon: UserRoundX,
   },
-];
+]

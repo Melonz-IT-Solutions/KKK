@@ -1,7 +1,7 @@
-import { LucideIcon } from 'lucide-react';
-import type { Department } from '@/constants/departments';
-import { DEPARTMENT_NAMES } from '@/constants/departments';
-export type { Department } from '@/constants/departments';
+import { LucideIcon } from 'lucide-react'
+import type { Department } from '@/constants/departments'
+import { DEPARTMENT_NAMES } from '@/constants/departments'
+export type { Department } from '@/constants/departments'
 
 // =====================
 // ENUM TYPES
@@ -12,36 +12,36 @@ export type StaffRole =
   | 'SYSTEM_MANAGER'
   | 'FINANCE'
   | 'BRANCH_MANAGER'
-  | 'STAFF_USER';
+  | 'STAFF_USER'
 
-export type StaffStatus = 'ACTIVE' | 'INACTIVE';
+export type StaffStatus = 'ACTIVE' | 'INACTIVE'
 
 // =====================
 // DATABASE STAFF TYPE
 // =====================
 
 export interface Staff {
-  id: string;
+  id: string
 
-  avatar?: string;
+  avatar?: string
 
-  firstName: string;
-  lastName: string;
+  firstName: string
+  lastName: string
 
-  fullName: string;
-  username: string;
-  email: string;
-  contactNumber: string;
+  fullName: string
+  username: string
+  email: string
+  contactNumber: string
 
-  department: Department;
-  role: StaffRole;
+  department: Department
+  role: StaffRole
 
-  password: string;
+  password: string
 
-  status: StaffStatus;
+  status: StaffStatus
 
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Date
+  updatedAt: Date
 }
 
 // =====================
@@ -49,14 +49,14 @@ export interface Staff {
 // =====================
 
 export interface InfoFieldProps {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
+  label: string
+  value: string
+  onChange: (value: string) => void
 
-  type?: React.HTMLInputTypeAttribute;
-  placeholder?: string;
+  type?: React.HTMLInputTypeAttribute
+  placeholder?: string
 
-  options?: readonly string[];
+  options?: readonly string[]
 }
 
 // =====================
@@ -64,29 +64,29 @@ export interface InfoFieldProps {
 // =====================
 
 export type AccountInfo = {
-  firstName: string;
-  middleName: string;
-  lastName: string;
-  email: string;
-  contactNumber: string;
-};
+  firstName: string
+  middleName: string
+  lastName: string
+  email: string
+  contactNumber: string
+}
 
-export type AccountStatus = StaffStatus;
+export type AccountStatus = StaffStatus
 
 export interface AccountSectionProps {
-  roles: StaffRole[];
+  roles: StaffRole[]
 
-  addRole: (role: StaffRole) => void;
+  addRole: (role: StaffRole) => void
 
-  removeRole: (role: StaffRole) => void;
+  removeRole: (role: StaffRole) => void
 
-  accountInfo: AccountInfo;
+  accountInfo: AccountInfo
 
-  updateField: (field: keyof AccountInfo, value: string) => void;
+  updateField: (field: keyof AccountInfo, value: string) => void
 
-  accountStatus?: AccountStatus;
+  accountStatus?: AccountStatus
 
-  toggleAccountStatus?: () => void;
+  toggleAccountStatus?: () => void
 }
 
 // =====================
@@ -94,17 +94,17 @@ export interface AccountSectionProps {
 // =====================
 
 export interface PasswordInfo {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
+  currentPassword: string
+  newPassword: string
+  confirmPassword: string
 }
 
 export interface PasswordSectionProps {
-  passwordInfo: PasswordInfo;
+  passwordInfo: PasswordInfo
 
-  updateField: (field: keyof PasswordInfo, value: string) => void;
+  updateField: (field: keyof PasswordInfo, value: string) => void
 
-  onSubmit: () => void;
+  onSubmit: () => void
 }
 
 // =====================
@@ -112,11 +112,11 @@ export interface PasswordSectionProps {
 // =====================
 
 export interface StaffTableColumn {
-  label: string;
+  label: string
 
-  key: keyof Staff;
+  key: keyof Staff
 
-  icon?: LucideIcon;
+  icon?: LucideIcon
 }
 
 // =====================
@@ -129,6 +129,6 @@ export const STAFF_ROLES: StaffRole[] = [
   'FINANCE',
   'BRANCH_MANAGER',
   'STAFF_USER',
-];
+]
 
-export const DEPARTMENTS = DEPARTMENT_NAMES;
+export const DEPARTMENTS = DEPARTMENT_NAMES

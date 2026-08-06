@@ -21,4 +21,4 @@ export const reports = [
     footerTitle: null,
     footerSub: null,
   },
-];
+]

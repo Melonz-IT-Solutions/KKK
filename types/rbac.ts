@@ -1,4 +1,4 @@
-import type { StaffRole } from '@/types/accountfield';
+import type { StaffRole } from '@/types/accountfield'
 
 export type Permission =
   | 'users:view'
@@ -8,9 +8,9 @@ export type Permission =
   | 'finance:view'
   | 'finance:edit'
   | 'branch:manage'
-  | 'settings:manage';
+  | 'settings:manage'
 
-export type { StaffRole } from '@/types/accountfield';
+export type { StaffRole } from '@/types/accountfield'
 
 export const ROLE_PERMISSIONS: Record<StaffRole, Permission[]> = {
   SUPER_ADMIN: [
@@ -34,4 +34,4 @@ export const ROLE_PERMISSIONS: Record<StaffRole, Permission[]> = {
     'finance:edit',
     'branch:manage',
   ],
-};
+}

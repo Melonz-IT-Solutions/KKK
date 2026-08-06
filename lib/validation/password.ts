@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
 export const passwordSchema = z
   .object({
@@ -6,9 +6,9 @@ export const passwordSchema = z
     newPassword: z.string().min(8, 'Password must be at least 8 characters'),
     confirmPassword: z.string(),
   })
-  .refine((data) => data.newPassword === data.confirmPassword, {
+  .refine(data => data.newPassword === data.confirmPassword, {
     path: ['confirmPassword'],
     message: 'Passwords do not match',
-  });
+  })
 
-export type PasswordFormValues = z.infer<typeof passwordSchema>;
+export type PasswordFormValues = z.infer<typeof passwordSchema>

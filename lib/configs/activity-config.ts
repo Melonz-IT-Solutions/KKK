@@ -1,12 +1,4 @@
-import {
-  UserPlus,
-  Wallet,
-  UserPen,
-  Building2,
-  UserMinus,
-  LogIn,
-  LogOut,
-} from 'lucide-react';
+import { UserPlus, Wallet, UserPen, Building2, UserMinus, LogIn, LogOut } from 'lucide-react'
 
 export const activityConfig = {
   'New Manager Created': {
@@ -36,4 +28,4 @@ export const activityConfig = {
   'Member Logout': {
     icon: LogOut,
   },
-} as const;
+} as const

@@ -1,4 +1,4 @@
-import type { MemberRow } from '@/modules/members/types/member';
+import type { MemberRow } from '@/modules/members/types/member'
 
 export const members: MemberRow[] = [
   {
@@ -97,4 +97,4 @@ export const members: MemberRow[] = [
     address: 'Recodo, Zamboanga City',
     status: 'Divorced',
   },
-];
+]

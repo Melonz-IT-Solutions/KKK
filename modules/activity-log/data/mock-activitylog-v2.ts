@@ -1,5 +1,5 @@
 // modules/activity-logs/data/mock-activity-logs.ts
-import { ActivityLogEntry } from '@/types/activelog';
+import { ActivityLogEntry } from '@/types/activelog'
 
 export const mockActivityLogs: ActivityLogEntry[] = [
   {
@@ -65,4 +65,4 @@ export const mockActivityLogs: ActivityLogEntry[] = [
     actionLabel: 'Updated by',
     date: 'June 28, 2026',
   },
-];
+]

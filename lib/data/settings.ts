@@ -1,5 +1,5 @@
-import { DEPARTMENTS } from '@/constants/departments';
-import type { AccountInfo, StaffRole } from '@/types/accountfield';
+import { DEPARTMENTS } from '@/constants/departments'
+import type { AccountInfo, StaffRole } from '@/types/accountfield'
 
 export const SETTINGS_OPTIONS = [
   {
@@ -12,7 +12,7 @@ export const SETTINGS_OPTIONS = [
     title: 'Change password',
     description: 'Update your security credentials.',
   },
-] as const;
+] as const
 
 export const ACCOUNT_FIELDS = [
   {
@@ -35,13 +35,9 @@ export const ACCOUNT_FIELDS = [
     key: 'contactNumber',
     label: 'Mobile Number',
   },
-] as const;
+] as const
 
-export const DEFAULT_ROLES: StaffRole[] = [
-  'SUPER_ADMIN',
-  'SYSTEM_MANAGER',
-  'STAFF_USER',
-];
+export const DEFAULT_ROLES: StaffRole[] = ['SUPER_ADMIN', 'SYSTEM_MANAGER', 'STAFF_USER']
 
 export const DEFAULT_ACCOUNT_INFO: AccountInfo = {
   firstName: 'Super',
@@ -49,4 +45,4 @@ export const DEFAULT_ACCOUNT_INFO: AccountInfo = {
   email: 'super-admin@kkk.com',
   contactNumber: '454545454',
   middleName: '',
-};
+}

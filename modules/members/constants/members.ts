@@ -7,7 +7,7 @@ import type {
   WeeklyContribution,
   Gender,
   Relationship,
-} from '@/types/memberfield';
+} from '@/types/memberfield'
 
 // ---------------------------------------------------------------------------
 // Empty/default form states
@@ -20,7 +20,7 @@ export const emptyForm: PrincipalMemberFormValues = {
   age: '',
   civilStatus: '',
   weeklyContribution: '',
-};
+}
 
 export const emptyBeneficiaryEntry: BeneficiaryEntryValues = {
   name: '',
@@ -29,12 +29,12 @@ export const emptyBeneficiaryEntry: BeneficiaryEntryValues = {
   age: '',
   gender: '',
   relationship: '',
-};
+}
 
 export const emptyBeneficiaryForm: BeneficiaryFormValues = {
   primary: { ...emptyBeneficiaryEntry },
   secondary: { ...emptyBeneficiaryEntry },
-};
+}
 
 export const emptyDependentEntry: DependentEntryValues = {
   name: '',
@@ -42,7 +42,7 @@ export const emptyDependentEntry: DependentEntryValues = {
   birthday: '',
   age: '',
   gender: '',
-};
+}
 
 // ---------------------------------------------------------------------------
 // Select option lists
@@ -54,20 +54,20 @@ export const CIVIL_STATUS_OPTIONS: { value: CivilStatus; label: string }[] = [
   { value: 'widowed', label: 'Widowed' },
   { value: 'separated', label: 'Separated' },
   { value: 'divorce', label: 'Divorce' },
-];
+]
 
 export const WEEKLY_CONTRIBUTION_OPTIONS: {
-  value: WeeklyContribution;
-  label: string;
+  value: WeeklyContribution
+  label: string
 }[] = [
   { value: '25', label: '25.00' },
   { value: '50', label: '50.00' },
-];
+]
 
 export const GENDER_OPTIONS: { value: Gender; label: string }[] = [
   { value: 'male', label: 'Male' },
   { value: 'female', label: 'Female' },
-];
+]
 
 export const RELATIONSHIP_OPTIONS: { value: Relationship; label: string }[] = [
   { value: 'spouse', label: 'Spouse' },
@@ -75,13 +75,10 @@ export const RELATIONSHIP_OPTIONS: { value: Relationship; label: string }[] = [
   { value: 'parent', label: 'Parent' },
   { value: 'sibling', label: 'Sibling' },
   { value: 'other', label: 'Other' },
-];
+]
 
 // constants/members.ts
-import type {
-  MemberColumn,
-  BranchOption,
-} from '@/modules/members/types/member';
+import type { MemberColumn, BranchOption } from '@/modules/members/types/member'
 
 // ...your existing CIVIL_STATUS_OPTIONS, GENDER_OPTIONS,
 // WEEKLY_CONTRIBUTION_OPTIONS, RELATIONSHIP_OPTIONS, emptyForm, etc. stay here
@@ -92,7 +89,7 @@ export const MEMBER_TABLE_COLUMNS: MemberColumn[] = [
   { key: 'age', label: 'Age' },
   { key: 'address', label: 'Address' },
   { key: 'status', label: 'Civil Status' },
-];
+]
 
 export const BRANCH_OPTIONS: BranchOption[] = [
   { label: 'Filter by Cluster / Branch', value: 'all' },
@@ -103,4 +100,4 @@ export const BRANCH_OPTIONS: BranchOption[] = [
   { label: 'Mercedes Branch', value: 'mercedes' },
   { label: 'Sangali Branch', value: 'sangali' },
   { label: 'Cabaluay Branch', value: 'cabaluay' },
-];
+]

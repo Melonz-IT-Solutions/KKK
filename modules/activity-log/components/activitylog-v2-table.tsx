@@ -1,5 +1,5 @@
 // modules/activity-logs/components/activity-logs-table.tsx
-'use client';
+'use client'
 
 import {
   Table,
@@ -8,24 +8,24 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { ActivityLogEntry, ActivityType } from '@/types/activelog';
+} from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { ActivityLogEntry, ActivityType } from '@/types/activelog'
 
 const TYPE_BADGE_VARIANT: Record<ActivityType, string> = {
   created: 'bg-green-100 text-green-800',
   updated: 'bg-blue-100 text-blue-800',
   imported: 'bg-purple-100 text-purple-800',
-};
+}
 
 interface ActivityLogsTableProps {
-  logs: ActivityLogEntry[];
+  logs: ActivityLogEntry[]
 }
 
 export function ActivityLogsTable({ logs }: ActivityLogsTableProps) {
   return (
-    <div className='w-full overflow-x-auto border'>
-      <Table className='w-full'>
+    <div className="w-full overflow-x-auto border">
+      <Table className="w-full">
         <TableHeader>
           <TableRow>
             <TableHead>Activity</TableHead>
@@ -35,7 +35,7 @@ export function ActivityLogsTable({ logs }: ActivityLogsTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {logs.map((log) => (
+          {logs.map(log => (
             <TableRow key={log.id}>
               <TableCell>
                 <Badge
@@ -44,14 +44,10 @@ export function ActivityLogsTable({ logs }: ActivityLogsTableProps) {
                   {log.title}
                 </Badge>
               </TableCell>
-              <TableCell className='text-sm text-muted-foreground'>
-                {log.description}
-              </TableCell>
+              <TableCell className="text-muted-foreground text-sm">{log.description}</TableCell>
 
-              <TableCell className='text-sm font-medium text-foreground'>
-                {log.actorName}
-              </TableCell>
-              <TableCell className='whitespace-nowrap text-sm text-muted-foreground'>
+              <TableCell className="text-foreground text-sm font-medium">{log.actorName}</TableCell>
+              <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
                 {log.date}
               </TableCell>
             </TableRow>
@@ -59,5 +55,5 @@ export function ActivityLogsTable({ logs }: ActivityLogsTableProps) {
         </TableBody>
       </Table>
     </div>
-  );
+  )
 }

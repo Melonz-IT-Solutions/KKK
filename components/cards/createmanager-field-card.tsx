@@ -1,11 +1,11 @@
-'use client';
+'use client'
 
-import CardHeader from '../headers/card-header';
-import InfoField from '@/modules/settings/components/info-field';
-import Button from '@/components/button';
-import { UserPlus, Zap } from 'lucide-react';
+import CardHeader from '../headers/card-header'
+import InfoField from '@/modules/settings/components/info-field'
+import Button from '@/components/button'
+import { UserPlus, Zap } from 'lucide-react'
 
-import { Field, FieldContent, FieldLabel } from '@/components/ui/field';
+import { Field, FieldContent, FieldLabel } from '@/components/ui/field'
 
 import {
   Select,
@@ -13,11 +13,11 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui/select'
 
 export default function CreateBranchManagerSection() {
   return (
-    <section className="rounded-lg border bg-background  ">
+    <section className="bg-background rounded-lg border">
       <div className="grid p-6">
         <CardHeader
           title="Create Branch Manager"
@@ -54,9 +54,7 @@ export default function CreateBranchManagerSection() {
 
                   <SelectItem value="hr">HR Department</SelectItem>
 
-                  <SelectItem value="operations">
-                    Operations Department
-                  </SelectItem>
+                  <SelectItem value="operations">Operations Department</SelectItem>
                 </SelectContent>
               </Select>
             </FieldContent>
@@ -71,7 +69,7 @@ export default function CreateBranchManagerSection() {
         </div>
 
         <div className="flex justify-end gap-3 p-4">
-          <Button className="bg-white text-green border ">Cancel</Button>
+          <Button className="text-green border bg-white">Cancel</Button>
 
           <Button>
             <Zap className="size-4" />
@@ -80,5 +78,5 @@ export default function CreateBranchManagerSection() {
         </div>
       </div>
     </section>
-  );
+  )
 }

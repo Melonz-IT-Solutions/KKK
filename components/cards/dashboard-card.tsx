@@ -1,4 +1,4 @@
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/ui/badge'
 import {
   Card,
   CardAction,
@@ -6,8 +6,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { TrendingUp } from 'lucide-react';
+} from '@/components/ui/card'
+import { TrendingUp } from 'lucide-react'
 
 const reports = [
   {
@@ -38,12 +38,12 @@ const reports = [
     footerTitle: null,
     footerSub: null,
   },
-];
+]
 
 export default function DashboardCard() {
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
-      {reports.map((report) => (
+      {reports.map(report => (
         <Card key={report.label} className="@container/card">
           <CardHeader>
             <CardDescription>{report.label}</CardDescription>
@@ -64,13 +64,11 @@ export default function DashboardCard() {
                   {report.footerTitle} <TrendingUp className="size-4" />
                 </div>
               )}
-              {report.footerSub && (
-                <div className="text-muted-foreground">{report.footerSub}</div>
-              )}
+              {report.footerSub && <div className="text-muted-foreground">{report.footerSub}</div>}
             </CardFooter>
           )}
         </Card>
       ))}
     </div>
-  );
+  )
 }

@@ -1,28 +1,25 @@
 // app/reports/page.tsx
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
-import { ReportsHeader } from '@/modules/reports/components/reports-header';
-import { ReportsTable } from '@/modules/reports/components/reports-table';
-import { GenerateReportSheet } from '@/modules/reports/components/generate-report-sheet';
-import type {
-  GenerateReportFormValues,
-  ReportEntry,
-} from '@/modules/reports/types/reports';
+import { useEffect, useState } from 'react'
+import { ReportsHeader } from '@/modules/reports/components/reports-header'
+import { ReportsTable } from '@/modules/reports/components/reports-table'
+import { GenerateReportSheet } from '@/modules/reports/components/generate-report-sheet'
+import type { GenerateReportFormValues, ReportEntry } from '@/modules/reports/types/reports'
 
 export default function ReportsPage() {
-  const [reports, setReports] = useState<ReportEntry[]>([]);
-  const [isGenerateOpen, setIsGenerateOpen] = useState(false);
+  const [reports, setReports] = useState<ReportEntry[]>([])
+  const [isGenerateOpen, setIsGenerateOpen] = useState(false)
 
   const loadReports = async () => {
-    const response = await fetch('/api/reports');
-    const data = await response.json();
-    setReports(data ?? []);
-  };
+    const response = await fetch('/api/reports')
+    const data = await response.json()
+    setReports(data ?? [])
+  }
 
   useEffect(() => {
-    void loadReports();
-  }, []);
+    void loadReports()
+  }, [])
 
   const handleGenerate = async (values: GenerateReportFormValues) => {
     const response = await fetch('/api/reports', {
@@ -38,18 +35,18 @@ export default function ReportsPage() {
           year: 'numeric',
         }),
       }),
-    });
+    })
     if (response.ok) {
-      await loadReports();
+      await loadReports()
     }
-  };
+  }
 
   return (
-    <div className='w-full p-4 md:p-6'>
-      <div className='  '>
+    <div className="w-full p-4 md:p-6">
+      <div className=" ">
         <ReportsHeader onGenerateReport={() => setIsGenerateOpen(true)} />
 
-        <div className='mt-6'>
+        <div className="mt-6">
           <ReportsTable reports={reports} />
         </div>
       </div>
@@ -60,5 +57,5 @@ export default function ReportsPage() {
         onGenerate={handleGenerate}
       />
     </div>
-  );
+  )
 }

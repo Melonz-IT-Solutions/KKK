@@ -1,6 +1,6 @@
-'use client';
+'use client'
 
-import * as React from 'react';
+import * as React from 'react'
 
 import {
   DropdownMenu,
@@ -9,33 +9,31 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/components/ui/dropdown-menu'
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from '@/components/ui/sidebar';
-import { ChevronsUpDownIcon, Undo2 } from 'lucide-react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import Logo from '../logo';
-import { getNameByInitial } from '@/lib/utils';
+} from '@/components/ui/sidebar'
+import { ChevronsUpDownIcon, Undo2 } from 'lucide-react'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import Logo from '../logo'
+import { getNameByInitial } from '@/lib/utils'
 
 export function DepartmentSwitcher({
   departments,
 }: {
   departments: ReadonlyArray<{
-    name: string;
-    logo?: string;
-  }>;
+    name: string
+    logo?: string
+  }>
 }) {
-  const { isMobile } = useSidebar();
-  const [activeDepartment, setActiveDepartment] = React.useState(
-    departments[0],
-  );
+  const { isMobile } = useSidebar()
+  const [activeDepartment, setActiveDepartment] = React.useState(departments[0])
 
   if (!activeDepartment) {
-    return null;
+    return null
   }
 
   return (
@@ -44,55 +42,49 @@ export function DepartmentSwitcher({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
-              size='lg'
-              className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
+              size="lg"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg'>
+              <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                 <Logo />
               </div>
-              <div className='grid flex-1 text-left text-sm leading-tight'>
-                <span className='truncate font-bold'>
-                  {process.env.NEXT_PUBLIC_APP_NAME}
-                </span>
-                <span className='truncate text-xs'>
-                  {activeDepartment.name}
-                </span>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-bold">{process.env.NEXT_PUBLIC_APP_NAME}</span>
+                <span className="truncate text-xs">{activeDepartment.name}</span>
               </div>
-              <ChevronsUpDownIcon className='ml-auto' />
+              <ChevronsUpDownIcon className="ml-auto" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className='w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg'
-            align='start'
+            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+            align="start"
             side={isMobile ? 'bottom' : 'right'}
             sideOffset={4}
           >
-            <DropdownMenuLabel className='text-muted-foreground text-sm'>
+            <DropdownMenuLabel className="text-muted-foreground text-sm">
               Departments
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {departments.map((department) => (
+            {departments.map(department => (
               <DropdownMenuItem
                 key={department.name}
                 onClick={() => setActiveDepartment(department)}
-                className='gap-2 p-2'
+                className="gap-2 p-2"
               >
-                <div className='mr-2 flex size-6 items-center justify-center rounded-md border'>
+                <div className="mr-2 flex size-6 items-center justify-center rounded-md border">
                   <Avatar>
-                    <AvatarFallback>
-                      {getNameByInitial(department.name)}
-                    </AvatarFallback>
+                    <AvatarFallback>{getNameByInitial(department.name)}</AvatarFallback>
                   </Avatar>
                 </div>
                 {department.name}
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
-            <DropdownMenuItem className='gap-2 p-2'>
-              <div className='flex size-6 items-center justify-center rounded-md border bg-transparent'>
-                <Undo2 className='size-4' />
+            <DropdownMenuItem className="gap-2 p-2">
+              <div className="flex size-6 items-center justify-center rounded-md border bg-transparent">
+                <Undo2 className="size-4" />
               </div>
-              <div className='font-medium text-black' onClick={() => {}}>
+              <div className="font-medium text-black" onClick={() => {}}>
                 Switch to Super Admin
               </div>
             </DropdownMenuItem>
@@ -100,5 +92,5 @@ export function DepartmentSwitcher({
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  );
+  )
 }

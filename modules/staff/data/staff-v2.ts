@@ -1,5 +1,5 @@
 // lib/mock/staff-data.ts
-import type { StaffRow } from '@/modules/staff/types/staff';
+import type { StaffRow } from '@/modules/staff/types/staff'
 
 export const mockStaffData: StaffRow[] = [
   {
@@ -110,4 +110,4 @@ export const mockStaffData: StaffRow[] = [
     role: 'STAFF_USER',
     status: 'ACTIVE',
   },
-];
+]

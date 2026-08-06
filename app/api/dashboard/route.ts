@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
 
 export async function GET() {
   try {
@@ -20,7 +20,7 @@ export async function GET() {
         by: ['createdAt'],
         _count: { id: true },
       }),
-    ]);
+    ])
 
     return NextResponse.json({
       cards: [
@@ -41,23 +41,20 @@ export async function GET() {
           icon: 'UserRoundX',
         },
       ],
-      recentMembers: recentMembers.map((member) => ({
+      recentMembers: recentMembers.map(member => ({
         id: member.id,
         name: member.name,
         address: member.address,
       })),
-      chartData: chartData.map((item) => ({
+      chartData: chartData.map(item => ({
         month: new Date(item.createdAt).toLocaleString('en-US', {
           month: 'short',
         }),
         members: item._count.id,
       })),
-    });
+    })
   } catch (error) {
-    console.error(error);
-    return NextResponse.json(
-      { message: 'Failed to load dashboard data' },
-      { status: 500 },
-    );
+    console.error(error)
+    return NextResponse.json({ message: 'Failed to load dashboard data' }, { status: 500 })
   }
 }

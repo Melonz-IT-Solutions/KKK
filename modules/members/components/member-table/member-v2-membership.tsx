@@ -2,36 +2,28 @@ const membershipStyles: Record<string, string> = {
   Regular: ' ring-1 ring-inset ',
   Premium: '',
   VIP: '',
-};
+}
 
 function normalizeMembershipValue(value: string) {
-  const normalized = value?.trim().toLowerCase();
+  const normalized = value?.trim().toLowerCase()
 
-  if (
-    normalized === '25' ||
-    normalized === '25.00' ||
-    normalized === 'regular'
-  ) {
-    return 'Regular';
+  if (normalized === '25' || normalized === '25.00' || normalized === 'regular') {
+    return 'Regular'
   }
 
-  if (
-    normalized === '50' ||
-    normalized === '50.00' ||
-    normalized === 'premium'
-  ) {
-    return 'Premium';
+  if (normalized === '50' || normalized === '50.00' || normalized === 'premium') {
+    return 'Premium'
   }
 
-  return value;
+  return value
 }
 
 interface MembershipBadgeProps {
-  value: string;
+  value: string
 }
 
 export default function MembershipBadge({ value }: MembershipBadgeProps) {
-  const normalizedValue = normalizeMembershipValue(value);
+  const normalizedValue = normalizeMembershipValue(value)
 
   return (
     <span
@@ -41,5 +33,5 @@ export default function MembershipBadge({ value }: MembershipBadgeProps) {
     >
       {normalizedValue}
     </span>
-  );
+  )
 }

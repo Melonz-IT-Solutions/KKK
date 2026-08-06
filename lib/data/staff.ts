@@ -1,4 +1,4 @@
-import type { Staff, StaffRole } from '@/types/accountfield';
+import type { Staff, StaffRole } from '@/types/accountfield'
 
 export const staffMembers: Staff[] = [
   {
@@ -51,34 +51,25 @@ export const staffMembers: Staff[] = [
     createdAt: new Date(),
     updatedAt: new Date(),
   },
-];
+]
 
 export const getUserIdsByRole = (
   staffs: readonly Pick<Staff, 'id' | 'role'>[],
-  role: StaffRole,
-): string[] =>
-  staffs.filter((staff) => staff.role === role).map((staff) => staff.id);
+  role: StaffRole
+): string[] => staffs.filter(staff => staff.role === role).map(staff => staff.id)
 
-export const getSuperAdminUserIds = (
-  staffs: readonly Pick<Staff, 'id' | 'role'>[],
-): string[] => getUserIdsByRole(staffs, 'SUPER_ADMIN');
+export const getSuperAdminUserIds = (staffs: readonly Pick<Staff, 'id' | 'role'>[]): string[] =>
+  getUserIdsByRole(staffs, 'SUPER_ADMIN')
 
-export const getSystemManagerUserIds = (
-  staffs: readonly Pick<Staff, 'id' | 'role'>[],
-): string[] => getUserIdsByRole(staffs, 'SYSTEM_MANAGER');
+export const getSystemManagerUserIds = (staffs: readonly Pick<Staff, 'id' | 'role'>[]): string[] =>
+  getUserIdsByRole(staffs, 'SYSTEM_MANAGER')
 
-export const getStaffUserIds = (
-  staffs: readonly Pick<Staff, 'id' | 'role'>[],
-): string[] => getUserIdsByRole(staffs, 'STAFF_USER');
+export const getStaffUserIds = (staffs: readonly Pick<Staff, 'id' | 'role'>[]): string[] =>
+  getUserIdsByRole(staffs, 'STAFF_USER')
 
-export const getStaffById = (
-  staffs: readonly Staff[],
-  id: string,
-): Staff | undefined => staffs.find((staff) => staff.id === id);
+export const getStaffById = (staffs: readonly Staff[], id: string): Staff | undefined =>
+  staffs.find(staff => staff.id === id)
 
-export const isSuperAdminRole = (role: StaffRole): boolean =>
-  role === 'SUPER_ADMIN';
-export const isSystemManagerRole = (role: StaffRole): boolean =>
-  role === 'SYSTEM_MANAGER';
-export const isStaffUserRole = (role: StaffRole): boolean =>
-  role === 'STAFF_USER';
+export const isSuperAdminRole = (role: StaffRole): boolean => role === 'SUPER_ADMIN'
+export const isSystemManagerRole = (role: StaffRole): boolean => role === 'SYSTEM_MANAGER'
+export const isStaffUserRole = (role: StaffRole): boolean => role === 'STAFF_USER'

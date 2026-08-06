@@ -1,5 +1,5 @@
 // modules/reports/components/reports-table.tsx
-'use client';
+'use client'
 
 import {
   Table,
@@ -8,18 +8,18 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { ReportEntry } from '@/modules/reports/types/reports';
+} from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
+import { ReportEntry } from '@/modules/reports/types/reports'
 
 interface ReportsTableProps {
-  reports: ReportEntry[];
+  reports: ReportEntry[]
 }
 
 export function ReportsTable({ reports }: ReportsTableProps) {
   return (
-    <div className='w-full overflow-x-auto border'>
-      <Table className='w-full'>
+    <div className="w-full overflow-x-auto border">
+      <Table className="w-full">
         <TableHeader>
           <TableRow>
             <TableHead>Report Type</TableHead>
@@ -28,20 +28,20 @@ export function ReportsTable({ reports }: ReportsTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {reports.map((report) => (
+          {reports.map(report => (
             <TableRow key={report.id}>
               <TableCell>
                 <Badge
-                  variant='outline'
-                  className='rounded-md border-border bg-transparent font-normal text-foreground'
+                  variant="outline"
+                  className="border-border text-foreground rounded-md bg-transparent font-normal"
                 >
                   {report.type}
                 </Badge>
               </TableCell>
-              <TableCell className='text-sm text-muted-foreground'>
+              <TableCell className="text-muted-foreground text-sm">
                 {report.dateRangeStart} - {report.dateRangeEnd}
               </TableCell>
-              <TableCell className='text-sm text-muted-foreground'>
+              <TableCell className="text-muted-foreground text-sm">
                 {report.generatedDate}
               </TableCell>
             </TableRow>
@@ -49,5 +49,5 @@ export function ReportsTable({ reports }: ReportsTableProps) {
         </TableBody>
       </Table>
     </div>
-  );
+  )
 }

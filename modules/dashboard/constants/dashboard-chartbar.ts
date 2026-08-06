@@ -1,5 +1,5 @@
 // modules/dashboard/data/chart-data.ts
-import type { MonthlyMemberData } from '@/modules/dashboard/types/dashboard';
+import type { MonthlyMemberData } from '@/modules/dashboard/types/dashboard'
 
 export const membersChartData: MonthlyMemberData[] = [
   { month: 'Jan', members: 10 },
@@ -11,4 +11,4 @@ export const membersChartData: MonthlyMemberData[] = [
   { month: 'Jul', members: 31 },
   { month: 'Aug', members: 40 },
   { month: 'Sep', members: 29 },
-];
+]

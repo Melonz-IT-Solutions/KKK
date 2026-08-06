@@ -1,28 +1,28 @@
 export interface MemberRow {
-  id: number;
-  name: string;
-  membership: string;
-  age: number;
-  address: string;
-  status: string;
+  id: number
+  name: string
+  membership: string
+  age: number
+  address: string
+  status: string
 }
 
 export interface MemberColumn {
-  key: string;
-  label: string;
+  key: string
+  label: string
 }
 
 export interface MemberV2TableProps {
-  data: MemberRow[];
+  data: MemberRow[]
 }
 
 export interface RowMenuProps {
-  onView: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
+  onView: () => void
+  onEdit: () => void
+  onDelete: () => void
 }
 
 export interface BranchOption {
-  label: string;
-  value: string;
+  label: string
+  value: string
 }

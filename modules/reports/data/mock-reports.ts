@@ -1,5 +1,5 @@
 // modules/reports/data/mock-reports.ts
-import { ReportEntry } from '@/modules/reports/types/reports';
+import { ReportEntry } from '@/modules/reports/types/reports'
 
 export const mockReports: ReportEntry[] = [
   {
@@ -16,4 +16,4 @@ export const mockReports: ReportEntry[] = [
     dateRangeEnd: 'March 30, 2026',
     generatedDate: 'March 31, 2026',
   },
-];
+]

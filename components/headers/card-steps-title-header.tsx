@@ -1,21 +1,15 @@
-import { PageHeaderProps } from '@/types/headers';
+import { PageHeaderProps } from '@/types/headers'
 
-export default function SectionTitle({
-  step,
-  title,
-  icon: Icon,
-}: PageHeaderProps) {
+export default function SectionTitle({ step, title, icon: Icon }: PageHeaderProps) {
   return (
-    <div className='mb-2 flex flex-wrap items-center gap-3 rounded-lg bg-muted/40 p-4'>
-      <div className='flex h-8 w-8  items-center justify-center rounded-full border bg-background text-[10px] font-bold text-primary'>
+    <div className="bg-muted/40 mb-2 flex flex-wrap items-center gap-3 rounded-lg p-4">
+      <div className="bg-background text-primary flex h-8 w-8 items-center justify-center rounded-full border text-[10px] font-bold">
         {step}
       </div>
 
-      {Icon && <Icon className='size-4 text-primary' />}
+      {Icon && <Icon className="text-primary size-4" />}
 
-      <h3 className='text-sm font-semibold tracking-wide text-foreground'>
-        {title}
-      </h3>
+      <h3 className="text-foreground text-sm font-semibold tracking-wide">{title}</h3>
     </div>
-  );
+  )
 }

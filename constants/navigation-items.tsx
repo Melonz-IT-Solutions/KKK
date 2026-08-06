@@ -1,4 +1,5 @@
-import { Home, Users, Settings2Icon, User2Icon, FilePenLine, Book } from 'lucide-react'
+import { Home, Users, Settings2Icon, History, IdCard } from 'lucide-react';
+import { ur } from 'zod/v4/locales';
 
 export const NavigationItems = [
   {
@@ -6,6 +7,7 @@ export const NavigationItems = [
     url: '/dashboard',
     icon: <Home />,
   },
+
   {
     title: 'Members',
     url: '/members',
@@ -14,21 +16,22 @@ export const NavigationItems = [
   {
     title: 'Staff',
     url: '/staff',
-    icon: <User2Icon />,
+    icon: <IdCard />,
   },
   {
     title: 'Settings',
     url: '/settings',
     icon: <Settings2Icon />,
+    items: [],
   },
   {
     title: 'Reports',
     url: '/reports',
-    icon: <FilePenLine />,
+    icon: <Home />,
   },
   {
-    title: 'Activity Logs',
-    url: '/activity-logs',
-    icon: <Book />,
+    title: 'Active Log',
+    url: '/activelog',
+    icon: <History />,
   },
-]
+];

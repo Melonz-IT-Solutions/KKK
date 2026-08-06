@@ -1,26 +1,104 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+ 
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
-  email        String   @unique
-  username     String   @unique
+  id           Int          @id @default(autoincrement())
+  email        String       @unique
+  username     String       @unique
   name         String?
   password     String
-  contact_no   String?
-  roles        String
-  active       Boolean  @default(true)
-  is_deleted   Boolean  @default(false)
-  departments  String[]
-  createdAt    DateTime @default(now())
+  contactNo    String?
+  roles        String       @default("STAFF")
+  active       Boolean      @default(true)
+  isDeleted    Boolean      @default(false)
+  departments  String[]     @default([])
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime?    @updatedAt
+  staff        Staff?
+  activityLogs ActivityLog[]
+}
+
+model Member {
+  id            Int           @id @default(autoincrement())
+  name          String
+  membership    String
+  age           Int
+  address       String
+  status        String
+  civilStatus   String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime?     @updatedAt
+  activityLogs  ActivityLog[]
+  beneficiaries Beneficiary[]
+  dependents    Dependent[]
+}
+
+model Beneficiary {
+  id           Int      @id @default(autoincrement())
+  member       Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId     Int
+  role         String   // 'primary' | 'secondary'
+  name         String
+  address      String
+  birthday     String
+  gender       String
+  relationship String
+}
+
+model Dependent {
+  id       Int    @id @default(autoincrement())
+  member   Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  memberId Int
+  name     String
+  address  String
+  birthday String
+  gender   String
+}
+
+model Staff {
+  id           Int          @id @default(autoincrement())
+  name         String
+  email        String       @unique
+  department   String
+  password     String
+  active       Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime?    @updatedAt
+  userId       Int?         @unique
+  user         User?        @relation(fields: [userId], references: [id])
+  activityLogs ActivityLog[]
+}
+
+model Report {
+  id            Int      @id @default(autoincrement())
+  type          String
+  dateRangeStart String
+  dateRangeEnd  String
+  generatedDate String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime? @updatedAt
+}
+
+model ActivityLog {
+  id          Int      @id @default(autoincrement())
+  type        String
+  title       String
+  description String
+  actorName   String
+  actionLabel String
+  date        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime? @updatedAt
+  memberId    Int?
+  member      Member?  @relation(fields: [memberId], references: [id])
+  staffId     Int?
+  staff       Staff?   @relation(fields: [staffId], references: [id])
+  userId      Int?
+  user        User?    @relation(fields: [userId], references: [id])
 }

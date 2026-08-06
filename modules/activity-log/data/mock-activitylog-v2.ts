@@ -1,0 +1,68 @@
+// modules/activity-logs/data/mock-activity-logs.ts
+import { ActivityLogEntry } from '@/types/activelog';
+
+export const mockActivityLogs: ActivityLogEntry[] = [
+  {
+    id: '1',
+    type: 'updated',
+    title: 'Member Updated',
+    description: 'Khadeer Kala updated email to khadeerkala@gmail.com',
+    actorName: 'Khalid Usman',
+    actionLabel: 'Updated by',
+    date: 'July 17, 2026',
+  },
+  {
+    id: '2',
+    type: 'created',
+    title: 'Member Created',
+    description: 'Created a new member Ace Angeles',
+    actorName: 'Khadeer Kala',
+    actionLabel: 'Created by',
+    date: 'July 13, 2026',
+  },
+  {
+    id: '3',
+    type: 'imported',
+    title: 'Member Imported',
+    description: 'New 162 members added via import file',
+    actorName: 'Jabeer Gulam',
+    actionLabel: 'Created by',
+    date: 'July 01, 2026',
+  },
+  {
+    id: '4',
+    type: 'updated',
+    title: 'Member Updated',
+    description: 'Khalid Usman updated mobile no. to +639123456678',
+    actorName: 'Ace Angeles',
+    actionLabel: 'Updated by',
+    date: 'June 28, 2026',
+  },
+  {
+    id: '5',
+    type: 'created',
+    title: 'Member Created',
+    description: 'Created a new member Ace Angeles',
+    actorName: 'Khadeer Kala',
+    actionLabel: 'Created by',
+    date: 'July 13, 2026',
+  },
+  {
+    id: '6',
+    type: 'imported',
+    title: 'Member Imported',
+    description: 'New 162 members added via import file',
+    actorName: 'Jabeer Gulam',
+    actionLabel: 'Created by',
+    date: 'July 01, 2026',
+  },
+  {
+    id: '7',
+    type: 'updated',
+    title: 'Member Updated',
+    description: 'Khalid Usman updated mobile no. to +639123456678',
+    actorName: 'Ace Angeles',
+    actionLabel: 'Updated by',
+    date: 'June 28, 2026',
+  },
+];

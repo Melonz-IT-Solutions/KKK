@@ -1,7 +1,11 @@
-export default function MembersPage() {
+import MemberV2Page from '@/modules/members/components/member-view/member-v2-view-page'
+
+const page = () => {
   return (
-    <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <div className="bg-muted/50 min-h-screen flex-1 rounded-xl md:min-h-min" />
+    <div className="mx-auto w-full">
+      <MemberV2Page />
     </div>
   )
 }
+
+export default page

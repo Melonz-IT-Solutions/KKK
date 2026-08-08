@@ -10,23 +10,48 @@ export interface MemberListParams {
 
 export interface MemberPayload {
   name: string
-  membership: string
+  membership: string // raw stored value: "25" or "50"
   age: number
   address: string
-  status: string
+  status: string // normalized to only "Active" or "Inactive"
+  civilStatus?: string | null // e.g. "single" | "married" | "widowed" | "separated" — NEVER confused with status
+  clientId?: number | null
+  transactionDate?: Date | null
+  dateOfBirth?: Date | null
+  loanCycle?: number | null
 }
 
-function normalizeMembershipValue(value: string | null | undefined) {
+function normalizeStatusValue(value: unknown): string {
+  if (typeof value === 'boolean') return value ? 'Active' : 'Inactive'
+
+  const normalized = String(value ?? '')
+    .trim()
+    .toLowerCase()
+
+  if (['active', '1', 'true', 'yes'].includes(normalized)) return 'Active'
+  if (['inactive', '0', 'false', 'no'].includes(normalized)) return 'Inactive'
+
+  return 'Active'
+}
+
+function normalizeMembershipValue(value: string | null | undefined): string {
   const normalized = value?.trim().toLowerCase()
 
   if (normalized === '25' || normalized === '25.00' || normalized === 'regular') {
-    return 'Regular'
+    return '25'
   }
 
   if (normalized === '50' || normalized === '50.00' || normalized === 'premium') {
-    return 'Premium'
+    return '50'
   }
 
+  return value?.trim() ?? ''
+}
+
+export function getMembershipLabel(value: string | null | undefined): string {
+  const raw = normalizeMembershipValue(value)
+  if (raw === '25') return 'Regular'
+  if (raw === '50') return 'Premium'
   return value?.trim() ?? ''
 }
 
@@ -36,32 +61,30 @@ function buildMemberCreateData(payload: MemberPayload): Prisma.MemberCreateInput
     membership: normalizeMembershipValue(payload.membership),
     age: payload.age,
     address: payload.address,
-    status: payload.status,
+    status: normalizeStatusValue(payload.status),
+    civilStatus: payload.civilStatus ?? null,
+    clientId: payload.clientId ?? null,
+    transactionDate: payload.transactionDate ?? null,
+    dateOfBirth: payload.dateOfBirth ?? null,
+    loanCycle: payload.loanCycle ?? null,
   }
 }
 
 function buildMemberUpdateData(payload: Partial<MemberPayload>): Prisma.MemberUpdateInput {
   const data: Prisma.MemberUpdateInput = {}
 
-  if (typeof payload.name === 'string') {
-    data.name = payload.name
-  }
-
+  if (typeof payload.name === 'string') data.name = payload.name
   if (typeof payload.membership === 'string') {
     data.membership = normalizeMembershipValue(payload.membership)
   }
-
-  if (typeof payload.age === 'number') {
-    data.age = payload.age
-  }
-
-  if (typeof payload.address === 'string') {
-    data.address = payload.address
-  }
-
-  if (typeof payload.status === 'string') {
-    data.status = payload.status
-  }
+  if (typeof payload.age === 'number') data.age = payload.age
+  if (typeof payload.address === 'string') data.address = payload.address
+  if (typeof payload.status === 'string') data.status = normalizeStatusValue(payload.status)
+  if (payload.civilStatus !== undefined) data.civilStatus = payload.civilStatus
+  if (payload.clientId !== undefined) data.clientId = payload.clientId
+  if (payload.transactionDate !== undefined) data.transactionDate = payload.transactionDate
+  if (payload.dateOfBirth !== undefined) data.dateOfBirth = payload.dateOfBirth
+  if (payload.loanCycle !== undefined) data.loanCycle = payload.loanCycle
 
   return data
 }
@@ -70,10 +93,16 @@ function mapMember(member: Member) {
   return {
     id: member.id,
     name: member.name,
-    membership: normalizeMembershipValue(member.membership),
+    membership: member.membership,
+    membershipLabel: getMembershipLabel(member.membership),
     age: member.age,
     address: member.address,
     status: member.status,
+    civilStatus: member.civilStatus,
+    clientId: member.clientId,
+    transactionDate: member.transactionDate,
+    dateOfBirth: member.dateOfBirth,
+    loanCycle: member.loanCycle,
   }
 }
 
@@ -142,6 +171,89 @@ export async function createMember(payload: MemberPayload) {
   return mapMember(member)
 }
 
+// ---------------------------------------------------------------------------
+// Combined creation — principal + beneficiaries + dependents in one
+// transaction. This is what AddMemberSheet's full form submits to. Using
+// createMember() alone (flat, no relations) silently drops beneficiaries
+// and dependents — this function is the one that actually persists them.
+// ---------------------------------------------------------------------------
+
+export interface CombinedMemberPayload {
+  principal: {
+    name: string
+    address: string
+    birthday: string
+    age: string
+    civilStatus: string
+    weeklyContribution: string
+  }
+  beneficiaries: {
+    primary: BeneficiaryInput
+    secondary: BeneficiaryInput
+  }
+  dependents: DependentInput[]
+}
+
+interface BeneficiaryInput {
+  name: string
+  address: string
+  birthday: string
+  age: string
+  gender: string
+  relationship: string
+}
+
+interface DependentInput {
+  name: string
+  address: string
+  birthday: string
+  age: string
+  gender: string
+}
+
+function membershipFromContribution(weeklyContribution: string): string {
+  const amount = Number(weeklyContribution)
+  if (Number.isFinite(amount) && amount >= 50) return '50'
+  return '25'
+}
+
+export async function createMemberWithRelations(payload: CombinedMemberPayload) {
+  // Beneficiary/Dependent don't have an `age` column — it's derived from
+  // birthday on the form and not meant to be persisted twice. Strip it out
+  // before handing the object to Prisma, or it throws an unknown-argument
+  // error.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { age: _primaryAge, ...primaryBeneficiary } = payload.beneficiaries.primary
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { age: _secondaryAge, ...secondaryBeneficiary } = payload.beneficiaries.secondary
+
+  return prisma.$transaction(async tx => {
+    const member = await tx.member.create({
+      data: {
+        name: payload.principal.name,
+        address: payload.principal.address,
+        age: Number(payload.principal.age),
+        membership: membershipFromContribution(payload.principal.weeklyContribution),
+        status: normalizeStatusValue('Active'),
+        civilStatus: payload.principal.civilStatus,
+        beneficiaries: {
+          create: [
+            { role: 'primary', ...primaryBeneficiary },
+            { role: 'secondary', ...secondaryBeneficiary },
+          ],
+        },
+        dependents: {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          create: payload.dependents.map(({ age: _dependentAge, ...dependent }) => dependent),
+        },
+      },
+      include: { beneficiaries: true, dependents: true },
+    })
+
+    return member
+  })
+}
+
 export async function updateMember(id: number, payload: Partial<MemberPayload>) {
   const member = await prisma.member.update({
     where: { id },
@@ -153,53 +265,6 @@ export async function updateMember(id: number, payload: Partial<MemberPayload>) 
 export async function deleteMember(id: number) {
   await prisma.member.delete({ where: { id } })
 }
-// Add this to your existing member-service.ts (alongside createMember, updateMember, etc.)
-
-export interface ImportMembersResult {
-  importedCount: number
-  skippedCount: number
-  errors: { row: number; message: string }[]
-}
-
-// Validates and normalizes one raw spreadsheet row into a MemberPayload.
-// Returns null (and pushes an error) if the row is unusable.
-function parseMemberRow(
-  row: Record<string, unknown>,
-  rowNumber: number,
-  errors: { row: number; message: string }[]
-): MemberPayload | null {
-  const name = String(row.name ?? row.Name ?? '').trim()
-  const membershipRaw = row.membership ?? row.Membership
-  const ageRaw = row.age ?? row.Age
-  const address = String(row.address ?? row.Address ?? '').trim()
-  const status = String(row.status ?? row.Status ?? '').trim()
-
-  if (!name) {
-    errors.push({ row: rowNumber, message: 'Missing name.' })
-    return null
-  }
-
-  const age = Number(ageRaw)
-  if (!Number.isFinite(age) || age <= 0) {
-    errors.push({ row: rowNumber, message: 'Invalid or missing age.' })
-    return null
-  }
-
-  if (!address) {
-    errors.push({ row: rowNumber, message: 'Missing address.' })
-    return null
-  }
-
-  return {
-    name,
-    membership: normalizeMembershipValue(String(membershipRaw ?? '')),
-    age,
-    address,
-    status: status || 'Active',
-  }
-}
-
-// Add to member-service.ts
 
 export async function getMemberProfile(id: number) {
   const member = await prisma.member.findUnique({
@@ -221,9 +286,14 @@ export async function getMemberProfile(id: number) {
       name: member.name,
       address: member.address,
       age: member.age,
-      membership: normalizeMembershipValue(member.membership),
+      membership: member.membership,
+      membershipLabel: getMembershipLabel(member.membership),
       status: member.status,
       civilStatus: member.civilStatus,
+      clientId: member.clientId,
+      transactionDate: member.transactionDate,
+      dateOfBirth: member.dateOfBirth,
+      loanCycle: member.loanCycle,
       createdAt: member.createdAt,
     },
     beneficiaries: {
@@ -255,52 +325,101 @@ export async function getMemberProfile(id: number) {
     })),
   }
 }
-// modules/members/data/member-service.ts
+
+// ---------------------------------------------------------------------------
+// Bulk import
+// ---------------------------------------------------------------------------
 
 export interface ImportMembersResult {
   importedCount: number
+  skippedCount: number
+  errors: { row: number; message: string }[]
 }
 
-export async function importMembers(file: File): Promise<ImportMembersResult> {
-  const formData = new FormData()
-  formData.append('file', file)
+function parseDateCell(value: unknown): Date | null {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) return value
+  if (typeof value === 'string' && value.trim() !== '') {
+    const parsed = new Date(value)
+    if (!Number.isNaN(parsed.getTime())) return parsed
+  }
+  return null
+}
 
-  const res = await fetch('/api/members/import', {
-    method: 'POST',
-    body: formData,
-  })
+function parseMemberRow(
+  row: Record<string, unknown>,
+  rowNumber: number,
+  errors: { row: number; message: string }[]
+): MemberPayload | null {
+  const name = String(row['Client name'] ?? '').trim()
+  const ageRaw = row['Client age']
+  const branch = String(row['Branch'] ?? '').trim()
+  const area = String(row['AREA'] ?? '').trim()
+  const address = [area, branch].filter(Boolean).join(' - ')
 
-  if (!res.ok) {
-    const errorBody = await res.json().catch(() => null)
-    throw new Error(errorBody?.message ?? 'Failed to import members.')
+  const membershipTypeRaw = row['Membership Type']
+  const totalPaymentRaw = row['Total payment amount']
+  const membershipSource =
+    membershipTypeRaw && String(membershipTypeRaw).trim() !== ''
+      ? membershipTypeRaw
+      : totalPaymentRaw
+
+  const clientIdRaw = row['Client ID']
+  const clientId = Number(clientIdRaw)
+  const transactionDate = parseDateCell(row['Transaction date'])
+  const dateOfBirth = parseDateCell(row['Client date of birth date'])
+  const loanCycleRaw = row['Loan Cycle']
+  const loanCycle = Number(loanCycleRaw)
+
+  if (!name) {
+    errors.push({ row: rowNumber, message: 'Missing Client name.' })
+    return null
   }
 
-  return res.json()
+  const age = Number(ageRaw)
+  if (!Number.isFinite(age) || age <= 0) {
+    errors.push({ row: rowNumber, message: 'Invalid or missing Client age.' })
+    return null
+  }
+
+  if (!address) {
+    errors.push({ row: rowNumber, message: 'Missing Branch/AREA.' })
+    return null
+  }
+
+  return {
+    name,
+    membership: normalizeMembershipValue(String(membershipSource ?? '')),
+    age,
+    address,
+    status: normalizeStatusValue('Active'),
+    clientId: Number.isFinite(clientId) ? clientId : null,
+    transactionDate,
+    dateOfBirth,
+    loanCycle: Number.isFinite(loanCycle) ? loanCycle : null,
+  }
 }
 
-// export async function importMembers(rows: Record<string, unknown>[]): Promise<ImportMembersResult> {
-//   const errors: { row: number; message: string }[] = []
-//   const validPayloads: MemberPayload[] = []
+export async function importMembers(rows: Record<string, unknown>[]): Promise<ImportMembersResult> {
+  const errors: { row: number; message: string }[] = []
+  const validPayloads: MemberPayload[] = []
 
-//   rows.forEach((row, index) => {
-//     // +2 accounts for the header row and 1-based row numbering, so the
-//     // error message matches the row number the user sees in Excel.
-//     const payload = parseMemberRow(row, index + 2, errors)
-//     if (payload) validPayloads.push(payload)
-//   })
+  rows.forEach((row, index) => {
+    const payload = parseMemberRow(row, index + 2, errors)
+    if (payload) validPayloads.push(payload)
+  })
 
-//   if (validPayloads.length === 0) {
-//     return { importedCount: 0, skippedCount: rows.length, errors }
-//   }
+  if (validPayloads.length === 0) {
+    return { importedCount: 0, skippedCount: rows.length, errors }
+  }
 
-//   const result = await prisma.member.createMany({
-//     data: validPayloads.map(buildMemberCreateData),
-//     skipDuplicates: true,
-//   })
+  const result = await prisma.member.createMany({
+    data: validPayloads.map(buildMemberCreateData),
+    skipDuplicates: true,
+  })
 
-//   return {
-//     importedCount: result.count,
-//     skippedCount: rows.length - result.count,
-//     errors,
-//   }
-// }
+  return {
+    importedCount: result.count,
+    skippedCount: rows.length - result.count,
+    errors,
+  }
+}

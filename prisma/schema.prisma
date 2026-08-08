@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
- 
 }
 
 model User {
@@ -25,18 +24,22 @@ model User {
 }
 
 model Member {
-  id            Int           @id @default(autoincrement())
-  name          String
-  membership    String
-  age           Int
-  address       String
-  status        String
-  civilStatus   String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime?     @updatedAt
-  activityLogs  ActivityLog[]
-  beneficiaries Beneficiary[]
-  dependents    Dependent[]
+  id              Int           @id @default(autoincrement())
+  name            String
+  membership      String
+  age             Int
+  address         String
+  status          String
+  civilStatus     String?
+  clientId        Int?
+  transactionDate DateTime?
+  dateOfBirth     DateTime?
+  loanCycle       Int?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime?     @updatedAt
+  activityLogs    ActivityLog[]
+  beneficiaries   Beneficiary[]
+  dependents      Dependent[]
 }
 
 model Beneficiary {

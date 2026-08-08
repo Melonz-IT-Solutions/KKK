@@ -88,7 +88,7 @@ export const MEMBER_TABLE_COLUMNS: MemberColumn[] = [
   { key: 'membership', label: 'Membership' },
   { key: 'age', label: 'Age' },
   { key: 'address', label: 'Address' },
-  { key: 'status', label: 'Civil Status' },
+  { key: 'civil status', label: 'Civil Status' },
 ]
 
 export const BRANCH_OPTIONS: BranchOption[] = [

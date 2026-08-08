@@ -4,7 +4,7 @@ export interface MemberRow {
   membership: string
   age: number
   address: string
-  status: string
+  civilStatus: string | null
 }
 
 export interface MemberColumn {

@@ -79,7 +79,14 @@ export function AddMemberSheet({ open, onOpenChange, onSave }: AddMemberSheetPro
     }
   }
 
+  // const onSubmit = (values: MemberFormValues) => {
+  //   onSave?.(values)
+  //   reset(defaultMemberFormValues)
+  //   setTab('principal')
+  //   onOpenChange(false)
+  // }
   const onSubmit = (values: MemberFormValues) => {
+    console.log('SUBMIT VALUES:', values) // ← add this line temporarily
     onSave?.(values)
     reset(defaultMemberFormValues)
     setTab('principal')

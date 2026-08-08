@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import {
   createMember,
+  createMemberWithRelations,
   deleteMember,
   listMembers,
   updateMember,
@@ -80,13 +81,7 @@ export async function POST(request: Request) {
     }
 
     const combinedPayload = combinedMemberSchema.parse(rawPayload)
-    const member = await createMember({
-      name: combinedPayload.principal.name,
-      membership: combinedPayload.principal.weeklyContribution === '50' ? 'Premium' : 'Regular',
-      age: Number(combinedPayload.principal.age),
-      address: combinedPayload.principal.address,
-      status: combinedPayload.principal.civilStatus,
-    })
+    const member = await createMemberWithRelations(combinedPayload)
 
     return NextResponse.json(member, { status: 201 })
   } catch (error) {

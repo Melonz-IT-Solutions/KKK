@@ -1,3 +1,4 @@
+// modules/members/components/import-member/import-member-sheet.tsx
 'use client'
 
 import { useState } from 'react'
@@ -9,10 +10,11 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet'
-import { showSuccess, showError } from '@/components/sonner'
+
 import { useFileDropzone } from '@/modules/members/hooks/use-file-dropzone'
 import { DropzoneFileInput } from '@/modules/members/components/import-table/dropzone-file-input'
-import { importMembers } from '@/lib/services/member-service'
+import { importMembers } from '@/modules/members/data/member-server'
+import { showSuccessToast, showErrorToast } from '@/lib/toast-messagealert/showSuccessToast'
 
 interface ImportMemberSheetProps {
   open: boolean
@@ -32,14 +34,17 @@ export default function ImportMemberSheet({
     if (!file) return
 
     setIsImporting(true)
+
     try {
       const result = await importMembers(file)
-      showSuccess(`Successfully imported ${result.importedCount} member(s)`)
+
+      showSuccessToast(`Successfully imported ${result.importedCount} member(s)`)
+
       setFile(null)
       onImported?.()
       onOpenChange(false)
     } catch (error) {
-      showError(error instanceof Error ? error.message : 'Failed to import members.')
+      showErrorToast(error instanceof Error ? error.message : 'Failed to import members.')
     } finally {
       setIsImporting(false)
     }

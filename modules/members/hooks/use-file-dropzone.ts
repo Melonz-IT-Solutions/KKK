@@ -1,4 +1,3 @@
-// modules/members/hooks/use-file-dropzone.ts
 import { useCallback, useState } from 'react'
 
 const ACCEPTED_EXTENSIONS = /\.(xlsx|xls|csv)$/i

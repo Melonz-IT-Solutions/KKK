@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import Button from '@/components/button'
 
 import PageV2Header from '@/components/headers/page-v2-header'
@@ -16,11 +16,17 @@ import {
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { ChevronDown, Import, SearchIcon, UserPlus } from 'lucide-react'
 import MemberV2Table from '@/modules/members/components/member-table/member-v2-table'
-import ImportFileDrawer from '@/modules/members/components/import-table/member-v2-importfile'
+import ImportMemberSheet from '@/modules/members/components/import-table/import-member-sheet'
 import { AddMemberSheet } from '@/modules/members/components/add-member/member-v2-addmember'
-
+import { showSuccessToast, showErrorToast } from '@/lib/toast-messagealert/showSuccessToast'
 import { BRANCH_OPTIONS } from '@/modules/members/constants/members'
 import type { MemberRow } from '@/modules/members/types/member'
+
+// Fetch the full filtered list in one request — pagination is handled
+// entirely client-side inside MemberV2Table. This avoids syncing "page"
+// state between the server response and local state, which is a common
+// source of subtle pagination bugs (stale page, off-by-one, etc.).
+const MAX_MEMBERS_PER_FETCH = 1000
 
 export default function MemberV2Page() {
   const [selectedBranch, setSelectedBranch] = useState('all')
@@ -33,7 +39,7 @@ export default function MemberV2Page() {
   const fetchMembers = async () => {
     setLoading(true)
     const response = await fetch(
-      `/api/members?search=${encodeURIComponent(search)}&branch=${encodeURIComponent(selectedBranch)}`
+      `/api/members?pageSize=${MAX_MEMBERS_PER_FETCH}&search=${encodeURIComponent(search)}&branch=${encodeURIComponent(selectedBranch)}`
     )
     const data = await response.json()
     setMembers(data.items ?? [])
@@ -43,8 +49,6 @@ export default function MemberV2Page() {
   useEffect(() => {
     void fetchMembers()
   }, [search, selectedBranch])
-
-  const filteredMembers = useMemo(() => members, [members])
 
   const triggerLabel =
     BRANCH_OPTIONS.find(option => option.value === selectedBranch)?.label ??
@@ -121,24 +125,41 @@ export default function MemberV2Page() {
             open={isAddMemberOpen}
             onOpenChange={setIsAddMemberOpen}
             onSave={async values => {
-              await fetch('/api/members', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(values),
-              })
-              await fetchMembers()
+              try {
+                const response = await fetch('/api/members', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(values),
+                })
+
+                if (!response.ok) {
+                  const data = await response.json()
+
+                  throw new Error(data.message ?? 'Failed to add member')
+                }
+
+                await fetchMembers()
+
+                showSuccessToast('Successfully added a new member')
+              } catch (error) {
+                showErrorToast(error instanceof Error ? error.message : 'Failed to add member')
+              }
             }}
           />
         </div>
 
-        <ImportFileDrawer open={isImportOpen} onOpenChange={setIsImportOpen} />
+        <ImportMemberSheet
+          open={isImportOpen}
+          onOpenChange={setIsImportOpen}
+          onImported={fetchMembers}
+        />
       </div>
       <div>
         <div className="py-6">
           {loading ? (
             <p className="text-muted-foreground text-sm">Loading members…</p>
           ) : (
-            <MemberV2Table data={filteredMembers} />
+            <MemberV2Table data={members} />
           )}
         </div>
       </div>

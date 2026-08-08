@@ -43,7 +43,7 @@ export default function SettingsPageView() {
         description="Manage your account details, security preferences, and system access."
       />
 
-      <div className="grid gap-6 p-6 sm:p-6 md:grid-cols-[300px_1fr] lg:grid-cols-[280px_minmax(0,1fr)]">
+      <div className="grid gap-6 p-6 md:grid-cols-[300px_1fr] lg:grid-cols-[280px_minmax(0,1fr)]">
         <SettingsSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
 
         <div className=" ">

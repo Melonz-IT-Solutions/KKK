@@ -13,17 +13,23 @@ import MembershipBadge from '@/modules/members/components/member-table/member-v2
 import RowMenu from '@/modules/members/components/member-table/member-v2-rowmenu'
 import Pagination from '@/components/pagenation/pagination'
 import { usePagination } from '@/lib/hooks/use-pagination'
-import { paginate } from '@/lib/utils/paginate'
 
-import type { MemberRow, MemberV2TableProps } from '@/modules/members/types/member'
+import type { MemberRow } from '@/modules/members/types/member'
+
+interface MemberV2TableProps {
+  data: MemberRow[]
+}
 
 export default function MemberV2Table({ data }: MemberV2TableProps) {
+  // One source of truth for pagination: this hook, driven entirely by the
+  // full `data` array's length. No round-trip syncing with a server
+  // response — `data` already contains everything, filtered.
   const { page, pageSize, pageCount, start, end, setPage, setPageSize } = usePagination({
     totalItems: data.length,
     initialPageSize: 10,
   })
 
-  const pageRows = paginate(data, start, end)
+  const pageRows = data.slice(start, end)
 
   function handleAction(kind: 'view' | 'edit' | 'delete', row: MemberRow) {
     console.log(kind, row)
@@ -68,7 +74,7 @@ export default function MemberV2Table({ data }: MemberV2TableProps) {
                   </TableCell>
                   <TableCell className="font-medium text-slate-700">{row.age}</TableCell>
                   <TableCell className="text-slate-600">{row.address}</TableCell>
-                  <TableCell className="text-slate-600">{row.status}</TableCell>
+                  <TableCell className="text-slate-600">{row.civilStatus ?? ''}</TableCell>
                   <TableCell className="text-right">
                     <RowMenu
                       onView={() => handleAction('view', row)}

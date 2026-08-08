@@ -8,6 +8,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet'
+import { showSuccessToast } from '@/lib/toast-messagealert/showSuccessToast'
 
 export default function ImportFileDrawer({
   open = true,
@@ -40,6 +41,8 @@ export default function ImportFileDrawer({
     if (!file) return
     // wire up your actual import mutation here
     console.log('Importing', file.name)
+    showSuccessToast('Successfully imported members')
+    onOpenChange(false)
   }
 
   return (

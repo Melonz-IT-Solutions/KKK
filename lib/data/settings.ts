@@ -1,4 +1,3 @@
-import { DEPARTMENTS } from '@/constants/departments'
 import type { AccountInfo, StaffRole } from '@/types/accountfield'
 
 export const SETTINGS_OPTIONS = [
@@ -37,7 +36,7 @@ export const ACCOUNT_FIELDS = [
   },
 ] as const
 
-export const DEFAULT_ROLES: StaffRole[] = ['SUPER_ADMIN', 'SYSTEM_MANAGER', 'STAFF_USER']
+export const DEFAULT_ROLES: StaffRole[] = ['SUPER_ADMIN', 'STAFF_USER']
 
 export const DEFAULT_ACCOUNT_INFO: AccountInfo = {
   firstName: 'Super',

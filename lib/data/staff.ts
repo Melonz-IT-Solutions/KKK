@@ -17,7 +17,6 @@ export const staffMembers: Staff[] = [
     createdAt: new Date(),
     updatedAt: new Date(),
   },
-
   {
     id: '2',
     avatar: '/avatars/jane.png',
@@ -28,13 +27,12 @@ export const staffMembers: Staff[] = [
     email: 'jane.doe@kmfi.com',
     contactNumber: '09123456780',
     department: 'MIS',
-    role: 'SYSTEM_MANAGER',
+    role: 'FINANCE',
     password: 'hashed-password',
     status: 'ACTIVE',
     createdAt: new Date(),
     updatedAt: new Date(),
   },
-
   {
     id: '3',
     avatar: '/avatars/marcus.png',
@@ -45,9 +43,25 @@ export const staffMembers: Staff[] = [
     email: 'm.miller@kmfi.com',
     contactNumber: '09123456781',
     department: 'Branch Manager',
-    role: 'STAFF_USER',
+    role: 'BRANCH_MANAGER',
     password: 'hashed-password',
     status: 'INACTIVE',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    id: '4',
+    avatar: '/avatars/staff.png',
+    firstName: 'Staff',
+    lastName: 'User',
+    fullName: 'Staff User',
+    username: 'staff.user',
+    email: 'staff.user@kmfi.com',
+    contactNumber: '09123456782',
+    department: 'MIS',
+    role: 'STAFF_USER',
+    password: 'hashed-password',
+    status: 'ACTIVE',
     createdAt: new Date(),
     updatedAt: new Date(),
   },
@@ -61,15 +75,22 @@ export const getUserIdsByRole = (
 export const getSuperAdminUserIds = (staffs: readonly Pick<Staff, 'id' | 'role'>[]): string[] =>
   getUserIdsByRole(staffs, 'SUPER_ADMIN')
 
-export const getSystemManagerUserIds = (staffs: readonly Pick<Staff, 'id' | 'role'>[]): string[] =>
-  getUserIdsByRole(staffs, 'SYSTEM_MANAGER')
+export const getFinanceUserIds = (staffs: readonly Pick<Staff, 'id' | 'role'>[]): string[] =>
+  getUserIdsByRole(staffs, 'FINANCE')
 
 export const getStaffUserIds = (staffs: readonly Pick<Staff, 'id' | 'role'>[]): string[] =>
   getUserIdsByRole(staffs, 'STAFF_USER')
+
+export const getBranchManagerUserIds = (staffs: readonly Pick<Staff, 'id' | 'role'>[]): string[] =>
+  getUserIdsByRole(staffs, 'BRANCH_MANAGER')
 
 export const getStaffById = (staffs: readonly Staff[], id: string): Staff | undefined =>
   staffs.find(staff => staff.id === id)
 
 export const isSuperAdminRole = (role: StaffRole): boolean => role === 'SUPER_ADMIN'
-export const isSystemManagerRole = (role: StaffRole): boolean => role === 'SYSTEM_MANAGER'
+
+export const isFinanceRole = (role: StaffRole): boolean => role === 'FINANCE'
+
 export const isStaffUserRole = (role: StaffRole): boolean => role === 'STAFF_USER'
+
+export const isBranchManagerRole = (role: StaffRole): boolean => role === 'BRANCH_MANAGER'

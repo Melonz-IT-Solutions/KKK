@@ -1,5 +1,4 @@
 import { Home, Users, Settings2Icon, History, IdCard } from 'lucide-react'
-import { ur } from 'zod/v4/locales'
 
 export const NavigationItems = [
   {
@@ -30,8 +29,8 @@ export const NavigationItems = [
     icon: <Home />,
   },
   {
-    title: 'Active Log',
-    url: '/activelog',
+    title: 'Activity Log',
+    url: '/activity-log',
     icon: <History />,
   },
 ]

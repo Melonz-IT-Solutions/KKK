@@ -63,12 +63,22 @@ model Dependent {
   birthday String
   gender   String
 }
+// Add to schema.prisma
+
+enum StaffRole {
+  SUPER_ADMIN
+  FINANCE
+  STAFF
+  BRANCH_MANAGER
+}
 
 model Staff {
   id           Int          @id @default(autoincrement())
   name         String
   email        String       @unique
   department   String
+  branch       String?      // organization level: which branch this staff belongs to
+  role         StaffRole    @default(STAFF)
   password     String
   active       Boolean      @default(true)
   createdAt    DateTime     @default(now())
@@ -76,7 +86,13 @@ model Staff {
   userId       Int?         @unique
   user         User?        @relation(fields: [userId], references: [id])
   activityLogs ActivityLog[]
+
+  // Hierarchy: who this staff member reports to, and who reports to them.
+  managerId    Int?
+  manager      Staff?       @relation("StaffReportsTo", fields: [managerId], references: [id])
+  directReports Staff[]     @relation("StaffReportsTo")
 }
+
 
 model Report {
   id            Int      @id @default(autoincrement())
@@ -105,3 +121,4 @@ model ActivityLog {
   userId      Int?
   user        User?    @relation(fields: [userId], references: [id])
 }
+

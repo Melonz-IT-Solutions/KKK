@@ -1,4 +1,4 @@
-import StaffPage from '@/modules/staff/components/staff-v2-view-page'
+import StaffPage from '@/modules/staff/components/staff-view/staff-v2-view-page'
 
 const Page = () => {
   return (

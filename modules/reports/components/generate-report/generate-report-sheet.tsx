@@ -1,4 +1,3 @@
-// modules/reports/components/generate-report-sheet.tsx
 'use client'
 
 import { useState } from 'react'
@@ -24,9 +23,9 @@ import type {
   GenerateReportFormValues,
   GenerateReportSheetProps,
   ReportType,
-} from '../types/reports'
+} from '@/modules/reports/types/reports'
 
-import { REPORT_TYPE_OPTIONS, emptyForm } from '../constants/reports'
+import { REPORT_TYPE_OPTIONS, emptyForm } from '@/modules/reports/constants/reports'
 
 export function GenerateReportSheet({ open, onOpenChange, onGenerate }: GenerateReportSheetProps) {
   const [form, setForm] = useState<GenerateReportFormValues>(emptyForm)

@@ -21,9 +21,6 @@ interface MemberV2TableProps {
 }
 
 export default function MemberV2Table({ data }: MemberV2TableProps) {
-  // One source of truth for pagination: this hook, driven entirely by the
-  // full `data` array's length. No round-trip syncing with a server
-  // response — `data` already contains everything, filtered.
   const { page, pageSize, pageCount, start, end, setPage, setPageSize } = usePagination({
     totalItems: data.length,
     initialPageSize: 10,

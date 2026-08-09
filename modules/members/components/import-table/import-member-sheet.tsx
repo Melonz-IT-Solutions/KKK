@@ -13,7 +13,7 @@ import {
 
 import { useFileDropzone } from '@/modules/members/hooks/use-file-dropzone'
 import { DropzoneFileInput } from '@/modules/members/components/import-table/dropzone-file-input'
-import { importMembers } from '@/modules/members/data/member-server'
+import { importMembers } from '@/modules/members/data/member-service'
 import { showSuccessToast, showErrorToast } from '@/lib/toast-messagealert/showSuccessToast'
 
 interface ImportMemberSheetProps {

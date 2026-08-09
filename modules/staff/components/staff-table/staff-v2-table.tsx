@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import {
   Table,
   TableHeader,
@@ -9,131 +9,23 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui/table'
-import { UserPlus, Search, Pencil, ShieldCheck, Zap } from 'lucide-react'
-import DepartmentBadge from '@/modules/staff/components/staff-v2-padge'
+import { UserPlus, Search, Pencil } from 'lucide-react'
+import DepartmentBadge from '@/modules/staff/components/staff-table/staff-v2-badge'
 import { usePagination } from '@/lib/hooks/use-pagination'
 import { paginate } from '@/lib/utils/paginate'
 import Pagination from '@/components/pagenation/pagination'
-import Button from '@/components/button'
+import Button from '@/components/button-v2/button'
 import PageV2Header from '@/components/headers/page-v2-header'
-import { Input } from '@/components/ui/input'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Dialog, DialogTrigger } from '@/components/ui/dialog'
 import {
   canManageStaffUsers,
   currentUser,
   isFinanceDepartment,
   isSuperAdmin,
 } from '@/lib/data/current-user'
+import { StaffEditModal } from '@/modules/staff/components/staff-table/staff-edit-modal'
 
 import type { StaffTableProps, StaffRow } from '@/modules/staff/types/staff'
-
-interface StaffEditModalProps {
-  staff: StaffRow
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onSave: (staff: StaffRow & { newPassword?: string }) => void
-}
-
-function StaffEditModal({ staff, open, onOpenChange, onSave }: StaffEditModalProps) {
-  const [status, setStatus] = useState(staff.status)
-  const [role, setRole] = useState(staff.role)
-  const [password, setPassword] = useState('')
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Edit Staff</DialogTitle>
-          <DialogDescription>Update staff permissions and status.</DialogDescription>
-        </DialogHeader>
-
-        <div className="grid gap-4 py-2">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Role</label>
-            {isSuperAdmin(currentUser) ? (
-              <Select value={role} onValueChange={value => setRole(value as StaffRow['role'])}>
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
-                  <SelectItem value="SYSTEM_MANAGER">System Manager</SelectItem>
-                  <SelectItem value="FINANCE">Finance</SelectItem>
-                  <SelectItem value="BRANCH_MANAGER">Branch Manager</SelectItem>
-                  <SelectItem value="STAFF_USER">Staff User</SelectItem>
-                </SelectContent>
-              </Select>
-            ) : (
-              <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
-                {staff.role.replaceAll('_', ' ')}
-              </div>
-            )}
-          </div>
-
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Status</label>
-            <Select value={status} onValueChange={value => setStatus(value as StaffRow['status'])}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ACTIVE">Active</SelectItem>
-                <SelectItem value="INACTIVE">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {isSuperAdmin(currentUser) && (
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">Reset Password</label>
-              <Input
-                type="password"
-                placeholder="Enter new password"
-                value={password}
-                onChange={event => setPassword(event.target.value)}
-              />
-            </div>
-          )}
-        </div>
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            onClick={() => {
-              onSave({
-                ...staff,
-                role,
-                status,
-                ...(password ? { newPassword: password } : {}),
-              })
-              onOpenChange(false)
-            }}
-          >
-            Save Changes
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
-}
 
 export default function StaffTable({ data, onAddStaff }: StaffTableProps) {
   const [search, setSearch] = useState('')

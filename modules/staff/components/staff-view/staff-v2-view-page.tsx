@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 
-import StaffTable from '@/modules/staff/components/staff-v2-table'
-import { AddStaffSheet } from './staff-v2-addstaff'
+import StaffTable from '@/modules/staff/components/staff-table/staff-v2-table'
+import { AddStaffSheet } from '@/modules/staff/components/staff-add/staff-v2-addstaff'
 import type { StaffRow } from '@/modules/staff/types/staff'
 import { showSuccessToast, showErrorToast } from '@/lib/toast-messagealert/showSuccessToast'
 
@@ -12,7 +12,11 @@ export default function StaffPage() {
   const [staffData, setStaffData] = useState<StaffRow[]>([])
 
   const loadStaff = async () => {
-    const response = await fetch('/api/staff')
+    // Fetch the full staff list in one request — StaffTable paginates
+    // client-side, so requesting the server's default page size (10)
+    // would silently cap the visible list the same way it did on the
+    // members page.
+    const response = await fetch('/api/staff?pageSize=1000')
     const data = await response.json()
     setStaffData(data.items ?? [])
   }

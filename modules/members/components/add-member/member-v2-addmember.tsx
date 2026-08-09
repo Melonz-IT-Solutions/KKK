@@ -1,17 +1,9 @@
+// modules/members/components/add-member/member-v2-addmember.tsx
 'use client'
 
-import { useForm, useFieldArray, Controller } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Button from '@/components/button-v2/button'
-import Input from '@/components/input'
-import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Sheet,
@@ -20,7 +12,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { Plus } from 'lucide-react'
 import { useState } from 'react'
 
 import {
@@ -28,13 +19,9 @@ import {
   defaultMemberFormValues,
   type MemberFormValues,
 } from '@/modules/members/schema/member-schema'
-import {
-  CIVIL_STATUS_OPTIONS,
-  WEEKLY_CONTRIBUTION_OPTIONS,
-} from '@/modules/members/constants/members'
-import { useComputedAge } from '@/modules/members/hooks/use-computed-age'
-import { BeneficiaryEntryFields } from '@/modules/members/components/add-member/beneficiary-entry-fields'
-import { DependentEntryFields } from '@/modules/members/components/add-member/dependent-entry-fields'
+import { PrincipalMemberFields } from '@/modules/members/components/add-member/principal-member-fields'
+import { BeneficiariesTab } from '@/modules/members/components/add-member/beneficiaries-tab'
+import { DependentsTab } from '@/modules/members/components/add-member/dependents-tab'
 
 interface AddMemberSheetProps {
   open: boolean
@@ -55,20 +42,9 @@ export function AddMemberSheet({ open, onOpenChange, onSave }: AddMemberSheetPro
   } = useForm({
     resolver: zodResolver(memberFormSchema),
     defaultValues: defaultMemberFormValues,
-    mode: 'onChange', // keeps isValid accurate as the user types, drives Save disabled state
+    mode: 'onChange',
   })
 
-  const { fields, append, remove } = useFieldArray({
-    control,
-    name: 'dependents',
-  })
-
-  useComputedAge(watch, setValue, 'principal.birthday', 'principal.age')
-
-  // Jumps to the first tab that has a validation error, so the user always
-  // lands on the section that needs attention — same behavior as before,
-  // now driven by react-hook-form's error object instead of 3 hand-rolled
-  // error-state objects.
   const goToFirstInvalidTab = () => {
     if (errors.principal) {
       setTab('principal')
@@ -79,14 +55,7 @@ export function AddMemberSheet({ open, onOpenChange, onSave }: AddMemberSheetPro
     }
   }
 
-  // const onSubmit = (values: MemberFormValues) => {
-  //   onSave?.(values)
-  //   reset(defaultMemberFormValues)
-  //   setTab('principal')
-  //   onOpenChange(false)
-  // }
   const onSubmit = (values: MemberFormValues) => {
-    console.log('SUBMIT VALUES:', values) // ← add this line temporarily
     onSave?.(values)
     reset(defaultMemberFormValues)
     setTab('principal')
@@ -101,10 +70,6 @@ export function AddMemberSheet({ open, onOpenChange, onSave }: AddMemberSheetPro
     reset(defaultMemberFormValues)
     setTab('principal')
     onOpenChange(false)
-  }
-
-  const addDependent = () => {
-    append({ name: '', address: '', birthday: '', age: '', gender: '' as never })
   }
 
   return (
@@ -143,195 +108,30 @@ export function AddMemberSheet({ open, onOpenChange, onSave }: AddMemberSheetPro
             </Tabs>
 
             {tab === 'principal' && (
-              <div className="grid gap-4 p-6">
-                {/* Name */}
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Controller
-                    control={control}
-                    name="principal.name"
-                    render={({ field }) => (
-                      <Input
-                        id="name"
-                        placeholder="Full name"
-                        {...field}
-                        aria-invalid={!!errors.principal?.name}
-                      />
-                    )}
-                  />
-                  {errors.principal?.name && (
-                    <p className="text-destructive text-sm">{errors.principal.name.message}</p>
-                  )}
-                </div>
-
-                {/* Address */}
-                <div className="grid gap-2">
-                  <Label htmlFor="address">Address</Label>
-                  <Controller
-                    control={control}
-                    name="principal.address"
-                    render={({ field }) => (
-                      <Input
-                        id="address"
-                        placeholder="Complete Address"
-                        {...field}
-                        aria-invalid={!!errors.principal?.address}
-                      />
-                    )}
-                  />
-                  {errors.principal?.address && (
-                    <p className="text-destructive text-sm">{errors.principal.address.message}</p>
-                  )}
-                </div>
-
-                {/* Birthday + Age */}
-                <div className="flex justify-items-center gap-2">
-                  <div className="grid gap-2">
-                    <Label htmlFor="birthday">Birthday</Label>
-                    <Controller
-                      control={control}
-                      name="principal.birthday"
-                      render={({ field }) => (
-                        <Input
-                          id="birthday"
-                          type="date"
-                          {...field}
-                          aria-invalid={!!errors.principal?.birthday}
-                        />
-                      )}
-                    />
-                    {errors.principal?.birthday && (
-                      <p className="text-destructive text-sm">
-                        {errors.principal.birthday.message}
-                      </p>
-                    )}
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="age">Age</Label>
-                    <Controller
-                      control={control}
-                      name="principal.age"
-                      render={({ field }) => <Input id="age" {...field} readOnly placeholder="" />}
-                    />
-                  </div>
-                </div>
-
-                {/* Civil Status */}
-                <div className="grid gap-2">
-                  <Label htmlFor="civilStatus">Civil Status</Label>
-                  <Controller
-                    control={control}
-                    name="principal.civilStatus"
-                    render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger
-                          id="civilStatus"
-                          aria-invalid={!!errors.principal?.civilStatus}
-                          className="w-full"
-                        >
-                          <SelectValue placeholder="Select Civil Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {CIVIL_STATUS_OPTIONS.map(opt => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  {errors.principal?.civilStatus && (
-                    <p className="text-destructive text-sm">
-                      {errors.principal.civilStatus.message}
-                    </p>
-                  )}
-                </div>
-
-                {/* Weekly Contribution */}
-                <div className="grid gap-2">
-                  <Label htmlFor="weeklyContribution">Weekly Contribution</Label>
-                  <Controller
-                    control={control}
-                    name="principal.weeklyContribution"
-                    render={({ field }) => (
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <SelectTrigger
-                          id="weeklyContribution"
-                          aria-invalid={!!errors.principal?.weeklyContribution}
-                          className="w-full"
-                        >
-                          <SelectValue placeholder="Select Amount" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {WEEKLY_CONTRIBUTION_OPTIONS.map(opt => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  />
-                  {errors.principal?.weeklyContribution && (
-                    <p className="text-destructive text-sm">
-                      {errors.principal.weeklyContribution.message}
-                    </p>
-                  )}
-                </div>
-              </div>
+              <PrincipalMemberFields
+                control={control}
+                errors={errors.principal}
+                watch={watch}
+                setValue={setValue}
+              />
             )}
 
             {tab === 'beneficiaries' && (
-              <div className="grid gap-4 p-6">
-                <BeneficiaryEntryFields
-                  idPrefix="primary"
-                  sectionLabel="Primary Beneficiary"
-                  name="beneficiaries.primary"
-                  control={control}
-                  errors={errors.beneficiaries}
-                  watch={watch}
-                  setValue={setValue}
-                />
-
-                <div className="mt-2 border-t pt-4">
-                  <BeneficiaryEntryFields
-                    idPrefix="secondary"
-                    sectionLabel="Secondary Beneficiary"
-                    name="beneficiaries.secondary"
-                    control={control}
-                    errors={errors.beneficiaries}
-                    watch={watch}
-                    setValue={setValue}
-                  />
-                </div>
-              </div>
+              <BeneficiariesTab
+                control={control}
+                errors={errors.beneficiaries}
+                watch={watch}
+                setValue={setValue}
+              />
             )}
 
             {tab === 'dependent' && (
-              <div className="grid gap-4 p-6">
-                {fields.map((field, index) => (
-                  <DependentEntryFields
-                    key={field.id}
-                    index={index}
-                    control={control}
-                    errors={errors.dependents}
-                    watch={watch}
-                    setValue={setValue}
-                    onRemove={fields.length > 1 ? () => remove(index) : undefined}
-                  />
-                ))}
-
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full justify-center gap-2 rounded-sm border-gray-300 bg-white text-black hover:bg-gray-50"
-                  onClick={addDependent}
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Dependent
-                </Button>
-              </div>
+              <DependentsTab
+                control={control}
+                errors={errors.dependents}
+                watch={watch}
+                setValue={setValue}
+              />
             )}
           </div>
 

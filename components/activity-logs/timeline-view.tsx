@@ -36,17 +36,17 @@ export default function TimelineView({ logs }: { logs: ActivityLog[] }) {
         <div key={date} className="mb-8">
           {/* Date header */}
           <div className="mb-4 flex items-center gap-3">
-            <span className="text-sm font-semibold text-foreground">{date}</span>
-            <div className="h-px flex-1 bg-border" />
+            <span className="text-foreground text-sm font-semibold">{date}</span>
+            <div className="bg-border h-px flex-1" />
           </div>
 
           {/* Entries for this date */}
           <div className="relative ml-4">
             {/* Vertical line */}
-            <div className="absolute left-5 top-0 h-full w-px bg-border" />
+            <div className="bg-border absolute top-0 left-5 h-full w-px" />
 
             <div className="flex flex-col gap-0">
-              {entries.map((log) => {
+              {entries.map(log => {
                 const Icon = iconMap[log.type]
                 const colorClass = iconColorMap[log.type]
 
@@ -55,7 +55,7 @@ export default function TimelineView({ logs }: { logs: ActivityLog[] }) {
                     {/* Circle icon node */}
                     <div className="relative z-10 flex-shrink-0">
                       <div
-                        className={`flex h-10 w-10 items-center justify-center rounded-full ring-4 ring-background ${colorClass}`}
+                        className={`ring-background flex h-10 w-10 items-center justify-center rounded-full ring-4 ${colorClass}`}
                       >
                         <Icon className="h-4 w-4" />
                       </div>
@@ -63,11 +63,11 @@ export default function TimelineView({ logs }: { logs: ActivityLog[] }) {
 
                     {/* Content */}
                     <div className="flex flex-col gap-0.5 pt-1.5">
-                      <p className="text-sm font-semibold text-foreground">{log.title}</p>
-                      <p className="text-sm text-muted-foreground">{log.description}</p>
-                      <p className="text-xs text-muted-foreground/70">
+                      <p className="text-foreground text-sm font-semibold">{log.title}</p>
+                      <p className="text-muted-foreground text-sm">{log.description}</p>
+                      <p className="text-muted-foreground/70 text-xs">
                         Updated by:{' '}
-                        <span className="font-medium text-muted-foreground">{log.updatedBy}</span>
+                        <span className="text-muted-foreground font-medium">{log.updatedBy}</span>
                       </p>
                     </div>
                   </div>

@@ -30,8 +30,8 @@ const iconColorMap = {
 export default function TableView({ logs }: { logs: ActivityLog[] }) {
   return (
     <div className="w-full">
-      <div className="divide-y divide-border">
-        {logs.map((log) => {
+      <div className="divide-border divide-y">
+        {logs.map(log => {
           const Icon = iconMap[log.type]
           const colorClass = iconColorMap[log.type]
           return (
@@ -40,7 +40,7 @@ export default function TableView({ logs }: { logs: ActivityLog[] }) {
               className="grid grid-cols-[180px_64px_1fr] items-center gap-4 px-2 py-4"
             >
               {/* Left: Date */}
-              <div className="whitespace-nowrap text-sm font-medium text-muted-foreground">
+              <div className="text-muted-foreground text-sm font-medium whitespace-nowrap">
                 {log.date}
               </div>
 
@@ -55,11 +55,11 @@ export default function TableView({ logs }: { logs: ActivityLog[] }) {
 
               {/* Right: Content */}
               <div className="flex flex-col gap-0.5">
-                <p className="text-sm font-semibold text-foreground">{log.title}</p>
-                <p className="text-sm text-muted-foreground">{log.description}</p>
-                <p className="text-xs text-muted-foreground/70">
+                <p className="text-foreground text-sm font-semibold">{log.title}</p>
+                <p className="text-muted-foreground text-sm">{log.description}</p>
+                <p className="text-muted-foreground/70 text-xs">
                   Updated by:{' '}
-                  <span className="font-medium text-muted-foreground">{log.updatedBy}</span>
+                  <span className="text-muted-foreground font-medium">{log.updatedBy}</span>
                 </p>
               </div>
             </div>

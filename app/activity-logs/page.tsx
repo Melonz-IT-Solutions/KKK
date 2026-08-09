@@ -67,14 +67,14 @@ export default function ActivityLogsPage() {
       {/* Page Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Activity Logs</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h1 className="text-foreground text-2xl font-bold tracking-tight">Activity Logs</h1>
+          <p className="text-muted-foreground mt-1 text-sm">
             Track and monitor all activities across the entire application
           </p>
         </div>
 
         {/* View Toggle */}
-        <div className="flex items-center gap-1 rounded-lg border border-border bg-white p-1 shadow-sm">
+        <div className="border-border flex items-center gap-1 rounded-lg border bg-white p-1 shadow-sm">
           <button
             onClick={() => setView('timeline')}
             className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all duration-150 ${

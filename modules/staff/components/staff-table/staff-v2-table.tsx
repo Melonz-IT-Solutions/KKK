@@ -18,9 +18,7 @@ import Pagination from '@/components/pagenation/pagination'
 import Button from '@/components/button-v2/button'
 import PageV2Header from '@/components/headers/page-v2-header'
 import { Dialog, DialogTrigger } from '@/components/ui/dialog'
-import {
-  hasPermission,
-} from '@/lib/auth/permissions'
+import { hasPermission } from '@/lib/auth/permissions'
 import { StaffEditModal } from '@/modules/staff/components/staff-table/staff-edit-modal'
 
 import type { StaffTableProps, StaffRow } from '@/modules/staff/types/staff'
@@ -69,14 +67,10 @@ export default function StaffTable({ data, onAddStaff }: StaffTableProps) {
         <div className="flex flex-col items-end gap-2">
           <Button onClick={onAddStaff} disabled={!canAddStaff}>
             <UserPlus className="h-4 w-4" />
-            {canAddStaff
-              ? 'Add Staff'
-              : 'View Only'}
+            {canAddStaff ? 'Add Staff' : 'View Only'}
           </Button>
           {!canAddStaff && (
-            <p className="text-xs text-slate-500">
-              You do not have permission to add staff.
-            </p>
+            <p className="text-xs text-slate-500">You do not have permission to add staff.</p>
           )}
         </div>
       </div>

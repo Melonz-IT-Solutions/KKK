@@ -35,7 +35,9 @@ export function StaffEditModal({ staff, open, onOpenChange, onSave }: StaffEditM
   const [role, setRole] = useState(staff.role)
   const [password, setPassword] = useState('')
 
-  const canEdit = session?.user ? hasPermission(session.user.role, 'staff:change_permission') : false
+  const canEdit = session?.user
+    ? hasPermission(session.user.role, 'staff:change_permission')
+    : false
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

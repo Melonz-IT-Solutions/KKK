@@ -26,7 +26,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
   try {
     const payload = staffUpdateSchema.parse(await request.json())
-    const staff = await prisma.staff.findUnique({ where: { id: staffId }, select: { userId: true } })
+    const staff = await prisma.staff.findUnique({
+      where: { id: staffId },
+      select: { userId: true },
+    })
     if (!staff) return NextResponse.json({ message: 'Staff not found' }, { status: 404 })
 
     const passwordHash = payload.password ? await hashPassword(payload.password) : undefined
@@ -62,7 +65,10 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     return NextResponse.json(updated)
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ message: 'Invalid payload', errors: error.flatten() }, { status: 400 })
+      return NextResponse.json(
+        { message: 'Invalid payload', errors: error.flatten() },
+        { status: 400 }
+      )
     }
 
     console.error(error)
@@ -81,7 +87,10 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
   }
 
   try {
-    const staff = await prisma.staff.findUnique({ where: { id: staffId }, select: { userId: true } })
+    const staff = await prisma.staff.findUnique({
+      where: { id: staffId },
+      select: { userId: true },
+    })
     if (!staff) return NextResponse.json({ message: 'Staff not found' }, { status: 404 })
 
     await prisma.$transaction(async tx => {

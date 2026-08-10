@@ -4,14 +4,28 @@ import type { ActivityLogEntry } from '@/types/activelog'
 
 async function getActivityLogs(): Promise<ActivityLogEntry[]> {
   const logs = await prisma.activityLog.findMany({
-    orderBy: { createdAt: 'desc' },
-    take: 100, // fetch a reasonable batch; client paginates within this
+    orderBy: {
+      createdAt: 'desc',
+    },
+    take: 100,
   })
 
   return logs.map(log => ({
-    ...log,
     id: String(log.id),
-  })) as ActivityLogEntry[]
+    type: log.type as 'created' | 'updated' | 'imported',
+    title: log.title,
+    description: log.description,
+    subjectName: log.subjectName,
+    actorName: log.actorName,
+    actionLabel: log.actionLabel as 'Created by' | 'Updated by',
+
+    // Format the date for the Activity Log UI
+    date: new Intl.DateTimeFormat('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(log.createdAt),
+  }))
 }
 
 export default async function ActivityLogsPage() {

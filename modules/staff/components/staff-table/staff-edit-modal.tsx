@@ -1,7 +1,7 @@
-// modules/staff/components/staff-table/staff-edit-modal.tsx
 'use client'
 
 import { useState } from 'react'
+import { useSession } from 'next-auth/react'
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/select'
 import { Input } from '@/components/ui/input'
 import Button from '@/components/button-v2/button'
-import { isSuperAdmin, currentUser } from '@/lib/data/current-user'
+import { hasPermission } from '@/lib/auth/permissions'
 import type { StaffRow } from '@/modules/staff/types/staff'
 
 interface StaffEditModalProps {
@@ -30,9 +30,12 @@ interface StaffEditModalProps {
 }
 
 export function StaffEditModal({ staff, open, onOpenChange, onSave }: StaffEditModalProps) {
+  const { data: session } = useSession()
   const [status, setStatus] = useState(staff.status)
   const [role, setRole] = useState(staff.role)
   const [password, setPassword] = useState('')
+
+  const canEdit = session?.user ? hasPermission(session.user.role, 'staff:change_permission') : false
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -45,17 +48,16 @@ export function StaffEditModal({ staff, open, onOpenChange, onSave }: StaffEditM
         <div className="grid gap-4 py-2">
           <div className="grid gap-2">
             <label className="text-sm font-medium">Role</label>
-            {isSuperAdmin(currentUser) ? (
+            {canEdit ? (
               <Select value={role} onValueChange={value => setRole(value as StaffRow['role'])}>
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
-                  <SelectItem value="SYSTEM_MANAGER">System Manager</SelectItem>
                   <SelectItem value="FINANCE">Finance</SelectItem>
                   <SelectItem value="BRANCH_MANAGER">Branch Manager</SelectItem>
-                  <SelectItem value="STAFF_USER">Staff User</SelectItem>
+                  <SelectItem value="STAFF">Staff</SelectItem>
                 </SelectContent>
               </Select>
             ) : (
@@ -78,7 +80,7 @@ export function StaffEditModal({ staff, open, onOpenChange, onSave }: StaffEditM
             </Select>
           </div>
 
-          {isSuperAdmin(currentUser) && (
+          {canEdit && (
             <div className="grid gap-2">
               <label className="text-sm font-medium">Reset Password</label>
               <Input

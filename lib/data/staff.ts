@@ -59,7 +59,7 @@ export const staffMembers: Staff[] = [
     email: 'staff.user@kmfi.com',
     contactNumber: '09123456782',
     department: 'MIS',
-    role: 'STAFF_USER',
+    role: 'STAFF',
     password: 'hashed-password',
     status: 'ACTIVE',
     createdAt: new Date(),
@@ -79,7 +79,7 @@ export const getFinanceUserIds = (staffs: readonly Pick<Staff, 'id' | 'role'>[])
   getUserIdsByRole(staffs, 'FINANCE')
 
 export const getStaffUserIds = (staffs: readonly Pick<Staff, 'id' | 'role'>[]): string[] =>
-  getUserIdsByRole(staffs, 'STAFF_USER')
+  getUserIdsByRole(staffs, 'STAFF')
 
 export const getBranchManagerUserIds = (staffs: readonly Pick<Staff, 'id' | 'role'>[]): string[] =>
   getUserIdsByRole(staffs, 'BRANCH_MANAGER')
@@ -91,6 +91,6 @@ export const isSuperAdminRole = (role: StaffRole): boolean => role === 'SUPER_AD
 
 export const isFinanceRole = (role: StaffRole): boolean => role === 'FINANCE'
 
-export const isStaffUserRole = (role: StaffRole): boolean => role === 'STAFF_USER'
+export const isStaffUserRole = (role: StaffRole): boolean => role === 'STAFF'
 
 export const isBranchManagerRole = (role: StaffRole): boolean => role === 'BRANCH_MANAGER'

@@ -1,3 +1,4 @@
+// modules/profile/components/profile-view-page.tsx
 'use client'
 
 import { useState } from 'react'

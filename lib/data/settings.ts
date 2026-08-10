@@ -36,7 +36,7 @@ export const ACCOUNT_FIELDS = [
   },
 ] as const
 
-export const DEFAULT_ROLES: StaffRole[] = ['SUPER_ADMIN', 'STAFF_USER']
+export const DEFAULT_ROLES: StaffRole[] = ['SUPER_ADMIN', 'STAFF']
 
 export const DEFAULT_ACCOUNT_INFO: AccountInfo = {
   firstName: 'Super',

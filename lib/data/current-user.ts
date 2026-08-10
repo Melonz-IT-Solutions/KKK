@@ -1,115 +1,55 @@
-import type { Permission } from '@/types/rbac'
-import { ROLE_PERMISSIONS } from '@/types/rbac'
-import type { StaffRole } from '@/types/accountfield'
+import 'server-only'
 
-export type UserRole = StaffRole
+import { auth } from '@/auth'
+import {
+  ROLE_LABELS,
+  isStaffRole,
+  hasPermission,
+  type Permission,
+  type StaffRole,
+} from '@/lib/auth/permissions'
+import { prisma } from '@/lib/prisma'
 
 export interface CurrentUser {
   id: string
   name: string
   email: string
   department: string
-  branch?: string
-  role: UserRole
+  branch: string | null
+  role: StaffRole
 }
 
-export const currentUser: CurrentUser = {
-  id: '1',
-  name: 'Super Admin',
-  email: 'super-admin@kkk.com',
-  department: 'Central Operations',
-  branch: 'Talon-Talon',
-  role: 'SUPER_ADMIN',
-}
+/**
+ * Reads the currently signed-in user from the database. This is server-only;
+ * client components must use `useSession()` instead.
+ */
+export async function getCurrentUser(): Promise<CurrentUser | null> {
+  const session = await auth()
+  const id = Number(session?.user?.id)
+  if (!Number.isInteger(id)) return null
 
-/* -------------------------------------------------------------------------- */
-/* Role checks                                                                */
-/* -------------------------------------------------------------------------- */
+  const user = await prisma.user.findUnique({
+    where: { id },
+    include: { staff: { select: { branch: true } } },
+  })
+
+  if (!user || !user.active || user.isDeleted || !isStaffRole(user.roles)) return null
+
+  return {
+    id: String(user.id),
+    name: user.name ?? '',
+    email: user.email,
+    department: user.departments[0] ?? '',
+    branch: user.staff?.branch ?? null,
+    role: user.roles,
+  }
+}
 
 export const isSuperAdmin = (user: CurrentUser) => user.role === 'SUPER_ADMIN'
-
 export const isFinance = (user: CurrentUser) => user.role === 'FINANCE'
-
-export const isStaffUser = (user: CurrentUser) => user.role === 'STAFF_USER'
-
 export const isBranchManager = (user: CurrentUser) => user.role === 'BRANCH_MANAGER'
+export const isStaffUser = (user: CurrentUser) => user.role === 'STAFF'
+export const userHasPermission = (user: CurrentUser, permission: Permission) =>
+  hasPermission(user.role, permission)
 
-/* -------------------------------------------------------------------------- */
-/* Department checks                                                          */
-/* -------------------------------------------------------------------------- */
-
-export const isFinanceDepartment = (user: CurrentUser) =>
-  user.role === 'FINANCE' || user.department === 'Finance'
-
-/* -------------------------------------------------------------------------- */
-/* Permission checks                                                          */
-/* -------------------------------------------------------------------------- */
-
-export const hasPermission = (user: CurrentUser, permission: Permission) => {
-  if (user.role === 'SUPER_ADMIN') return true
-
-  return ROLE_PERMISSIONS[user.role]?.includes(permission) ?? false
-}
-
-/* -------------------------------------------------------------------------- */
-/* Staff management                                                           */
-/* -------------------------------------------------------------------------- */
-
-export const canManageStaffUsers = (user: CurrentUser) =>
-  hasPermission(user, 'users:create') || hasPermission(user, 'users:edit')
-
-export const canCreateStaff = (user: CurrentUser) => hasPermission(user, 'users:create')
-
-export const canEditStaff = (user: CurrentUser) => hasPermission(user, 'users:edit')
-
-export const canDeleteStaff = (user: CurrentUser) => hasPermission(user, 'users:delete')
-
-/* -------------------------------------------------------------------------- */
-/* Settings                                                                   */
-/* -------------------------------------------------------------------------- */
-
-export const canManageSettings = (user: CurrentUser) => hasPermission(user, 'settings:manage')
-
-/* -------------------------------------------------------------------------- */
-/* Existing record restrictions                                               */
-/* -------------------------------------------------------------------------- */
-
-// Re-editing already-submitted records (members, staff, etc.) is restricted
-// to Super Admin, Finance, and Branch Manager.
-// Staff User can create but cannot edit existing records.
-export const canReEdit = (user: CurrentUser) =>
-  isSuperAdmin(user) || isFinanceDepartment(user) || isBranchManager(user)
-
-/* -------------------------------------------------------------------------- */
-/* Role restrictions                                                          */
-/* -------------------------------------------------------------------------- */
-
-export const canManageRoles = (user: CurrentUser) => isSuperAdmin(user) || isFinance(user)
-
-export const canManageSuperAdmin = (user: CurrentUser) => isSuperAdmin(user)
-
-export const canManageFinance = (user: CurrentUser) => isSuperAdmin(user)
-
-export const canManageBranchManager = (user: CurrentUser) => isSuperAdmin(user) || isFinance(user)
-
-export const canManageStaffUser = (user: CurrentUser) =>
-  isSuperAdmin(user) || isFinance(user) || isBranchManager(user)
-
-/* -------------------------------------------------------------------------- */
-/* Branch restrictions                                                        */
-/* -------------------------------------------------------------------------- */
-
-export const canManageAllBranches = (user: CurrentUser) => isSuperAdmin(user)
-
-export const canManageBranch = (user: CurrentUser) => isSuperAdmin(user) || isBranchManager(user)
-
-/* -------------------------------------------------------------------------- */
-/* Role labels                                                                */
-/* -------------------------------------------------------------------------- */
-
-export const ROLE_LABELS: Record<UserRole, string> = {
-  SUPER_ADMIN: 'Super Admin',
-  FINANCE: 'Finance',
-  STAFF_USER: 'Staff User',
-  BRANCH_MANAGER: 'Branch Manager',
-}
+export { ROLE_LABELS }

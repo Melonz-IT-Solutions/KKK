@@ -22,6 +22,12 @@ import type { Department, StaffFormValues, AddStaffSheetProps } from '@/modules/
 
 import { DEPARTMENT_OPTIONS, emptyForm } from '@/modules/staff/constants/staff'
 
+// New staff accounts are always created with the base "STAFF" role — no
+// role picker on this form. Promoting someone to Finance, Branch Manager,
+// or Super Admin happens later via the staff Edit modal, which is
+// restricted to users with staff:change_permission.
+const DEFAULT_NEW_STAFF_ROLE = 'STAFF' as const
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -61,7 +67,7 @@ export function AddStaffSheet({ open, onOpenChange, onSave }: AddStaffSheetProps
 
   const handleSave = () => {
     if (!validate()) return
-    onSave?.(form)
+    onSave?.({ ...form, role: DEFAULT_NEW_STAFF_ROLE })
     setForm(emptyForm)
     onOpenChange(false)
   }

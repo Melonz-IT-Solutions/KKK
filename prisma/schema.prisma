@@ -105,20 +105,26 @@ model Report {
 }
 
 model ActivityLog {
-  id          Int      @id @default(autoincrement())
-  type        String
-  title       String
-  description String
-  actorName   String
-  actionLabel String
-  date        String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime? @updatedAt
-  memberId    Int?
-  member      Member?  @relation(fields: [memberId], references: [id])
-  staffId     Int?
-  staff       Staff?   @relation(fields: [staffId], references: [id])
-  userId      Int?
-  user        User?    @relation(fields: [userId], references: [id])
-}
+  id           Int      @id @default(autoincrement())
+  type         String
+  title        String
+  description  String
+  subjectName  String
+  actorName    String
+  actionLabel  String
 
+  // Display date, example: August 10, 2026
+  date         String
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime? @updatedAt
+
+  memberId     Int?
+  member       Member?  @relation(fields: [memberId], references: [id])
+
+  staffId      Int?
+  staff        Staff?   @relation(fields: [staffId], references: [id])
+
+  userId       Int?
+  user         User?    @relation(fields: [userId], references: [id])
+}

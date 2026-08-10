@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useSession } from 'next-auth/react'
 
 import { NavMain } from './nav-main'
 import { NavUser } from './nav-user'
@@ -14,18 +15,28 @@ import {
 } from '@/components/ui/sidebar'
 import { NavigationItems } from '@/constants/navigation-items'
 import { DEPARTMENTS } from '@/constants/departments'
-import { currentUser, isBranchManager } from '@/lib/data/current-user'
-
-const user = {
-  name: currentUser.name,
-  email: currentUser.email,
-  avatar: '/avatars/avatar.jpg',
-}
+import { hasPermission } from '@/lib/auth/permissions'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const filteredItems = isBranchManager(currentUser)
-    ? NavigationItems.filter(item => item.title !== 'Settings' && item.title !== 'Active Log')
-    : NavigationItems
+  const { data: session } = useSession()
+  const role = session?.user?.role
+
+  const filteredItems = NavigationItems.filter(item => {
+    if (!role) return false
+    if (item.title === 'Settings') return hasPermission(role, 'settings:access')
+    if (item.title === 'Activity Log') return hasPermission(role, 'activity_logs:view')
+    if (item.title === 'Reports') return hasPermission(role, 'reports:view')
+    if (item.title === 'Staff') {
+      return hasPermission(role, 'staff:view_all') || hasPermission(role, 'staff:view_own_branch')
+    }
+    return true
+  })
+
+  const user = {
+    name: session?.user?.name ?? 'Loading user',
+    email: session?.user?.email ?? '',
+    avatar: '/avatars/avatar.jpg',
+  }
 
   return (
     <Sidebar collapsible="icon" {...props}>

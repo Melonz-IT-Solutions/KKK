@@ -1,22 +1,22 @@
-// modules/activity-logs/components/activity-logs-table.tsx
 'use client'
 
 import {
   Table,
-  TableBody,
-  TableCell,
-  TableHead,
   TableHeader,
+  TableBody,
   TableRow,
+  TableHead,
+  TableCell,
 } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import { ActivityLogEntry, ActivityType } from '@/types/activelog'
 
-const TYPE_BADGE_VARIANT: Record<ActivityType, string> = {
-  created: 'bg-green-100 text-green-800',
-  updated: 'bg-blue-100 text-blue-800',
-  imported: 'bg-purple-100 text-purple-800',
-}
+import { Badge } from '@/components/ui/badge'
+
+import type { ActivityLogEntry } from '@/types/activelog'
+
+import {
+  TYPE_BADGE_VARIANT,
+  ACTIVITY_LOG_COLUMNS,
+} from '@/modules/activity-log/constants/activity-log'
 
 interface ActivityLogsTableProps {
   logs: ActivityLogEntry[]
@@ -24,36 +24,43 @@ interface ActivityLogsTableProps {
 
 export function ActivityLogsTable({ logs }: ActivityLogsTableProps) {
   return (
-    <div className="w-full overflow-x-auto border">
-      <Table className="w-full">
-        <TableHeader>
-          <TableRow>
-            <TableHead>Activity</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead>Create by</TableHead>
-            <TableHead>Date</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {logs.map(log => (
-            <TableRow key={log.id}>
-              <TableCell>
-                <Badge
-                  className={`rounded-sm ${TYPE_BADGE_VARIANT[log.type]} hover:${TYPE_BADGE_VARIANT[log.type]}`}
-                >
-                  {log.title}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-muted-foreground text-sm">{log.description}</TableCell>
-
-              <TableCell className="text-foreground text-sm font-medium">{log.actorName}</TableCell>
-              <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
-                {log.date}
-              </TableCell>
-            </TableRow>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          {ACTIVITY_LOG_COLUMNS.map(column => (
+            <TableHead key={column.key}>{column.label}</TableHead>
           ))}
-        </TableBody>
-      </Table>
-    </div>
+        </TableRow>
+      </TableHeader>
+
+      <TableBody>
+        {logs.length === 0 && (
+          <TableRow>
+            <TableCell
+              colSpan={ACTIVITY_LOG_COLUMNS.length}
+              className="py-10 text-center text-sm text-slate-400"
+            >
+              No results found.
+            </TableCell>
+          </TableRow>
+        )}
+
+        {logs.map(log => (
+          <TableRow key={log.id}>
+            <TableCell>{log.date}</TableCell>
+
+            <TableCell>
+              <Badge className={`rounded-sm ${TYPE_BADGE_VARIANT[log.type]}`}>{log.title}</Badge>
+            </TableCell>
+
+            <TableCell>{log.subjectName}</TableCell>
+
+            <TableCell>{log.description}</TableCell>
+
+            <TableCell>{log.actorName}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   )
 }

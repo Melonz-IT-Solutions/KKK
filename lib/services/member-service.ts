@@ -108,7 +108,7 @@ function mapMember(member: Member) {
 
 export async function listMembers(params: MemberListParams = {}) {
   const page = Math.max(1, Number(params.page ?? 1))
-  const pageSize = Math.max(1, Math.min(100, Number(params.pageSize ?? 10)))
+  const pageSize = Math.max(1, Math.min(5000, Number(params.pageSize ?? 10)))
   const search = params.search?.trim() ?? ''
   const branch = params.branch?.trim() ?? ''
 

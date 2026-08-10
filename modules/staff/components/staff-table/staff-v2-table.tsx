@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSession } from 'next-auth/react'
 import {
   Table,
   TableHeader,
@@ -18,16 +19,14 @@ import Button from '@/components/button-v2/button'
 import PageV2Header from '@/components/headers/page-v2-header'
 import { Dialog, DialogTrigger } from '@/components/ui/dialog'
 import {
-  canManageStaffUsers,
-  currentUser,
-  isFinanceDepartment,
-  isSuperAdmin,
-} from '@/lib/data/current-user'
+  hasPermission,
+} from '@/lib/auth/permissions'
 import { StaffEditModal } from '@/modules/staff/components/staff-table/staff-edit-modal'
 
 import type { StaffTableProps, StaffRow } from '@/modules/staff/types/staff'
 
 export default function StaffTable({ data, onAddStaff }: StaffTableProps) {
+  const { data: session } = useSession()
   const [search, setSearch] = useState('')
   const [selectedStaff, setSelectedStaff] = useState<StaffRow | null>(null)
   const [isEditOpen, setIsEditOpen] = useState(false)
@@ -46,8 +45,9 @@ export default function StaffTable({ data, onAddStaff }: StaffTableProps) {
 
   const pageRows = paginate(filtered, start, end)
 
-  const canManageStaff = canManageStaffUsers(currentUser)
-  const canAddStaff = canManageStaff && !isFinanceDepartment(currentUser)
+  const role = session?.user?.role
+  const canAddStaff = role ? hasPermission(role, 'staff:create') : false
+  const canEditStaff = role ? hasPermission(role, 'staff:change_permission') : false
 
   return (
     <div className="mx-auto w-full p-4">
@@ -71,15 +71,11 @@ export default function StaffTable({ data, onAddStaff }: StaffTableProps) {
             <UserPlus className="h-4 w-4" />
             {canAddStaff
               ? 'Add Staff'
-              : isFinanceDepartment(currentUser)
-                ? 'Import Staff'
-                : 'View Only'}
+              : 'View Only'}
           </Button>
           {!canAddStaff && (
             <p className="text-xs text-slate-500">
-              {isFinanceDepartment(currentUser)
-                ? 'Finance users can only import staff data.'
-                : 'Branch managers can only view staff in their branch.'}
+              You do not have permission to add staff.
             </p>
           )}
         </div>
@@ -128,7 +124,7 @@ export default function StaffTable({ data, onAddStaff }: StaffTableProps) {
                   <TableCell className="text-slate-600">{row.role.replaceAll('_', ' ')}</TableCell>
                   <TableCell className="text-slate-600">{row.status}</TableCell>
                   <TableCell className="text-primary text-right">
-                    {isSuperAdmin(currentUser) ? (
+                    {canEditStaff ? (
                       <Dialog
                         open={isEditOpen && selectedStaff?.id === row.id}
                         onOpenChange={open => {
@@ -156,7 +152,7 @@ export default function StaffTable({ data, onAddStaff }: StaffTableProps) {
                               setIsEditOpen(open)
                             }}
                             onSave={async updatedStaff => {
-                              await fetch('/api/staff', {
+                              await fetch(`/api/staff/${updatedStaff.id}`, {
                                 method: 'PATCH',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { createReport, listReports } from '@/lib/services/report-service'
+import { requirePermission } from '@/lib/auth/authorize'
 
 const reportSchema = z.object({
   type: z.string().min(1),
@@ -10,6 +11,9 @@ const reportSchema = z.object({
 })
 
 export async function GET() {
+  const { error } = await requirePermission('reports:view')
+  if (error) return error
+
   try {
     const reports = await listReports()
     return NextResponse.json(reports)
@@ -20,6 +24,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const { error } = await requirePermission('reports:generate')
+  if (error) return error
+
   try {
     const payload = reportSchema.parse(await request.json())
     const report = await createReport(payload)
@@ -31,11 +38,13 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
+
     console.error(error)
     return NextResponse.json({ message: 'Failed to create report' }, { status: 500 })
   }
 }
 
+// Keep this. No role can delete reports according to your matrix.
 export async function DELETE() {
   return NextResponse.json({ message: 'Report deletion is not permitted' }, { status: 405 })
 }

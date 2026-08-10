@@ -1,18 +1,12 @@
+import { redirect } from 'next/navigation'
+import { auth } from '@/auth'
+import { hasPermission } from '@/lib/auth/permissions'
 import SettingsPageView from '@/modules/settings/components/settings-page-view'
-import { currentUser, isBranchManager } from '@/lib/data/current-user'
 
-const page = () => {
-  if (isBranchManager(currentUser)) {
-    return (
-      <div className="p-6">
-        <h1 className="text-xl font-semibold">Settings</h1>
-        <p className="mt-2 text-sm text-slate-500">
-          Branch managers do not have access to system settings.
-        </p>
-      </div>
-    )
-  }
+export default async function SettingsPage() {
+  const session = await auth()
+  if (!session?.user) redirect('/login')
+  if (!hasPermission(session.user.role, 'settings:access')) redirect('/unauthorized')
 
   return <SettingsPageView />
 }
-export default page

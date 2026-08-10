@@ -1,4 +1,3 @@
-// modules/activity-logs/components/activity-logs-header.tsx
 'use client'
 
 import { Button } from '@/components/ui/button'

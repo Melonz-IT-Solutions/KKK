@@ -1,11 +1,12 @@
-import CredentialsProvider from 'next-auth/providers/credentials'
-import { prisma } from './lib/prisma'
-import { compare } from 'bcrypt'
 import NextAuth from 'next-auth'
+import CredentialsProvider from 'next-auth/providers/credentials'
+import { compare } from 'bcrypt'
+import { prisma } from '@/lib/prisma'
+import { isStaffRole } from '@/lib/auth/permissions'
 
-// Prisma client is imported from singleton in lib/prisma.ts
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  session: { strategy: 'jwt' },
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -13,47 +14,61 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         username: { label: 'Username', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
-        console.log('credentials', credentials)
 
-        if (!credentials?.username || !credentials?.password) {
-          return null
-        }
+      async authorize(credentials) {
+        const username = String(credentials?.username ?? '')
+        const password = String(credentials?.password ?? '')
+
+        if (!username || !password) return null
 
         const user = await prisma.user.findUnique({
-          where: { username: String(credentials.username) },
+          where: { username },
+          include: {
+            staff: {
+              select: { branch: true },
+            },
+          },
         })
 
-        if (!user) {
+        if (!user || !user.active || user.isDeleted || !isStaffRole(user.roles)) {
           return null
         }
-        // If you add a password field to your User model, update this logic accordingly
-        // For now, skip password check since User model has no password field
-        // const isValid = await compare(credentials.password, user.password)
-        // if (!isValid) {
-        //   throw new Error('Invalid password')
-        // }
+
+        const passwordMatches = await compare(password, user.password)
+        if (!passwordMatches) return null
+
         return {
-          id: user.id.toString(),
+          id: String(user.id),
           name: user.name ?? '',
-          email: user.email ?? '',
+          email: user.email,
+          role: user.roles,
+          branch: user.staff?.branch ?? null,
         }
       },
     }),
   ],
-  session: {
-    strategy: 'jwt',
-  },
-  pages: {
-    signIn: '/login',
-  },
-  secret: process.env.NEXTAUTH_SECRET,
+
   callbacks: {
-    async session({ session, token }) {
-      if (token && session.user && typeof token.sub === 'string') {
-        session.user.id = token.sub
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role
+        token.branch = user.branch
       }
+
+      return token
+    },
+
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.sub ?? ''
+        session.user.role = token.role ?? 'STAFF'
+        session.user.branch = token.branch ?? null
+      }
+
       return session
     },
   },
+
+  pages: { signIn: '/login' },
+  secret: process.env.NEXTAUTH_SECRET,
 })

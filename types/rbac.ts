@@ -1,37 +1,62 @@
 import type { StaffRole } from '@/types/accountfield'
 
 export type Permission =
-  | 'users:view'
-  | 'users:create'
-  | 'users:edit'
-  | 'users:delete'
-  | 'finance:view'
-  | 'finance:edit'
-  | 'branch:manage'
+  // Staff
+  | 'staff:view'
+  | 'staff:view_branch'
+  | 'staff:create'
+  | 'staff:import'
+  | 'staff:change_permission'
+  | 'staff:reset_password'
+  | 'staff:activate'
+  | 'staff:deactivate'
+
+  // Activity Logs
+  | 'activity_logs:view'
+
+  // Settings
+  | 'settings:view'
   | 'settings:manage'
 
-export type { StaffRole } from '@/types/accountfield'
+  // Reports
+  | 'reports:view'
+  | 'reports:generate'
 
 export const ROLE_PERMISSIONS: Record<StaffRole, Permission[]> = {
   SUPER_ADMIN: [
-    'users:view',
-    'users:create',
-    'users:edit',
-    'users:delete',
-    'finance:view',
-    'finance:edit',
-    'branch:manage',
+    'staff:view',
+    'staff:view_branch',
+    'staff:create',
+    'staff:import',
+    'staff:change_permission',
+    'staff:reset_password',
+    'staff:activate',
+    'staff:deactivate',
+
+    'activity_logs:view',
+
+    'settings:view',
     'settings:manage',
+
+    'reports:view',
+    'reports:generate',
   ],
-  FINANCE: ['finance:view', 'finance:edit'],
-  BRANCH_MANAGER: ['users:view', 'branch:manage'],
-  STAFF_USER: ['users:view'],
-  SYSTEM_MANAGER: [
-    'users:view',
-    'users:create',
-    'users:edit',
-    'finance:view',
-    'finance:edit',
-    'branch:manage',
+
+  FINANCE: [
+    'staff:view',
+    'staff:view_branch',
+    'staff:import',
+
+    'activity_logs:view',
+
+    'settings:view',
+    'settings:manage',
+
+    'reports:view',
+    'reports:generate',
   ],
+
+  BRANCH_MANAGER: ['staff:view_branch', 'reports:view', 'reports:generate'],
+
+  STAFF: ['reports:view', 'reports:generate'],
 }

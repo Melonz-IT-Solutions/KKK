@@ -1,4 +1,3 @@
-// modules/staff/constants/staff.ts
 import type { Department, StaffFormValues } from '../types/staff'
 
 export const DEPARTMENT_OPTIONS: { value: Department; label: string }[] = [
@@ -7,9 +6,12 @@ export const DEPARTMENT_OPTIONS: { value: Department; label: string }[] = [
 ]
 
 export const emptyForm: StaffFormValues = {
-  department: '',
   name: '',
   email: '',
   password: '',
   confirmPassword: '',
+  department: '',
+  role: 'STAFF',
 }
+
+export const DEFAULT_STAFF_FORM_VALUES = emptyForm

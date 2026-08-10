@@ -17,10 +17,11 @@ export interface StaffTableProps {
   onUpdateStaff?: (staff: StaffRow) => void
 }
 
-export type Department = 'finance' | 'mis'
+export type Department = 'finance' | 'mis' | 'Branch Manager'
 
 export interface StaffFormValues {
   department: Department | ''
+  role: StaffRole | ''
   name: string
   email: string
   password: string

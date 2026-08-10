@@ -1,150 +1,103 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { randomBytes, scrypt } from 'crypto'
-import { promisify } from 'util'
+import { hashPassword } from '@/lib/auth/password'
+import { requirePermission } from '@/lib/auth/authorize'
 import { prisma } from '@/lib/prisma'
-import { auth } from '@/auth'
-
-const scryptAsync = promisify(scrypt)
-
-const EDIT_ALLOWED_ROLES = ['SUPER_ADMIN', 'FINANCE', 'BRANCH_MANAGER']
-
-async function hashPassword(password: string) {
-  const salt = randomBytes(16).toString('hex')
-
-  const derivedKey = (await scryptAsync(password, salt, 64)) as Buffer
-
-  return `${salt}:${derivedKey.toString('hex')}`
-}
-
-async function requireEditPermission() {
-  const session = await auth()
-
-  const role = (session?.user as { role?: string } | undefined)?.role
-
-  if (!role || !EDIT_ALLOWED_ROLES.includes(role)) {
-    return NextResponse.json(
-      {
-        message: 'You do not have permission to perform this action',
-      },
-      { status: 403 }
-    )
-  }
-
-  return null
-}
 
 const staffUpdateSchema = z.object({
   name: z.string().min(1).optional(),
   contactNo: z.string().optional(),
   department: z.string().min(1).optional(),
   branch: z.string().optional(),
-  role: z.enum(['SUPER_ADMIN', 'FINANCE', 'STAFF_USER', 'BRANCH_MANAGER']).optional(),
+  role: z.enum(['SUPER_ADMIN', 'FINANCE', 'STAFF', 'BRANCH_MANAGER']).optional(),
   active: z.boolean().optional(),
   password: z.string().min(8).optional(),
 })
 
 export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const permissionError = await requireEditPermission()
-
-  if (permissionError) return permissionError
+  const { error } = await requirePermission('staff:change_permission')
+  if (error) return error
 
   const { id } = await params
   const staffId = Number(id)
-
   if (!Number.isFinite(staffId)) {
     return NextResponse.json({ message: 'Invalid staff id' }, { status: 400 })
   }
 
   try {
-    const rawPayload = await request.json()
-    const payload = staffUpdateSchema.parse(rawPayload)
+    const payload = staffUpdateSchema.parse(await request.json())
+    const staff = await prisma.staff.findUnique({ where: { id: staffId }, select: { userId: true } })
+    if (!staff) return NextResponse.json({ message: 'Staff not found' }, { status: 404 })
 
-    const data: Record<string, unknown> = {}
-
-    if (payload.name !== undefined) {
-      data.name = payload.name
-    }
-
-    if (payload.department !== undefined) {
-      data.department = payload.department
-    }
-
-    if (payload.branch !== undefined) {
-      data.branch = payload.branch
-    }
-
-    if (payload.role !== undefined) {
-      data.role = payload.role
-    }
-
-    if (payload.active !== undefined) {
-      data.active = payload.active
-    }
-
-    if (payload.password) {
-      data.password = await hashPassword(payload.password)
-    }
-
-    if (payload.contactNo !== undefined) {
-      const staff = await prisma.staff.findUnique({
+    const passwordHash = payload.password ? await hashPassword(payload.password) : undefined
+    const updated = await prisma.$transaction(async tx => {
+      const updatedStaff = await tx.staff.update({
         where: { id: staffId },
+        data: {
+          ...(payload.name !== undefined ? { name: payload.name } : {}),
+          ...(payload.department !== undefined ? { department: payload.department } : {}),
+          ...(payload.branch !== undefined ? { branch: payload.branch } : {}),
+          ...(payload.role !== undefined ? { role: payload.role } : {}),
+          ...(payload.active !== undefined ? { active: payload.active } : {}),
+          ...(passwordHash ? { password: passwordHash } : {}),
+        },
       })
 
-      if (staff?.userId) {
-        await prisma.user.update({
+      if (staff.userId) {
+        await tx.user.update({
           where: { id: staff.userId },
           data: {
-            contactNo: payload.contactNo,
+            ...(payload.name !== undefined ? { name: payload.name } : {}),
+            ...(payload.role !== undefined ? { roles: payload.role } : {}),
+            ...(payload.active !== undefined ? { active: payload.active } : {}),
+            ...(payload.contactNo !== undefined ? { contactNo: payload.contactNo } : {}),
+            ...(passwordHash ? { password: passwordHash } : {}),
           },
         })
       }
-    }
 
-    const updated = await prisma.staff.update({
-      where: { id: staffId },
-      data,
+      return updatedStaff
     })
 
     return NextResponse.json(updated)
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        {
-          message: 'Invalid payload',
-          errors: error.flatten(),
-        },
-        { status: 400 }
-      )
+      return NextResponse.json({ message: 'Invalid payload', errors: error.flatten() }, { status: 400 })
     }
 
     console.error(error)
-
     return NextResponse.json({ message: 'Failed to update staff' }, { status: 500 })
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const permissionError = await requireEditPermission()
-
-  if (permissionError) return permissionError
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  const { error } = await requirePermission('staff:change_permission')
+  if (error) return error
 
   const { id } = await params
   const staffId = Number(id)
-
   if (!Number.isFinite(staffId)) {
     return NextResponse.json({ message: 'Invalid staff id' }, { status: 400 })
   }
 
   try {
-    await prisma.staff.delete({
-      where: { id: staffId },
+    const staff = await prisma.staff.findUnique({ where: { id: staffId }, select: { userId: true } })
+    if (!staff) return NextResponse.json({ message: 'Staff not found' }, { status: 404 })
+
+    await prisma.$transaction(async tx => {
+      if (staff.userId) {
+        await tx.user.update({
+          where: { id: staff.userId },
+          data: { active: false, isDeleted: true },
+        })
+      }
+
+      await tx.staff.delete({ where: { id: staffId } })
     })
 
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error(error)
-
     return NextResponse.json({ message: 'Failed to remove staff' }, { status: 500 })
   }
 }

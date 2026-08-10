@@ -1,22 +1,12 @@
+import { redirect } from 'next/navigation'
+import { auth } from '@/auth'
+import { hasPermission } from '@/lib/auth/permissions'
 import ActivityLogsPage from '@/modules/activity-log/components/activitylog-v2-view-page'
-import { currentUser, isBranchManager } from '@/lib/data/current-user'
 
-const page = () => {
-  if (isBranchManager(currentUser)) {
-    return (
-      <div className="p-6">
-        <h1 className="text-xl font-semibold">Activity Logs</h1>
-        <p className="mt-2 text-sm text-slate-500">
-          Branch managers do not have access to activity logs.
-        </p>
-      </div>
-    )
-  }
+export default async function ActivityLogPage() {
+  const session = await auth()
+  if (!session?.user) redirect('/login')
+  if (!hasPermission(session.user.role, 'activity_logs:view')) redirect('/unauthorized')
 
-  return (
-    <div>
-      <ActivityLogsPage />
-    </div>
-  )
+  return <ActivityLogsPage />
 }
-export default page

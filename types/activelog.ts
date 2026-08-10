@@ -3,6 +3,7 @@ export interface ActiveLog {
   id: string
 
   name: string
+
   role: 'Member' | 'Staff' | 'Manager'
 
   action:
@@ -17,21 +18,39 @@ export interface ActiveLog {
   status: 'Success' | 'Failed' | 'Pending'
 
   timestamp: string
+
   minutesOnline: number
 
   description: string
 }
 
-// modules/activity-logs/types/activity-log.ts
+// -----------------------------------------------------------------------------
+// Activity Logs
+// -----------------------------------------------------------------------------
+
 export type ActivityType = 'created' | 'updated' | 'imported'
 
 export interface ActivityLogEntry {
   id: string
+
   type: ActivityType
+
   title: string
+
   description: string
+
+  subjectName?: string
+
   actorName: string
+
   actionLabel: 'Created by' | 'Updated by'
+
+  /**
+   * Formatted database createdAt date.
+   *
+   * Example:
+   * August 10, 2026
+   */
   date: string
 }
 

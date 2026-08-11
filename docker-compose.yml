@@ -1,4 +1,21 @@
 services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: kkk_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d kkk_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
   app:
     build:
       context: .
@@ -15,5 +32,11 @@ services:
     environment:
       WATCHPACK_POLLING: "true"
       NODE_ENV: development
+    depends_on:
+      db:
+        condition: service_healthy
     command: sh -c "npx prisma generate && npm run dev -- --hostname 0.0.0.0"
     restart: unless-stopped
+
+volumes:
+  postgres_data:

@@ -1,8 +1,12 @@
 export interface MemberRow {
   id: number
-  name: string
+  fullName: string
+  firstName?: string | null
+  middleName?: string | null
+  lastName?: string | null
   membership: string
   age: number
+  branch: string
   address: string
   civilStatus: string | null
 }

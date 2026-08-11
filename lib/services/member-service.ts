@@ -11,10 +11,14 @@ export interface MemberListParams {
 }
 
 export interface MemberPayload {
-  name: string
+  fullName: string
+  firstName: string
+  middleName: string
+  lastName: string
   membership: string
   age: number
-  address: string
+  branch: string
+  address?: string | null
   status: string
   civilStatus?: string | null
   clientId?: number | null
@@ -59,10 +63,16 @@ export function getMembershipLabel(value: string | null | undefined): string {
 
 function buildMemberCreateData(payload: MemberPayload): Prisma.MemberCreateInput {
   return {
-    name: payload.name,
+    fullName:
+      [payload.firstName, payload.middleName, payload.lastName].filter(Boolean).join(' ') ||
+      payload.fullName,
+    firstName: payload.firstName,
+    middleName: payload.middleName,
+    lastName: payload.lastName,
     membership: normalizeMembershipValue(payload.membership),
     age: payload.age,
-    address: payload.address,
+    branch: payload.branch,
+    address: payload.address ?? '',
     status: normalizeStatusValue(payload.status),
     civilStatus: payload.civilStatus ?? null,
     clientId: payload.clientId ?? null,
@@ -75,12 +85,15 @@ function buildMemberCreateData(payload: MemberPayload): Prisma.MemberCreateInput
 function buildMemberUpdateData(payload: Partial<MemberPayload>): Prisma.MemberUpdateInput {
   const data: Prisma.MemberUpdateInput = {}
 
-  if (typeof payload.name === 'string') data.name = payload.name
+  if (typeof payload.fullName === 'string') data.fullName = payload.fullName
+  if (typeof payload.firstName === 'string') data.firstName = payload.firstName
+  if (typeof payload.middleName === 'string') data.middleName = payload.middleName
+  if (typeof payload.lastName === 'string') data.lastName = payload.lastName
   if (typeof payload.membership === 'string') {
     data.membership = normalizeMembershipValue(payload.membership)
   }
   if (typeof payload.age === 'number') data.age = payload.age
-  if (typeof payload.address === 'string') data.address = payload.address
+  if (typeof payload.branch === 'string') data.branch = payload.branch
   if (typeof payload.status === 'string') data.status = normalizeStatusValue(payload.status)
   if (payload.civilStatus !== undefined) data.civilStatus = payload.civilStatus
   if (payload.clientId !== undefined) data.clientId = payload.clientId
@@ -94,10 +107,14 @@ function buildMemberUpdateData(payload: Partial<MemberPayload>): Prisma.MemberUp
 function mapMember(member: Member) {
   return {
     id: member.id,
-    name: member.name,
+    fullName: member.fullName,
+    firstName: member.firstName,
+    middleName: member.middleName,
+    lastName: member.lastName,
     membership: member.membership,
     membershipLabel: getMembershipLabel(member.membership),
     age: member.age,
+    branch: member.branch,
     address: member.address,
     status: member.status,
     civilStatus: member.civilStatus,
@@ -119,15 +136,17 @@ export async function listMembers(params: MemberListParams = {}) {
       search
         ? {
             OR: [
-              { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
+              { fullName: { contains: search, mode: Prisma.QueryMode.insensitive } },
+              { firstName: { contains: search, mode: Prisma.QueryMode.insensitive } },
+              { lastName: { contains: search, mode: Prisma.QueryMode.insensitive } },
               { membership: { contains: search, mode: Prisma.QueryMode.insensitive } },
-              { address: { contains: search, mode: Prisma.QueryMode.insensitive } },
+              { branch: { contains: search, mode: Prisma.QueryMode.insensitive } },
               { status: { contains: search, mode: Prisma.QueryMode.insensitive } },
             ],
           }
         : {},
       branch && branch !== 'all'
-        ? { address: { contains: branch, mode: Prisma.QueryMode.insensitive } }
+        ? { branch: { contains: branch, mode: Prisma.QueryMode.insensitive } }
         : {},
     ].filter(Boolean),
   }
@@ -164,7 +183,7 @@ export async function createMember(payload: MemberPayload) {
     type: 'created',
     title: 'Member Created',
     description: 'was added as a new member',
-    subjectName: member.name,
+    subjectName: member.fullName,
     actorName: await getCurrentActorName(),
     actionLabel: 'Created by',
     memberId: member.id,
@@ -180,7 +199,10 @@ export async function createMember(payload: MemberPayload) {
 
 export interface CombinedMemberPayload {
   principal: {
-    name: string
+    firstName: string
+    middleName: string
+    lastName: string
+    branch: string
     address: string
     birthday: string
     age: string
@@ -223,10 +245,22 @@ export async function createMemberWithRelations(payload: CombinedMemberPayload) 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { age: _secondaryAge, ...secondaryBeneficiary } = payload.beneficiaries.secondary
 
+  const fullName = [
+    payload.principal.firstName,
+    payload.principal.middleName,
+    payload.principal.lastName,
+  ]
+    .filter(Boolean)
+    .join(' ')
+
   const member = await prisma.$transaction(async tx => {
     return tx.member.create({
       data: {
-        name: payload.principal.name,
+        fullName: fullName,
+        firstName: payload.principal.firstName,
+        middleName: payload.principal.middleName,
+        lastName: payload.principal.lastName,
+        branch: payload.principal.branch,
         address: payload.principal.address,
         age: Number(payload.principal.age),
         membership: membershipFromContribution(payload.principal.weeklyContribution),
@@ -251,7 +285,7 @@ export async function createMemberWithRelations(payload: CombinedMemberPayload) 
     type: 'created',
     title: 'Member Created',
     description: 'was added as a new member, with beneficiaries and dependents',
-    subjectName: member.name,
+    subjectName: member.fullName,
     actorName: await getCurrentActorName(),
     actionLabel: 'Created by',
     memberId: member.id,
@@ -270,7 +304,7 @@ export async function updateMember(id: number, payload: Partial<MemberPayload>) 
     type: 'updated',
     title: 'Member Updated',
     description: 'member information was updated',
-    subjectName: member.name,
+    subjectName: member.fullName,
     actorName: await getCurrentActorName(),
     actionLabel: 'Updated by',
     memberId: member.id,
@@ -297,7 +331,11 @@ export async function getMemberProfile(id: number) {
   return {
     principal: {
       id: member.id,
-      name: member.name,
+      fullName: member.fullName,
+      firstName: member.firstName,
+      middleName: member.middleName,
+      lastName: member.lastName,
+      branch: member.branch,
       address: member.address,
       age: member.age,
       membership: member.membership,
@@ -364,11 +402,11 @@ function parseMemberRow(
   rowNumber: number,
   errors: { row: number; message: string }[]
 ): MemberPayload | null {
-  const name = String(row['Client name'] ?? '').trim()
+  const clientName = String(row['Client name'] ?? '').trim()
   const ageRaw = row['Client age']
-  const branch = String(row['Branch'] ?? '').trim()
+  const branchRaw = String(row['Branch'] ?? '').trim()
   const area = String(row['AREA'] ?? '').trim()
-  const address = [area, branch].filter(Boolean).join(' - ')
+  const branch = [area, branchRaw].filter(Boolean).join(' - ')
 
   const membershipTypeRaw = row['Membership Type']
   const totalPaymentRaw = row['Total payment amount']
@@ -384,7 +422,7 @@ function parseMemberRow(
   const loanCycleRaw = row['Loan Cycle']
   const loanCycle = Number(loanCycleRaw)
 
-  if (!name) {
+  if (!clientName) {
     errors.push({ row: rowNumber, message: 'Missing Client name.' })
     return null
   }
@@ -395,16 +433,20 @@ function parseMemberRow(
     return null
   }
 
-  if (!address) {
-    errors.push({ row: rowNumber, message: 'Missing Branch/AREA.' })
+  if (!branch) {
+    errors.push({ row: rowNumber, message: 'Missing Cluster / Branch.' })
     return null
   }
 
   return {
-    name,
+    fullName: clientName,
+    firstName: String(row['Client first name'] ?? '').trim(),
+    middleName: String(row['Client middle name'] ?? '').trim(),
+    lastName: String(row['Client last name'] ?? '').trim(),
     membership: normalizeMembershipValue(String(membershipSource ?? '')),
     age,
-    address,
+    branch,
+    address: String(row['Client address'] ?? '').trim(),
     status: normalizeStatusValue('Active'),
     clientId: Number.isFinite(clientId) ? clientId : null,
     transactionDate,

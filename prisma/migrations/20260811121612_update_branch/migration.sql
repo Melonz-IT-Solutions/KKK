@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Member" ALTER COLUMN "address" DROP NOT NULL,
+ALTER COLUMN "branch" DROP DEFAULT;

@@ -20,7 +20,10 @@ export const WEEKLY_CONTRIBUTION_VALUES = ['100', '150', '200', '250'] as const
 // ---------------------------------------------------------------------------
 
 export const principalMemberSchema = z.object({
-  name: z.string().min(1, 'Full name is required.'),
+  firstName: z.string().min(1, 'First name is required.'),
+  middleName: z.string().min(1, 'Middle name is required.'),
+  lastName: z.string().min(1, 'Last name is required.'),
+  branch: z.string().min(1, 'Select a branch.'),
   address: z.string().min(1, 'Address is required.'),
   birthday: z.string().min(1, 'Birthday is required.'),
   age: z.string().optional(), // derived, read-only — not user-entered
@@ -101,7 +104,10 @@ export const emptyDependentEntry: DependentEntryValues = {
 
 export const defaultMemberFormValues: MemberFormValues = {
   principal: {
-    name: '',
+    firstName: '',
+    middleName: '',
+    lastName: '',
+    branch: '',
     address: '',
     birthday: '',
     age: '',

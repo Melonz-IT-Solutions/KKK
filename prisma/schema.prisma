@@ -25,10 +25,14 @@ model User {
 
 model Member {
   id              Int           @id @default(autoincrement())
-  name            String
+  fullName        String
+  firstName       String?
+  middleName      String?
+  lastName        String?
   membership      String
   age             Int
-  address         String
+  branch          String
+  address         String?
   status          String
   civilStatus     String?
   clientId        Int?

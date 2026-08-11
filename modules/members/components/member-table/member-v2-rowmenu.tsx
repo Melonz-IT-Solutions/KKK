@@ -49,7 +49,7 @@ export default function RowMenu({ onView, onEdit, onDelete }: RowMenuProps) {
             }}
             className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
           >
-            Delete
+            Mark as Inactive
           </button>
         </div>
       )}

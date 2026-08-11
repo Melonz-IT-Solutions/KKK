@@ -12,6 +12,7 @@ import {
 import {
   CIVIL_STATUS_OPTIONS,
   WEEKLY_CONTRIBUTION_OPTIONS,
+  BRANCH_OPTIONS,
 } from '@/modules/members/constants/members'
 import type { MemberFormValues } from '@/modules/members/schema/member-schema'
 import { useComputedAge } from '@/modules/members/hooks/use-computed-age'
@@ -34,17 +35,76 @@ export function PrincipalMemberFields({
 
   return (
     <div className="grid gap-4 p-6">
-      {/* Name */}
+      {/* First Name */}
       <div className="grid gap-2">
-        <Label htmlFor="name">Name</Label>
+        <Label htmlFor="firstName">First Name</Label>
         <Controller
           control={control}
-          name="principal.name"
+          name="principal.firstName"
           render={({ field }) => (
-            <Input id="name" placeholder="Full name" {...field} aria-invalid={!!errors?.name} />
+            <Input
+              id="firstName"
+              placeholder="First name"
+              {...field}
+              aria-invalid={!!errors?.firstName}
+            />
           )}
         />
-        {errors?.name && <p className="text-destructive text-sm">{errors.name.message}</p>}
+        {errors?.firstName && (
+          <p className="text-destructive text-sm">{errors.firstName.message}</p>
+        )}
+      </div>
+
+      {/* Middle Name */}
+      <div className="grid gap-2">
+        <Label htmlFor="middleName">Middle Name</Label>
+        <Controller
+          control={control}
+          name="principal.middleName"
+          render={({ field }) => <Input id="middleName" placeholder="Middle name" {...field} />}
+        />
+      </div>
+
+      {/* Last Name */}
+      <div className="grid gap-2">
+        <Label htmlFor="lastName">Last Name</Label>
+        <Controller
+          control={control}
+          name="principal.lastName"
+          render={({ field }) => (
+            <Input
+              id="lastName"
+              placeholder="Last name"
+              {...field}
+              aria-invalid={!!errors?.lastName}
+            />
+          )}
+        />
+        {errors?.lastName && <p className="text-destructive text-sm">{errors.lastName.message}</p>}
+      </div>
+
+      {/* Branch */}
+      <div className="grid gap-2">
+        <Label htmlFor="branch">Branch</Label>
+        <Controller
+          control={control}
+          name="principal.branch"
+          render={({ field }) => (
+            <Select value={field.value} onValueChange={field.onChange}>
+              <SelectTrigger id="branch" aria-invalid={!!errors?.branch} className="w-full">
+                <SelectValue placeholder="Select Branch" />
+              </SelectTrigger>
+              <SelectContent>
+                {BRANCH_OPTIONS.filter(opt => opt.value !== 'all').map(opt => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        />
+        {errors?.branch && <p className="text-destructive text-sm">{errors.branch.message}</p>}
       </div>
 
       {/* Address */}

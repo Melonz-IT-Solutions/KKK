@@ -1,11 +1,19 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { UserRoundCheck, UserRoundX, Users } from 'lucide-react'
 
+interface DashboardCard {
+  label: string
+  value: string
+  icon: string
+  href: string
+}
+
 export default function DataTableCards() {
-  const [reports, setReports] = useState<{ label: string; value: string; icon: string }[]>([])
+  const [reports, setReports] = useState<DashboardCard[]>([])
 
   useEffect(() => {
     const load = async () => {
@@ -27,23 +35,25 @@ export default function DataTableCards() {
         const Icon = iconMap[report.icon] ?? Users
 
         return (
-          <Card key={report.label}>
-            <CardHeader>
-              <div className="flex items-start justify-between p-2">
-                <div className="rounded-lg">
-                  <div className="flex flex-col items-start justify-center gap-3">
-                    <CardDescription>{report.label}</CardDescription>
-                    <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-                      {report.value}
-                    </CardTitle>
+          <Link key={report.label} href={report.href}>
+            <Card className="hover:bg-muted/50 cursor-pointer transition-colors">
+              <CardHeader>
+                <div className="flex items-start justify-between p-2">
+                  <div className="rounded-lg">
+                    <div className="flex flex-col items-start justify-center gap-3">
+                      <CardDescription>{report.label}</CardDescription>
+                      <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
+                        {report.value}
+                      </CardTitle>
+                    </div>
+                  </div>
+                  <div>
+                    <Icon />
                   </div>
                 </div>
-                <div>
-                  <Icon />
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
+              </CardHeader>
+            </Card>
+          </Link>
         )
       })}
     </div>

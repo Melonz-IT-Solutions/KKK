@@ -1,5 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import { Prisma, type Member } from '@prisma/client'
+import { createActivityLog } from '@/lib/services/activity-log-service'
+import { getCurrentActorName } from '@/lib/auth/get-current-user'
 
 export interface MemberListParams {
   search?: string
@@ -10,11 +12,11 @@ export interface MemberListParams {
 
 export interface MemberPayload {
   name: string
-  membership: string // raw stored value: "25" or "50"
+  membership: string
   age: number
   address: string
-  status: string // normalized to only "Active" or "Inactive"
-  civilStatus?: string | null // e.g. "single" | "married" | "widowed" | "separated" — NEVER confused with status
+  status: string
+  civilStatus?: string | null
   clientId?: number | null
   transactionDate?: Date | null
   dateOfBirth?: Date | null
@@ -118,25 +120,14 @@ export async function listMembers(params: MemberListParams = {}) {
         ? {
             OR: [
               { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
-              {
-                membership: {
-                  contains: search,
-                  mode: Prisma.QueryMode.insensitive,
-                },
-              },
-              {
-                address: { contains: search, mode: Prisma.QueryMode.insensitive },
-              },
-              {
-                status: { contains: search, mode: Prisma.QueryMode.insensitive },
-              },
+              { membership: { contains: search, mode: Prisma.QueryMode.insensitive } },
+              { address: { contains: search, mode: Prisma.QueryMode.insensitive } },
+              { status: { contains: search, mode: Prisma.QueryMode.insensitive } },
             ],
           }
         : {},
       branch && branch !== 'all'
-        ? {
-            address: { contains: branch, mode: Prisma.QueryMode.insensitive },
-          }
+        ? { address: { contains: branch, mode: Prisma.QueryMode.insensitive } }
         : {},
     ].filter(Boolean),
   }
@@ -168,14 +159,23 @@ export async function createMember(payload: MemberPayload) {
   const member = await prisma.member.create({
     data: buildMemberCreateData(payload),
   })
+
+  await createActivityLog({
+    type: 'created',
+    title: 'Member Created',
+    description: 'was added as a new member',
+    subjectName: member.name,
+    actorName: await getCurrentActorName(),
+    actionLabel: 'Created by',
+    memberId: member.id,
+  })
+
   return mapMember(member)
 }
 
 // ---------------------------------------------------------------------------
 // Combined creation — principal + beneficiaries + dependents in one
-// transaction. This is what AddMemberSheet's full form submits to. Using
-// createMember() alone (flat, no relations) silently drops beneficiaries
-// and dependents — this function is the one that actually persists them.
+// transaction.
 // ---------------------------------------------------------------------------
 
 export interface CombinedMemberPayload {
@@ -218,17 +218,13 @@ function membershipFromContribution(weeklyContribution: string): string {
 }
 
 export async function createMemberWithRelations(payload: CombinedMemberPayload) {
-  // Beneficiary/Dependent don't have an `age` column — it's derived from
-  // birthday on the form and not meant to be persisted twice. Strip it out
-  // before handing the object to Prisma, or it throws an unknown-argument
-  // error.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { age: _primaryAge, ...primaryBeneficiary } = payload.beneficiaries.primary
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { age: _secondaryAge, ...secondaryBeneficiary } = payload.beneficiaries.secondary
 
-  return prisma.$transaction(async tx => {
-    const member = await tx.member.create({
+  const member = await prisma.$transaction(async tx => {
+    return tx.member.create({
       data: {
         name: payload.principal.name,
         address: payload.principal.address,
@@ -249,9 +245,19 @@ export async function createMemberWithRelations(payload: CombinedMemberPayload) 
       },
       include: { beneficiaries: true, dependents: true },
     })
-
-    return member
   })
+
+  await createActivityLog({
+    type: 'created',
+    title: 'Member Created',
+    description: 'was added as a new member, with beneficiaries and dependents',
+    subjectName: member.name,
+    actorName: await getCurrentActorName(),
+    actionLabel: 'Created by',
+    memberId: member.id,
+  })
+
+  return member
 }
 
 export async function updateMember(id: number, payload: Partial<MemberPayload>) {
@@ -259,6 +265,17 @@ export async function updateMember(id: number, payload: Partial<MemberPayload>) 
     where: { id },
     data: buildMemberUpdateData(payload),
   })
+
+  await createActivityLog({
+    type: 'updated',
+    title: 'Member Updated',
+    description: 'member information was updated',
+    subjectName: member.name,
+    actorName: await getCurrentActorName(),
+    actionLabel: 'Updated by',
+    memberId: member.id,
+  })
+
   return mapMember(member)
 }
 
@@ -269,10 +286,7 @@ export async function deleteMember(id: number) {
 export async function getMemberProfile(id: number) {
   const member = await prisma.member.findUnique({
     where: { id },
-    include: {
-      beneficiaries: true,
-      dependents: true,
-    },
+    include: { beneficiaries: true, dependents: true },
   })
 
   if (!member) return null
@@ -416,6 +430,21 @@ export async function importMembers(rows: Record<string, unknown>[]): Promise<Im
     data: validPayloads.map(buildMemberCreateData),
     skipDuplicates: true,
   })
+
+  // One log entry for the whole batch, not one per imported row — matches
+  // "New 162 members added via import file" style entries from the
+  // activity log design. subjectName is omitted here since there's no
+  // single member being acted on.
+  if (result.count > 0) {
+    await createActivityLog({
+      type: 'imported',
+      title: 'Members Imported',
+      description: `New ${result.count} members added via import file`,
+      subjectName: 'Multiple Members',
+      actorName: await getCurrentActorName(),
+      actionLabel: 'Created by',
+    })
+  }
 
   return {
     importedCount: result.count,

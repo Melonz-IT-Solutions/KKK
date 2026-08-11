@@ -9,18 +9,31 @@ export async function GET() {
       activeStaffCount,
       inactiveStaffCount,
       recentMembers,
-      chartData,
+      allMembers,
     ] = await Promise.all([
       prisma.member.count(),
       prisma.staff.count(),
       prisma.staff.count({ where: { active: true } }),
       prisma.staff.count({ where: { active: false } }),
       prisma.member.findMany({ orderBy: { createdAt: 'desc' }, take: 4 }),
-      prisma.member.groupBy({
-        by: ['createdAt'],
-        _count: { id: true },
-      }),
+      prisma.member.findMany({ select: { createdAt: true } }),
     ])
+
+    // Group members by month client-side, since createdAt timestamps are
+    // unique per record and groupBy(['createdAt']) would not actually
+    // bucket them by month.
+    const monthCounts = new Map<string, number>()
+    for (const { createdAt } of allMembers) {
+      const key = new Date(createdAt).toLocaleString('en-US', {
+        month: 'short',
+        year: 'numeric',
+      })
+      monthCounts.set(key, (monthCounts.get(key) ?? 0) + 1)
+    }
+
+    const chartData = Array.from(monthCounts.entries())
+      .map(([month, members]) => ({ month, members }))
+      .sort((a, b) => new Date(a.month).getTime() - new Date(b.month).getTime())
 
     return NextResponse.json({
       cards: [
@@ -28,17 +41,25 @@ export async function GET() {
           label: 'Total Members',
           value: memberCount.toString(),
           icon: 'Users',
+          href: '/members',
         },
-        { label: 'Total Staff', value: staffCount.toString(), icon: 'Users' },
+        {
+          label: 'Total Staff',
+          value: staffCount.toString(),
+          icon: 'Users',
+          href: '/staff',
+        },
         {
           label: 'Active Staff',
           value: activeStaffCount.toString(),
           icon: 'UserRoundCheck',
+          href: '/staff?status=active',
         },
         {
           label: 'Inactive Staff',
           value: inactiveStaffCount.toString(),
           icon: 'UserRoundX',
+          href: '/staff?status=inactive',
         },
       ],
       recentMembers: recentMembers.map(member => ({
@@ -46,12 +67,7 @@ export async function GET() {
         name: member.name,
         address: member.address,
       })),
-      chartData: chartData.map(item => ({
-        month: new Date(item.createdAt).toLocaleString('en-US', {
-          month: 'short',
-        }),
-        members: item._count.id,
-      })),
+      chartData,
     })
   } catch (error) {
     console.error(error)

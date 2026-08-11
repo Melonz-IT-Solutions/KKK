@@ -45,12 +45,6 @@ export interface ActivityLogEntry {
 
   actionLabel: 'Created by' | 'Updated by'
 
-  /**
-   * Formatted database createdAt date.
-   *
-   * Example:
-   * August 10, 2026
-   */
   date: string
 }
 

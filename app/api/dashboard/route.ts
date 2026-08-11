@@ -62,7 +62,7 @@ export async function GET() {
           href: '/staff?status=inactive',
         },
       ],
-      recentMembers: recentMembers.map((member: (typeof recentMembers)[number]) => ({
+      recentMembers: recentMembers.map(member => ({
         id: member.id,
         name: member.fullName,
         address: member.address,

@@ -64,13 +64,13 @@ export default function MemberV2Table({ data }: MemberV2TableProps) {
               {pageRows.map(row => (
                 <TableRow key={row.id} className="hover:bg-slate-50/70">
                   <TableCell className="font-medium whitespace-nowrap text-slate-900">
-                    {row.name}
+                    {row.fullName}
                   </TableCell>
                   <TableCell>
                     <MembershipBadge value={row.membership} />
                   </TableCell>
                   <TableCell className="font-medium text-slate-700">{row.age}</TableCell>
-                  <TableCell className="text-slate-600">{row.address}</TableCell>
+                  <TableCell className="text-slate-600">{row.branch}</TableCell>
                   <TableCell className="text-slate-600">{row.civilStatus ?? ''}</TableCell>
                   <TableCell className="text-right">
                     <RowMenu

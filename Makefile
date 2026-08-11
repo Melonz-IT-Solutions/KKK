@@ -41,6 +41,12 @@ migrate-reset:
 db-push:
 	docker compose exec -T app npx prisma db push
 
+prisma-generate:
+	docker compose exec -T app npx prisma generate
+
+db-seed:
+	docker compose exec -T app npx prisma db seed
+
 # ── Node ───────────────────────────────────────────────────────────────────────
 npm-install:
 	docker compose exec -T app npm install

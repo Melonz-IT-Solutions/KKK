@@ -17,7 +17,7 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
         <h2 className="mb-3 text-lg font-semibold">Principal Member</h2>
         <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
           <dt className="text-muted-foreground">Name</dt>
-          <dd>{principal.name}</dd>
+          <dd>{principal.fullName}</dd>
           <dt className="text-muted-foreground">Address</dt>
           <dd>{principal.address}</dd>
           <dt className="text-muted-foreground">Age</dt>

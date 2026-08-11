@@ -9,16 +9,23 @@ import {
 } from '@/lib/services/member-service'
 
 const memberSchema = z.object({
-  name: z.string().min(1),
+  fullName: z.string().default(''),
+  firstName: z.string().min(1),
+  middleName: z.string().min(1),
+  lastName: z.string().min(1),
   membership: z.string().min(1),
   age: z.number().int().min(1),
+  branch: z.string().min(1),
   address: z.string().min(1),
   status: z.string().min(1),
 })
 
 const combinedMemberSchema = z.object({
   principal: z.object({
-    name: z.string().min(1),
+    firstName: z.string().min(1),
+    middleName: z.string().min(1),
+    lastName: z.string().min(1),
+    branch: z.string().min(1),
     address: z.string().min(1),
     birthday: z.string().min(1),
     age: z.string().min(1),

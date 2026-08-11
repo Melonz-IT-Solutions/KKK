@@ -14,7 +14,10 @@ import type {
 // ---------------------------------------------------------------------------
 
 export const emptyForm: PrincipalMemberFormValues = {
-  name: '',
+  firstName: '',
+  middleName: '',
+  lastName: '',
+  branch: '',
   address: '',
   birthday: '',
   age: '',
@@ -84,11 +87,11 @@ import type { MemberColumn, BranchOption } from '@/modules/members/types/member'
 // WEEKLY_CONTRIBUTION_OPTIONS, RELATIONSHIP_OPTIONS, emptyForm, etc. stay here
 
 export const MEMBER_TABLE_COLUMNS: MemberColumn[] = [
-  { key: 'name', label: 'Name' },
+  { key: 'fullName', label: 'Full Name' },
   { key: 'membership', label: 'Membership' },
   { key: 'age', label: 'Age' },
-  { key: 'address', label: 'Address' },
-  { key: 'civil status', label: 'Civil Status' },
+  { key: 'branch', label: 'Branch' },
+  { key: 'civilStatus', label: 'Civil Status' },
 ]
 
 export const BRANCH_OPTIONS: BranchOption[] = [

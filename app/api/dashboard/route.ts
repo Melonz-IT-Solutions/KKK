@@ -64,7 +64,7 @@ export async function GET() {
       ],
       recentMembers: recentMembers.map(member => ({
         id: member.id,
-        name: member.name,
+        name: member.fullName,
         address: member.address,
       })),
       chartData,

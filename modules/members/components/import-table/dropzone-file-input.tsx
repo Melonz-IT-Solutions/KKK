@@ -1,13 +1,6 @@
 import { Upload } from 'lucide-react'
 
-interface DropzoneFileInputProps {
-  file: File | null
-  isDragging: boolean
-  onDragOver: (e: React.DragEvent<HTMLLabelElement>) => void
-  onDragLeave: () => void
-  onDrop: (e: React.DragEvent<HTMLLabelElement>) => void
-  onFilesSelected: (fileList?: FileList | null) => void
-}
+import type { DropzoneFileInputProps } from '@/modules/members/types/member'
 
 export function DropzoneFileInput({
   file,
@@ -34,6 +27,7 @@ export function DropzoneFileInput({
       {file ? (
         <div>
           <p className="text-sm font-medium text-neutral-900">{file.name}</p>
+
           <p className="mt-1 text-xs text-neutral-400">
             {(file.size / 1024).toFixed(1)} KB &middot; click or drop to replace
           </p>
@@ -41,6 +35,7 @@ export function DropzoneFileInput({
       ) : (
         <div>
           <p className="text-sm font-medium text-neutral-700">Drop file here or click to browse</p>
+
           <p className="mt-1 text-xs text-neutral-400">
             Upload an Excel file to import members in bulk
           </p>
@@ -52,7 +47,7 @@ export function DropzoneFileInput({
         type="file"
         accept=".xlsx,.xls,.csv"
         className="hidden"
-        onChange={e => onFilesSelected(e.target.files)}
+        onChange={event => onFilesSelected(event.target.files)}
       />
     </label>
   )

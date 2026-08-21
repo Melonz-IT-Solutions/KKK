@@ -1,13 +1,11 @@
 import { randomBytes, scrypt, timingSafeEqual } from 'crypto'
 import { promisify } from 'util'
+import { compare as bcryptCompare } from 'bcrypt'
 
 const scryptAsync = promisify(scrypt)
 
 const KEY_LENGTH = 64
 
-/**
- * Hash a password using Node.js built-in crypto.
- */
 export async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(16).toString('hex')
 
@@ -16,10 +14,15 @@ export async function hashPassword(password: string): Promise<string> {
   return `${salt}:${derivedKey.toString('hex')}`
 }
 
-/**
- * Verify a password against the stored hash.
- */
 export async function verifyPassword(password: string, storedHash: string): Promise<boolean> {
+  if (/^\$2[aby]\$/.test(storedHash)) {
+    try {
+      return await bcryptCompare(password, storedHash)
+    } catch {
+      return false
+    }
+  }
+
   const [salt, storedKeyHex] = storedHash.split(':')
 
   if (!salt || !storedKeyHex) {
@@ -29,8 +32,6 @@ export async function verifyPassword(password: string, storedHash: string): Prom
   const derivedKey = (await scryptAsync(password, salt, KEY_LENGTH)) as Buffer
   const storedKey = Buffer.from(storedKeyHex, 'hex')
 
-  // timingSafeEqual requires equal-length buffers, or it throws — guard
-  // against a malformed/corrupted stored hash instead of crashing.
   if (storedKey.length !== derivedKey.length) {
     return false
   }

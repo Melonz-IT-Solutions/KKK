@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
 import { hasPermission } from '@/lib/auth/permissions'
-import ReportsPage from '@/modules/reports/components/reports-view/reports-view-page'
+import ReportsPage from '@/modules/reports'
 
 export default async function ReportsRoute() {
   const session = await auth()

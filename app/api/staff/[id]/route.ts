@@ -1,112 +1,166 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { hashPassword } from '@/lib/auth/password'
+
+import { deleteStaff, updateStaff } from '@/lib/services/staff-service'
+
 import { requirePermission } from '@/lib/auth/authorize'
-import { prisma } from '@/lib/prisma'
 
 const staffUpdateSchema = z.object({
   name: z.string().min(1).optional(),
+
   contactNo: z.string().optional(),
+
   department: z.string().min(1).optional(),
+
   branch: z.string().optional(),
+
   role: z.enum(['SUPER_ADMIN', 'FINANCE', 'STAFF', 'BRANCH_MANAGER']).optional(),
+
   active: z.boolean().optional(),
+
   password: z.string().min(8).optional(),
 })
 
-export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { error } = await requirePermission('staff:change_permission')
-  if (error) return error
+interface StaffRouteContext {
+  params: Promise<{
+    id: string
+  }>
+}
 
-  const { id } = await params
+function getStaffId(id: string) {
   const staffId = Number(id)
-  if (!Number.isFinite(staffId)) {
-    return NextResponse.json({ message: 'Invalid staff id' }, { status: 400 })
+
+  if (!Number.isInteger(staffId) || staffId <= 0) {
+    throw new Error('Invalid staff id')
+  }
+
+  return staffId
+}
+
+export async function PATCH(request: Request, { params }: StaffRouteContext) {
+  const { error } = await requirePermission('staff:change_permission')
+
+  if (error) {
+    return error
   }
 
   try {
-    const payload = staffUpdateSchema.parse(await request.json())
-    const staff = await prisma.staff.findUnique({
-      where: { id: staffId },
-      select: { userId: true },
+    const { id } = await params
+
+    const staffId = getStaffId(id)
+
+    const body = await request.json()
+
+    const payload = staffUpdateSchema.parse(body)
+
+    const staff = await updateStaff(staffId, payload)
+
+    return NextResponse.json({
+      success: true,
+      message: 'Staff updated successfully',
+      staff,
     })
-    if (!staff) return NextResponse.json({ message: 'Staff not found' }, { status: 404 })
-
-    const passwordHash = payload.password ? await hashPassword(payload.password) : undefined
-    const updated = await prisma.$transaction(async tx => {
-      const updatedStaff = await tx.staff.update({
-        where: { id: staffId },
-        data: {
-          ...(payload.name !== undefined ? { name: payload.name } : {}),
-          ...(payload.department !== undefined ? { department: payload.department } : {}),
-          ...(payload.branch !== undefined ? { branch: payload.branch } : {}),
-          ...(payload.role !== undefined ? { role: payload.role } : {}),
-          ...(payload.active !== undefined ? { active: payload.active } : {}),
-          ...(passwordHash ? { password: passwordHash } : {}),
-        },
-      })
-
-      if (staff.userId) {
-        await tx.user.update({
-          where: { id: staff.userId },
-          data: {
-            ...(payload.name !== undefined ? { name: payload.name } : {}),
-            ...(payload.role !== undefined ? { roles: payload.role } : {}),
-            ...(payload.active !== undefined ? { active: payload.active } : {}),
-            ...(payload.contactNo !== undefined ? { contactNo: payload.contactNo } : {}),
-            ...(passwordHash ? { password: passwordHash } : {}),
-          },
-        })
-      }
-
-      return updatedStaff
-    })
-
-    return NextResponse.json(updated)
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { message: 'Invalid payload', errors: error.flatten() },
+        {
+          success: false,
+          message: 'Invalid payload',
+          errors: error.flatten(),
+        },
         { status: 400 }
       )
     }
 
-    console.error(error)
-    return NextResponse.json({ message: 'Failed to update staff' }, { status: 500 })
+    if (error instanceof Error && error.message === 'Invalid staff id') {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+        },
+        { status: 400 }
+      )
+    }
+
+    if (error instanceof Error && error.message === 'Staff not found') {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+        },
+        { status: 404 }
+      )
+    }
+
+    if (error instanceof Error && error.message.includes('SUPER_ADMIN cannot be assigned')) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+        },
+        { status: 400 }
+      )
+    }
+
+    console.error('Failed to update staff:', error)
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Failed to update staff',
+      },
+      { status: 500 }
+    )
   }
 }
 
-export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(_request: Request, { params }: StaffRouteContext) {
   const { error } = await requirePermission('staff:change_permission')
-  if (error) return error
 
-  const { id } = await params
-  const staffId = Number(id)
-  if (!Number.isFinite(staffId)) {
-    return NextResponse.json({ message: 'Invalid staff id' }, { status: 400 })
+  if (error) {
+    return error
   }
 
   try {
-    const staff = await prisma.staff.findUnique({
-      where: { id: staffId },
-      select: { userId: true },
+    const { id } = await params
+
+    const staffId = getStaffId(id)
+
+    await deleteStaff(staffId)
+
+    return NextResponse.json({
+      success: true,
+      message: 'Staff deactivated successfully',
     })
-    if (!staff) return NextResponse.json({ message: 'Staff not found' }, { status: 404 })
-
-    await prisma.$transaction(async tx => {
-      if (staff.userId) {
-        await tx.user.update({
-          where: { id: staff.userId },
-          data: { active: false, isDeleted: true },
-        })
-      }
-
-      await tx.staff.delete({ where: { id: staffId } })
-    })
-
-    return NextResponse.json({ success: true })
   } catch (error) {
-    console.error(error)
-    return NextResponse.json({ message: 'Failed to remove staff' }, { status: 500 })
+    if (error instanceof Error && error.message === 'Invalid staff id') {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+        },
+        { status: 400 }
+      )
+    }
+
+    if (error instanceof Error && error.message === 'Staff not found') {
+      return NextResponse.json(
+        {
+          success: false,
+          message: error.message,
+        },
+        { status: 404 }
+      )
+    }
+
+    console.error('Failed to deactivate staff:', error)
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Failed to deactivate staff',
+      },
+      { status: 500 }
+    )
   }
 }

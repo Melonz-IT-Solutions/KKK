@@ -1,12 +1,12 @@
-// modules/members/components/add-member/beneficiaries-tab.tsx
 import {
   type Control,
   type FieldErrors,
-  type UseFormWatch,
   type UseFormSetValue,
+  type UseFormWatch,
 } from 'react-hook-form'
+
 import { BeneficiaryEntryFields } from '@/modules/members/components/add-member/beneficiary-entry-fields'
-import type { MemberFormValues } from '@/modules/members/schema/member-schema'
+import type { MemberFormValues } from '@/modules/members/types/member'
 
 interface BeneficiariesTabProps {
   control: Control<MemberFormValues>
@@ -18,6 +18,7 @@ interface BeneficiariesTabProps {
 export function BeneficiariesTab({ control, errors, watch, setValue }: BeneficiariesTabProps) {
   return (
     <div className="grid gap-4 p-6">
+      {/* Primary Beneficiary */}
       <BeneficiaryEntryFields
         idPrefix="primary"
         sectionLabel="Primary Beneficiary"
@@ -28,6 +29,7 @@ export function BeneficiariesTab({ control, errors, watch, setValue }: Beneficia
         setValue={setValue}
       />
 
+      {/* Secondary Beneficiary */}
       <div className="mt-2 border-t pt-4">
         <BeneficiaryEntryFields
           idPrefix="secondary"

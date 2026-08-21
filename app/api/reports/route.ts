@@ -1,34 +1,51 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+
 import { createReport, listReports } from '@/lib/services/report-service'
+
 import { requirePermission } from '@/lib/auth/authorize'
 import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
+
 const reportSchema = z.object({
-  type: z.string().min(1),
+  type: z.enum(['Total Members', 'Total Mortality']),
+
   dateRangeStart: z.string().min(1),
+
   dateRangeEnd: z.string().min(1),
+
   generatedDate: z.string().min(1),
 })
 
 export async function GET() {
   const { error } = await requirePermission('reports:view')
-  if (error) return error
+
+  if (error) {
+    return error
+  }
 
   try {
     const reports = await listReports()
 
     return NextResponse.json(reports)
   } catch (error) {
-    console.error(error)
+    console.error('Load reports error:', error)
 
-    return NextResponse.json({ message: 'Failed to load reports' }, { status: 500 })
+    return NextResponse.json(
+      {
+        message: 'Failed to load reports',
+      },
+      { status: 500 }
+    )
   }
 }
 
 export async function POST(request: Request) {
   const { error } = await requirePermission('reports:generate')
-  if (error) return error
+
+  if (error) {
+    return error
+  }
 
   try {
     const payload = reportSchema.parse(await request.json())
@@ -36,7 +53,12 @@ export async function POST(request: Request) {
     const session = await auth()
 
     if (!session?.user?.id) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json(
+        {
+          message: 'Unauthorized',
+        },
+        { status: 401 }
+      )
     }
 
     const userId = Number(session.user.id)
@@ -45,9 +67,11 @@ export async function POST(request: Request) {
       where: {
         id: userId,
       },
+
       select: {
         id: true,
         name: true,
+
         staff: {
           select: {
             id: true,
@@ -57,13 +81,94 @@ export async function POST(request: Request) {
     })
 
     if (!user) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 })
+      return NextResponse.json(
+        {
+          message: 'User not found',
+        },
+        { status: 404 }
+      )
+    }
+
+    const startDate = new Date(`${payload.dateRangeStart}T00:00:00`)
+
+    const endDate = new Date(`${payload.dateRangeEnd}T23:59:59.999`)
+
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+      return NextResponse.json(
+        {
+          message: 'Invalid date range',
+        },
+        { status: 400 }
+      )
+    }
+
+    if (startDate > endDate) {
+      return NextResponse.json(
+        {
+          message: 'Start date cannot be after end date',
+        },
+        { status: 400 }
+      )
+    }
+
+    let total = 0
+
+    // ------------------------------------------------------------
+    // TOTAL MEMBERS
+    // Uses Member.transactionDate
+    // ------------------------------------------------------------
+
+    if (payload.type === 'Total Members') {
+      total = await prisma.member.count({
+        where: {
+          isDeleted: false,
+
+          transactionDate: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+      })
+    }
+
+    // ------------------------------------------------------------
+    // TOTAL MORTALITY
+    // Uses Member.statusChangedAt
+    // when member becomes Inactive.
+    // ------------------------------------------------------------
+
+    if (payload.type === 'Total Mortality') {
+      total = await prisma.member.count({
+        where: {
+          isDeleted: false,
+
+          status: 'Inactive',
+
+          statusChangedAt: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+      })
     }
 
     const report = await createReport(
-      payload,
+      {
+        type: payload.type === 'Total Members' ? 'MEMBER' : 'MORTALITY',
+
+        total,
+
+        dateRangeStart: payload.dateRangeStart,
+
+        dateRangeEnd: payload.dateRangeEnd,
+
+        generatedDate: payload.generatedDate,
+      },
+
       user.name ?? 'System',
+
       user.staff?.id ?? null,
+
       user.id
     )
 
@@ -79,8 +184,13 @@ export async function POST(request: Request) {
       )
     }
 
-    console.error(error)
+    console.error('Create report error:', error)
 
-    return NextResponse.json({ message: 'Failed to create report' }, { status: 500 })
+    return NextResponse.json(
+      {
+        message: 'Failed to create report',
+      },
+      { status: 500 }
+    )
   }
 }

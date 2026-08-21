@@ -16,8 +16,6 @@ function computeAge(birthday: string): string {
   return age >= 0 ? String(age) : ''
 }
 
-// Watches `birthdayPath`, writes the computed age into `agePath` whenever it
-// changes. Use once per birthday/age pair, anywhere in the form tree.
 export function useComputedAge<T extends FieldValues>(
   watch: UseFormWatch<T>,
   setValue: UseFormSetValue<T>,

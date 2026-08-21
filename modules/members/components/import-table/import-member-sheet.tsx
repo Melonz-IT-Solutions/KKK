@@ -1,26 +1,26 @@
-// modules/members/components/import-member/import-member-sheet.tsx
 'use client'
 
 import { useState } from 'react'
+
 import Button from '@/components/button-v2/button'
+
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from '@/components/ui/sheet'
 
 import { useFileDropzone } from '@/modules/members/hooks/use-file-dropzone'
+
 import { DropzoneFileInput } from '@/modules/members/components/import-table/dropzone-file-input'
+
 import { importMembers } from '@/modules/members/data/member-service'
+
 import { showSuccessToast, showErrorToast } from '@/lib/toast-messagealert/showSuccessToast'
 
-interface ImportMemberSheetProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onImported?: () => void // e.g. refetch the member table after a successful import
-}
+import type { ImportMemberSheetProps } from '@/modules/members/types/member'
 
 export default function ImportMemberSheet({
   open,
@@ -28,10 +28,13 @@ export default function ImportMemberSheet({
   onImported,
 }: ImportMemberSheetProps) {
   const { file, isDragging, handleFiles, dragHandlers, setFile } = useFileDropzone()
+
   const [isImporting, setIsImporting] = useState(false)
 
   const handleImport = async () => {
-    if (!file) return
+    if (!file) {
+      return
+    }
 
     setIsImporting(true)
 
@@ -62,6 +65,7 @@ export default function ImportMemberSheet({
           <SheetTitle className="p-4 text-lg font-semibold text-neutral-900">
             Import File
           </SheetTitle>
+
           <SheetDescription className="sr-only">
             Upload an Excel file to import members in bulk.
           </SheetDescription>
@@ -86,6 +90,7 @@ export default function ImportMemberSheet({
             >
               {isImporting ? 'Importing...' : 'Import'}
             </Button>
+
             <Button variant="outline" size="full" onClick={handleCancel}>
               Cancel
             </Button>

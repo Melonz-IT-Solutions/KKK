@@ -1,4 +1,4 @@
-import Dashboardv2ViewPage from '@/modules/dashboard/components/dashboard-v2-view-page'
+import Dashboardv2ViewPage from '@/modules/dashboard'
 
 const page = () => {
   return <Dashboardv2ViewPage />

@@ -1,11 +1,10 @@
-import MemberV2Page from '@/modules/members/components/member-view/member-v2-view-page'
+import { auth } from '@/auth'
+import MemberV2Page from '@/modules/members'
 
-const page = () => {
-  return (
-    <div className="mx-auto w-full">
-      <MemberV2Page />
-    </div>
-  )
+export default async function MembersPage() {
+  const session = await auth()
+
+  const userRole = session?.user?.role ?? 'STAFF'
+
+  return <MemberV2Page userRole={userRole} />
 }
-
-export default page

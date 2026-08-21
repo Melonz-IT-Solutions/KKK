@@ -1,13 +1,11 @@
-import { hash } from 'bcrypt'
-import { prisma } from '@/lib/prisma'
 import { Prisma, type Staff } from '@prisma/client'
-import type { StaffRole, StaffStatus } from '@/types/accountfield'
+
+import { prisma } from '@/lib/prisma'
 import { createActivityLog } from '@/lib/services/activity-log-service'
 import { getCurrentActorName } from '@/lib/auth/get-current-user'
+import { hashPassword } from '@/lib/auth/password'
 
-// -----------------------------------------------------------------------------
-// Staff List
-// -----------------------------------------------------------------------------
+import type { StaffRole, StaffStatus } from '@/types/accountfield'
 
 export interface StaffListParams {
   search?: string
@@ -15,10 +13,6 @@ export interface StaffListParams {
   pageSize?: number
   branch?: string
 }
-
-// -----------------------------------------------------------------------------
-// Staff Payload
-// -----------------------------------------------------------------------------
 
 export interface StaffPayload {
   name: string
@@ -29,19 +23,8 @@ export interface StaffPayload {
   contactNo?: string
   password?: string
   active?: boolean
-  role?: string
+  role?: StaffRole
 }
-
-// -----------------------------------------------------------------------------
-// Get the real logged-in user's name for activity log actorName.
-// Falls back to "System" if there's no session (e.g. a script/seed running
-// outside a request context) rather than silently lying with a hardcoded
-// role name.
-// -----------------------------------------------------------------------------
-
-// -----------------------------------------------------------------------------
-// Normalize Staff Role
-// -----------------------------------------------------------------------------
 
 const normalizeStaffRole = (role?: string): StaffRole => {
   if (!role) {
@@ -50,30 +33,27 @@ const normalizeStaffRole = (role?: string): StaffRole => {
 
   const normalized = role.toUpperCase().replace(/-/g, '_')
 
-  if (normalized === 'SUPER_ADMIN') {
-    return 'SUPER_ADMIN'
-  }
+  switch (normalized) {
+    case 'SUPER_ADMIN':
+      return 'SUPER_ADMIN'
 
-  if (normalized === 'FINANCE') {
-    return 'FINANCE'
-  }
+    case 'FINANCE':
+      return 'FINANCE'
 
-  if (normalized === 'BRANCH_MANAGER') {
-    return 'BRANCH_MANAGER'
-  }
+    case 'BRANCH_MANAGER':
+      return 'BRANCH_MANAGER'
 
-  return 'STAFF'
+    default:
+      return 'STAFF'
+  }
 }
-
-// -----------------------------------------------------------------------------
-// Map Staff
-// -----------------------------------------------------------------------------
 
 function mapStaff(
   staff: Staff & {
     user?: {
+      username: string
       roles: string
-      departments: string[]
+      branch: string | null
     } | null
   }
 ) {
@@ -81,58 +61,102 @@ function mapStaff(
     id: staff.id,
     name: staff.name,
     email: staff.email,
+    username: staff.user?.username ?? '',
     department: staff.department,
     createdAt: staff.createdAt.toISOString(),
-    role: normalizeStaffRole(staff.user?.roles ?? staff.role),
+    role: normalizeStaffRole(staff.user?.roles),
     status: staff.active ? ('ACTIVE' as StaffStatus) : ('INACTIVE' as StaffStatus),
-    branch: staff.user?.departments?.[0] ?? staff.branch ?? staff.department,
+    branch: staff.user?.branch ?? staff.branch ?? undefined,
   }
 }
 
-// -----------------------------------------------------------------------------
-// List Staff
-// -----------------------------------------------------------------------------
-
 export async function listStaff(params: StaffListParams = {}) {
   const page = Math.max(1, Number(params.page ?? 1))
-  const pageSize = Math.max(1, Math.min(5000, Number(params.pageSize ?? 10)))
+
+  const pageSize = Math.max(1, Number(params.pageSize ?? 10))
+
   const search = params.search?.trim() ?? ''
 
-  const where: Prisma.StaffWhereInput =
-    search || params.branch
-      ? {
-          AND: [
-            search
-              ? {
-                  OR: [
-                    { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
-                    { email: { contains: search, mode: Prisma.QueryMode.insensitive } },
-                    { department: { contains: search, mode: Prisma.QueryMode.insensitive } },
-                  ],
-                }
-              : undefined,
-            params.branch
-              ? {
-                  OR: [
-                    { branch: { contains: params.branch, mode: Prisma.QueryMode.insensitive } },
-                    { department: { contains: params.branch, mode: Prisma.QueryMode.insensitive } },
-                    { user: { departments: { has: params.branch } } },
-                  ],
-                }
-              : undefined,
-          ].filter(Boolean) as Prisma.StaffWhereInput[],
-        }
-      : {}
+  const where: Prisma.StaffWhereInput = {
+    AND: [
+      search
+        ? {
+            OR: [
+              {
+                name: {
+                  contains: search,
+                  mode: Prisma.QueryMode.insensitive,
+                },
+              },
+              {
+                email: {
+                  contains: search,
+                  mode: Prisma.QueryMode.insensitive,
+                },
+              },
+              {
+                department: {
+                  contains: search,
+                  mode: Prisma.QueryMode.insensitive,
+                },
+              },
+              {
+                user: {
+                  username: {
+                    contains: search,
+                    mode: Prisma.QueryMode.insensitive,
+                  },
+                },
+              },
+            ],
+          }
+        : {},
+
+      params.branch
+        ? {
+            OR: [
+              {
+                branch: {
+                  contains: params.branch,
+                  mode: Prisma.QueryMode.insensitive,
+                },
+              },
+              {
+                user: {
+                  branch: {
+                    contains: params.branch,
+                    mode: Prisma.QueryMode.insensitive,
+                  },
+                },
+              },
+            ],
+          }
+        : {},
+    ],
+  }
 
   const [items, total] = await Promise.all([
     prisma.staff.findMany({
       where,
-      include: { user: { select: { roles: true, departments: true } } },
-      orderBy: { createdAt: 'desc' },
+      include: {
+        user: {
+          select: {
+            username: true,
+            roles: true,
+            branch: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
       skip: (page - 1) * pageSize,
       take: pageSize,
     }),
-    prisma.staff.count({ where }),
+
+    prisma.staff.count({
+      where,
+    }),
   ])
 
   return {
@@ -143,17 +167,24 @@ export async function listStaff(params: StaffListParams = {}) {
   }
 }
 
-// -----------------------------------------------------------------------------
-// Create Staff
-// -----------------------------------------------------------------------------
-
 export async function createStaff(payload: StaffPayload) {
   if (!payload.password) {
     throw new Error('Password is required')
   }
 
-  const passwordHash = await hash(payload.password, 10)
-  const role: StaffRole = 'STAFF'
+  if (!payload.role) {
+    throw new Error('Role is required')
+  }
+
+  const role = normalizeStaffRole(payload.role)
+
+  if (role === 'SUPER_ADMIN') {
+    throw new Error('SUPER_ADMIN cannot be assigned from staff creation.')
+  }
+
+  const passwordHash = await hashPassword(payload.password)
+
+  const active = payload.active ?? true
 
   const staff = await prisma.$transaction(async tx => {
     const user = await tx.user.create({
@@ -164,8 +195,10 @@ export async function createStaff(payload: StaffPayload) {
         password: passwordHash,
         contactNo: payload.contactNo,
         roles: role,
-        active: payload.active ?? true,
-        departments: [payload.branch ?? payload.department],
+        branch: payload.branch || null,
+        active,
+        isDeleted: false,
+        departments: [payload.department],
       },
     })
 
@@ -174,11 +207,18 @@ export async function createStaff(payload: StaffPayload) {
         name: payload.name,
         email: payload.email,
         department: payload.department,
-        branch: payload.branch,
-        password: passwordHash,
-        role,
-        active: payload.active ?? true,
+        branch: payload.branch || null,
+        active,
         userId: user.id,
+      },
+      include: {
+        user: {
+          select: {
+            username: true,
+            roles: true,
+            branch: true,
+          },
+        },
       },
     })
   })
@@ -188,7 +228,7 @@ export async function createStaff(payload: StaffPayload) {
     title: 'New Staff Created',
     description: 'was added to the staff system',
     subjectName: staff.name,
-    actorName: await getCurrentActorName(), // real logged-in user, not hardcoded
+    actorName: await getCurrentActorName(),
     actionLabel: 'Created by',
     staffId: staff.id,
   })
@@ -196,62 +236,189 @@ export async function createStaff(payload: StaffPayload) {
   return mapStaff(staff)
 }
 
-// -----------------------------------------------------------------------------
-// Update Staff
-// -----------------------------------------------------------------------------
-
 export async function updateStaff(id: number, payload: Partial<StaffPayload>) {
-  const updateData: Prisma.StaffUpdateInput = {}
-
-  if (typeof payload.name === 'string') updateData.name = payload.name
-  if (typeof payload.email === 'string') updateData.email = payload.email
-  if (typeof payload.department === 'string') updateData.department = payload.department
-  if (typeof payload.active === 'boolean') updateData.active = payload.active
-  if (payload.password) updateData.password = await hash(payload.password, 10)
-  if (payload.role) updateData.role = normalizeStaffRole(payload.role)
-
-  const staff = await prisma.staff.update({
+  const existingStaff = await prisma.staff.findUnique({
     where: { id },
-    data: updateData,
+    select: {
+      id: true,
+      name: true,
+      userId: true,
+    },
   })
 
-  if (payload.role) {
-    const existingStaff = await prisma.staff.findUnique({
+  if (!existingStaff) {
+    throw new Error('Staff not found')
+  }
+
+  const normalizedRole = payload.role ? normalizeStaffRole(payload.role) : undefined
+
+  if (normalizedRole === 'SUPER_ADMIN') {
+    throw new Error('SUPER_ADMIN cannot be assigned from staff management.')
+  }
+
+  const updated = await prisma.$transaction(async tx => {
+    await tx.staff.update({
       where: { id },
-      select: { userId: true },
+      data: {
+        ...(typeof payload.name === 'string'
+          ? {
+              name: payload.name,
+            }
+          : {}),
+
+        ...(typeof payload.email === 'string'
+          ? {
+              email: payload.email,
+            }
+          : {}),
+
+        ...(typeof payload.department === 'string'
+          ? {
+              department: payload.department,
+            }
+          : {}),
+
+        ...(typeof payload.branch === 'string'
+          ? {
+              branch: payload.branch || null,
+            }
+          : {}),
+
+        ...(typeof payload.active === 'boolean'
+          ? {
+              active: payload.active,
+            }
+          : {}),
+      },
     })
 
-    if (existingStaff?.userId) {
-      await prisma.user.update({
-        where: { id: existingStaff.userId },
-        data: { roles: normalizeStaffRole(payload.role) },
+    if (existingStaff.userId) {
+      await tx.user.update({
+        where: {
+          id: existingStaff.userId,
+        },
+        data: {
+          ...(typeof payload.name === 'string'
+            ? {
+                name: payload.name,
+              }
+            : {}),
+
+          ...(typeof payload.email === 'string'
+            ? {
+                email: payload.email,
+              }
+            : {}),
+
+          ...(typeof payload.username === 'string'
+            ? {
+                username: payload.username,
+              }
+            : {}),
+
+          ...(typeof payload.contactNo === 'string'
+            ? {
+                contactNo: payload.contactNo,
+              }
+            : {}),
+
+          ...(typeof payload.branch === 'string'
+            ? {
+                branch: payload.branch || null,
+              }
+            : {}),
+
+          ...(typeof payload.active === 'boolean'
+            ? {
+                active: payload.active,
+                isDeleted: !payload.active,
+              }
+            : {}),
+
+          ...(normalizedRole
+            ? {
+                roles: normalizedRole,
+              }
+            : {}),
+
+          ...(payload.password
+            ? {
+                password: await hashPassword(payload.password),
+              }
+            : {}),
+        },
       })
     }
-  }
+
+    return tx.staff.findUniqueOrThrow({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            username: true,
+            roles: true,
+            branch: true,
+          },
+        },
+      },
+    })
+  })
 
   await createActivityLog({
     type: 'updated',
     title: 'Staff Updated',
     description: 'staff information was updated',
-    subjectName: staff.name,
-    actorName: await getCurrentActorName(), // real logged-in user, not hardcoded
+    subjectName: updated.name,
+    actorName: await getCurrentActorName(),
     actionLabel: 'Updated by',
-    staffId: staff.id,
+    staffId: updated.id,
   })
 
-  return mapStaff(staff as Staff & { user?: null })
+  return mapStaff(updated)
 }
 
-// -----------------------------------------------------------------------------
-// Delete Staff
-// -----------------------------------------------------------------------------
-
 export async function deleteStaff(id: number) {
-  const staff = await prisma.staff.findUnique({ where: { id } })
+  const staff = await prisma.staff.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      userId: true,
+    },
+  })
 
   if (!staff) {
     throw new Error('Staff not found')
   }
 
-  await prisma.staff.delete({ where: { id } })
+  await prisma.$transaction(async tx => {
+    await tx.staff.update({
+      where: { id },
+      data: {
+        active: false,
+      },
+    })
+
+    if (staff.userId) {
+      await tx.user.update({
+        where: {
+          id: staff.userId,
+        },
+        data: {
+          active: false,
+          isDeleted: true,
+        },
+      })
+    }
+  })
+
+  await createActivityLog({
+    type: 'deleted',
+    title: 'Staff Deactivated',
+    description: 'staff account was deactivated',
+    subjectName: staff.name,
+    actorName: await getCurrentActorName(),
+    actionLabel: 'Deactivated by',
+    staffId: staff.id,
+  })
 }

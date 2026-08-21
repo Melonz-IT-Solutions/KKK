@@ -7,12 +7,14 @@ export interface ReportPayload {
   dateRangeStart: string
   dateRangeEnd: string
   generatedDate: string
+  total: number
 }
 
 function mapReport(report: Report) {
   return {
     id: report.id,
     type: report.type,
+    total: report.total,
     dateRangeStart: report.dateRangeStart,
     dateRangeEnd: report.dateRangeEnd,
     generatedDate: report.generatedDate,
@@ -21,7 +23,9 @@ function mapReport(report: Report) {
 
 export async function listReports() {
   const reports = await prisma.report.findMany({
-    orderBy: { createdAt: 'desc' },
+    orderBy: {
+      createdAt: 'desc',
+    },
   })
 
   return reports.map(mapReport)

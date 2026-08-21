@@ -6,7 +6,7 @@ import { Check, X, AlertCircle } from 'lucide-react'
 export function showSuccessToast(message: string) {
   toast.custom(
     t => (
-      <div className="flex w-[380px] items-start gap-3 rounded-lg bg-green-800 p-4 text-white shadow-lg">
+      <div className="flex w-95 items-start gap-3 rounded-lg bg-green-800 p-4 text-white shadow-lg">
         {/* Success icon */}
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white">
           <Check className="h-4 w-4 text-green-800" />
@@ -42,7 +42,7 @@ export function showSuccessToast(message: string) {
 export function showErrorToast(message: string) {
   toast.custom(
     t => (
-      <div className="flex w-[380px] items-start gap-3 rounded-lg bg-red-700 p-4 text-white shadow-lg">
+      <div className="flex w-95 items-start gap-3 rounded-lg bg-red-700 p-4 text-white shadow-lg">
         {/* Error icon */}
         <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white">
           <AlertCircle className="h-4 w-4 text-red-700" />

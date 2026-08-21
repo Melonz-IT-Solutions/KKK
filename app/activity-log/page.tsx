@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
 import { hasPermission } from '@/lib/auth/permissions'
-import ActivityLogsPage from '@/modules/activity-log/components/activitylog-v2-view-page'
+import ActivityLogsPage from '@/modules/activity-log'
 
 export default async function ActivityLogPage() {
   const session = await auth()

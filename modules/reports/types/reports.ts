@@ -2,8 +2,9 @@
 export type ReportType = 'Total Members' | 'Total Mortality'
 
 export interface ReportEntry {
-  id: string
-  type: ReportType
+  id: number
+  type: 'MEMBER' | 'MORTALITY'
+  total: number
   dateRangeStart: string
   dateRangeEnd: string
   generatedDate: string

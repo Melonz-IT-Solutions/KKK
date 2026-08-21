@@ -12,9 +12,11 @@ export type Relationship = 'spouse' | 'child' | 'parent' | 'sibling' | 'other'
 // ---------------------------------------------------------------------------
 
 export interface PrincipalMemberFormValues {
-  name: string
+  firstName: string
+  middleName: string
+  lastName: string
   address: string
-  birthday: string // yyyy-mm-dd (native date input format)
+  birthday: string
   age: string
   civilStatus: CivilStatus | ''
   weeklyContribution: WeeklyContribution | ''

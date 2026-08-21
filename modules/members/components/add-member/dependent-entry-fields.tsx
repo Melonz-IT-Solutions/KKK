@@ -1,6 +1,16 @@
-import { Controller, type Control, type FieldErrors } from 'react-hook-form'
+import {
+  Controller,
+  type Control,
+  type FieldErrors,
+  type UseFormSetValue,
+  type UseFormWatch,
+} from 'react-hook-form'
+
+import { X } from 'lucide-react'
+
 import Input from '@/components/input'
 import { Label } from '@/components/ui/label'
+
 import {
   Select,
   SelectContent,
@@ -8,11 +18,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { X } from 'lucide-react'
-import { GENDER_OPTIONS } from '@/modules/members/constants/members'
-import type { MemberFormValues } from '@/modules/members/schema/member-schema'
+
+import { GENDER_OPTIONS } from '@/modules/members/constants/member-form'
+
+import type { MemberFormValues } from '@/modules/members/types/member'
+
 import { useComputedAge } from '@/modules/members/hooks/use-computed-age'
-import type { UseFormWatch, UseFormSetValue } from 'react-hook-form'
 
 interface DependentEntryFieldsProps {
   index: number
@@ -32,22 +43,28 @@ export function DependentEntryFields({
   onRemove,
 }: DependentEntryFieldsProps) {
   const idPrefix = `dependent-${index}`
+
   const entryErrors = errors?.[index]
 
-  useComputedAge(watch, setValue, `dependents.${index}.birthday`, `dependents.${index}.age`)
+  const birthdayPath = `dependents.${index}.birthday` as const
+  const agePath = `dependents.${index}.age` as const
+
+  useComputedAge(watch, setValue, birthdayPath, agePath)
 
   return (
     <div className="relative grid gap-4 rounded-md border p-4">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
           Dependent {index + 1}
         </p>
+
         {onRemove && (
           <button
             type="button"
             onClick={onRemove}
             aria-label={`Remove dependent ${index + 1}`}
-            className="hover:*:text-destructive"
+            className="rounded-sm p-1 hover:bg-gray-100"
           >
             <X className="h-4 w-4" />
           </button>
@@ -57,6 +74,7 @@ export function DependentEntryFields({
       {/* Name */}
       <div className="grid gap-2">
         <Label htmlFor={`${idPrefix}-name`}>Name</Label>
+
         <Controller
           control={control}
           name={`dependents.${index}.name`}
@@ -69,6 +87,7 @@ export function DependentEntryFields({
             />
           )}
         />
+
         {entryErrors?.name && (
           <p className="text-destructive text-sm">{entryErrors.name.message}</p>
         )}
@@ -77,6 +96,7 @@ export function DependentEntryFields({
       {/* Address */}
       <div className="grid gap-2">
         <Label htmlFor={`${idPrefix}-address`}>Address</Label>
+
         <Controller
           control={control}
           name={`dependents.${index}.address`}
@@ -89,15 +109,18 @@ export function DependentEntryFields({
             />
           )}
         />
+
         {entryErrors?.address && (
           <p className="text-destructive text-sm">{entryErrors.address.message}</p>
         )}
       </div>
 
       {/* Birthday + Age */}
-      <div className="flex gap-2">
+      <div className="grid grid-cols-[1fr_100px] items-end gap-4">
+        {/* Birthday */}
         <div className="grid gap-2">
           <Label htmlFor={`${idPrefix}-birthday`}>Birthday</Label>
+
           <Controller
             control={control}
             name={`dependents.${index}.birthday`}
@@ -105,22 +128,36 @@ export function DependentEntryFields({
               <Input
                 id={`${idPrefix}-birthday`}
                 type="date"
-                {...field}
+                value={field.value ?? ''}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+                name={field.name}
+                ref={field.ref}
                 aria-invalid={!!entryErrors?.birthday}
               />
             )}
           />
+
           {entryErrors?.birthday && (
             <p className="text-destructive text-sm">{entryErrors.birthday.message}</p>
           )}
         </div>
+
+        {/* Age */}
         <div className="grid gap-2">
           <Label htmlFor={`${idPrefix}-age`}>Age</Label>
+
           <Controller
             control={control}
             name={`dependents.${index}.age`}
             render={({ field }) => (
-              <Input id={`${idPrefix}-age`} {...field} readOnly placeholder="" />
+              <Input
+                id={`${idPrefix}-age`}
+                value={field.value ?? ''}
+                readOnly
+                tabIndex={-1}
+                placeholder="Age"
+              />
             )}
           />
         </div>
@@ -129,28 +166,31 @@ export function DependentEntryFields({
       {/* Gender */}
       <div className="grid gap-2">
         <Label htmlFor={`${idPrefix}-gender`}>Gender</Label>
+
         <Controller
           control={control}
           name={`dependents.${index}.gender`}
           render={({ field }) => (
-            <Select value={field.value} onValueChange={field.onChange}>
+            <Select value={field.value ?? ''} onValueChange={field.onChange}>
               <SelectTrigger
                 id={`${idPrefix}-gender`}
-                aria-invalid={!!entryErrors?.gender}
                 className="w-full"
+                aria-invalid={!!entryErrors?.gender}
               >
                 <SelectValue placeholder="Select gender" />
               </SelectTrigger>
+
               <SelectContent>
-                {GENDER_OPTIONS.map(opt => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
+                {GENDER_OPTIONS.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           )}
         />
+
         {entryErrors?.gender && (
           <p className="text-destructive text-sm">{entryErrors.gender.message}</p>
         )}

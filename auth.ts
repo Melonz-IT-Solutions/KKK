@@ -1,58 +1,125 @@
 import NextAuth from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { compare } from 'bcrypt'
+
 import { prisma } from '@/lib/prisma'
-import { isStaffRole } from '@/lib/auth/permissions'
+import { isStaffRole, type StaffRole } from '@/lib/auth/permissions'
+
+import { verifyPassword } from '@/lib/auth/password'
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  session: { strategy: 'jwt' },
+  // -------------------------------------------------------------------------
+  // HOST
+  // -------------------------------------------------------------------------
+
+  trustHost: true,
+
+  // -------------------------------------------------------------------------
+  // SESSION
+  // -------------------------------------------------------------------------
+
+  session: {
+    strategy: 'jwt',
+    maxAge: 8 * 60 * 60,
+  },
+
+  // -------------------------------------------------------------------------
+  // PROVIDERS
+  // -------------------------------------------------------------------------
 
   providers: [
     CredentialsProvider({
       name: 'Credentials',
+
       credentials: {
-        username: { label: 'Username', type: 'text' },
-        password: { label: 'Password', type: 'password' },
+        username: {
+          label: 'Username',
+          type: 'text',
+        },
+
+        password: {
+          label: 'Password',
+          type: 'password',
+        },
       },
+
+      // ---------------------------------------------------------------------
+      // AUTHORIZE
+      // ---------------------------------------------------------------------
 
       async authorize(credentials) {
         const username = String(credentials?.username ?? '')
+
         const password = String(credentials?.password ?? '')
 
-        if (!username || !password) return null
+        if (!username || !password) {
+          return null
+        }
 
         const user = await prisma.user.findUnique({
-          where: { username },
+          where: {
+            username,
+          },
+
           include: {
             staff: {
-              select: { branch: true },
+              select: {
+                branch: true,
+              },
             },
           },
         })
+
+        // -------------------------------------------------------------------
+        // ACCOUNT CHECK
+        // -------------------------------------------------------------------
 
         if (!user || !user.active || user.isDeleted || !isStaffRole(user.roles)) {
           return null
         }
 
-        const passwordMatches = await compare(password, user.password)
-        if (!passwordMatches) return null
+        // -------------------------------------------------------------------
+        // PASSWORD CHECK
+        // -------------------------------------------------------------------
+
+        const passwordMatches = await verifyPassword(password, user.password)
+
+        if (!passwordMatches) {
+          return null
+        }
+
+        // -------------------------------------------------------------------
+        // USER
+        // -------------------------------------------------------------------
 
         return {
           id: String(user.id),
+
           name: user.name ?? '',
+
           email: user.email,
+
+          username: user.username,
+
           role: user.roles,
-          branch: user.staff?.branch ?? null,
+
+          branch: user.branch ?? user.staff?.branch ?? null,
         }
       },
     }),
   ],
 
+  // -------------------------------------------------------------------------
+  // CALLBACKS
+  // -------------------------------------------------------------------------
+
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.role = user.role
+
         token.branch = user.branch
+
+        token.username = user.username
       }
 
       return token
@@ -60,15 +127,34 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.sub ?? ''
-        session.user.role = token.role ?? 'STAFF'
-        session.user.branch = token.branch ?? null
+        const tokenRole: unknown = token.role
+
+        const role: StaffRole = isStaffRole(tokenRole) ? tokenRole : 'STAFF'
+
+        const branch: string | null = typeof token.branch === 'string' ? token.branch : null
+
+        const username: string = typeof token.username === 'string' ? token.username : ''
+
+        session.user.id = typeof token.sub === 'string' ? token.sub : ''
+
+        session.user.role = role
+
+        session.user.branch = branch
+
+        session.user.username = username
       }
 
       return session
     },
   },
 
-  pages: { signIn: '/login' },
+  // -------------------------------------------------------------------------
+  // LOGIN PAGE
+  // -------------------------------------------------------------------------
+
+  pages: {
+    signIn: '/login',
+  },
+
   secret: process.env.NEXTAUTH_SECRET,
 })

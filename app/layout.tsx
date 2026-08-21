@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'sonner'
 import { AuthSessionProvider } from '@/components/auth/session-provider'
+import SessionTimeout from '@/components/auth/session-timeout'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -23,6 +24,7 @@ export default function RootLayout({
     <html lang="en" className={`${inter.className} ${inter.className} h-full antialiased`}>
       <body className="flex min-h-full flex-col">
         <AuthSessionProvider>
+          <SessionTimeout />
           {children}
           <Toaster />
         </AuthSessionProvider>

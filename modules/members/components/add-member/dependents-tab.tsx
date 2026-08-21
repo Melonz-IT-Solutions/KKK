@@ -1,31 +1,40 @@
-// modules/members/components/add-member/dependents-tab.tsx
+'use client'
+
 import {
   useFieldArray,
   type Control,
   type FieldErrors,
-  type UseFormWatch,
   type UseFormSetValue,
+  type UseFormWatch,
 } from 'react-hook-form'
-import { Plus } from 'lucide-react'
-import Button from '@/components/button-v2/button'
-import { DependentEntryFields } from '@/modules/members/components/add-member/dependent-entry-fields'
-import type { MemberFormValues } from '@/modules/members/schema/member-schema'
 
-interface DependentsTabProps {
+import { Plus } from 'lucide-react'
+
+import Button from '@/components/button-v2/button'
+
+import { DependentEntryFields } from '@/modules/members/components/add-member/dependent-entry-fields'
+
+import { EMPTY_DEPENDENT_ENTRY } from '@/modules/members/data/member-form'
+
+import type { MemberFormValues } from '@/modules/members/types/member'
+
+interface DependentTabProps {
   control: Control<MemberFormValues>
   errors?: FieldErrors<MemberFormValues>['dependents']
   watch: UseFormWatch<MemberFormValues>
   setValue: UseFormSetValue<MemberFormValues>
 }
 
-export function DependentsTab({ control, errors, watch, setValue }: DependentsTabProps) {
+export function DependentTab({ control, errors, watch, setValue }: DependentTabProps) {
   const { fields, append, remove } = useFieldArray({
     control,
     name: 'dependents',
   })
 
   const addDependent = () => {
-    append({ name: '', address: '', birthday: '', age: '', gender: '' as never })
+    append({
+      ...EMPTY_DEPENDENT_ENTRY,
+    })
   }
 
   return (

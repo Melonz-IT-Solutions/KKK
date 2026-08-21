@@ -1,14 +1,6 @@
 import { useCallback, useState } from 'react'
 
-const ACCEPTED_EXTENSIONS = /\.(xlsx|xls|csv)$/i
-
-function isExcelFile(file: File): boolean {
-  return (
-    ACCEPTED_EXTENSIONS.test(file.name) ||
-    file.type.includes('spreadsheet') ||
-    file.type.includes('excel')
-  )
-}
+import { isExcelFile } from '@/modules/members/utils/is-excel-file'
 
 interface UseFileDropzoneResult {
   file: File | null
@@ -28,8 +20,12 @@ export function useFileDropzone(): UseFileDropzoneResult {
 
   const handleFiles = useCallback((fileList?: FileList | null) => {
     const candidate = fileList && fileList.length > 0 ? fileList[0] : undefined
+
     if (!candidate) return
-    if (isExcelFile(candidate)) setFile(candidate)
+
+    if (isExcelFile(candidate)) {
+      setFile(candidate)
+    }
   }, [])
 
   const onDragOver = (e: React.DragEvent<HTMLLabelElement>) => {
@@ -50,6 +46,10 @@ export function useFileDropzone(): UseFileDropzoneResult {
     isDragging,
     setFile,
     handleFiles,
-    dragHandlers: { onDragOver, onDragLeave, onDrop },
+    dragHandlers: {
+      onDragOver,
+      onDragLeave,
+      onDrop,
+    },
   }
 }

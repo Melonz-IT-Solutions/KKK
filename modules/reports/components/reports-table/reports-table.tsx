@@ -1,6 +1,3 @@
-// modules/reports/components/reports-table/reports-table.tsx
-'use client'
-
 import {
   Table,
   TableBody,
@@ -9,14 +6,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+
 import { Badge } from '@/components/ui/badge'
+
 import { ReportEntry } from '@/modules/reports/types/reports'
 
 interface ReportsTableProps {
   reports: ReportEntry[]
 }
 
-const REPORTS_TABLE_COLUMNS = ['Report Type', 'Date Range', 'Generated'] as const
+const REPORTS_TABLE_COLUMNS = ['Report Type', 'Total', 'Date Range', 'Generated'] as const
 
 export function ReportsTable({ reports }: ReportsTableProps) {
   return (
@@ -36,6 +35,7 @@ export function ReportsTable({ reports }: ReportsTableProps) {
                 ))}
               </TableRow>
             </TableHeader>
+
             <TableBody>
               {reports.length === 0 && (
                 <TableRow>
@@ -47,6 +47,7 @@ export function ReportsTable({ reports }: ReportsTableProps) {
                   </TableCell>
                 </TableRow>
               )}
+
               {reports.map(report => (
                 <TableRow key={report.id} className="hover:bg-slate-50/70">
                   <TableCell>
@@ -57,9 +58,13 @@ export function ReportsTable({ reports }: ReportsTableProps) {
                       {report.type}
                     </Badge>
                   </TableCell>
+
+                  <TableCell className="text-sm text-slate-600">{report.total}</TableCell>
+
                   <TableCell className="text-sm text-slate-600">
                     {report.dateRangeStart} - {report.dateRangeEnd}
                   </TableCell>
+
                   <TableCell className="text-sm text-slate-600">{report.generatedDate}</TableCell>
                 </TableRow>
               ))}

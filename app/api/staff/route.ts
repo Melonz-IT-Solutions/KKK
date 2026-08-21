@@ -1,52 +1,153 @@
+// app/api/staff/route.ts
+
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+
 import { createStaff, listStaff } from '@/lib/services/staff-service'
+
 import { hasPermission } from '@/lib/auth/permissions'
+
 import { requirePermission, requireSession } from '@/lib/auth/authorize'
 
+// -----------------------------------------------------------------------------
+// Schema
+// -----------------------------------------------------------------------------
+
 const createStaffSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Invalid email'),
-  username: z.string().min(1, 'Username is required'),
+  name: z.string().trim().min(1, 'Name is required'),
+
+  email: z.string().trim().email('Invalid email'),
+
+  username: z.string().trim().min(1, 'Username is required'),
+
   password: z.string().min(8, 'Password must be at least 8 characters'),
-  contactNo: z.string().optional(),
-  department: z.string().min(1, 'Department is required'),
-  branch: z.string().optional(),
+
+  contactNo: z.string().trim().optional(),
+
+  department: z.string().trim().min(1, 'Department is required'),
+
+  branch: z.string().trim().optional(),
+
+  role: z.enum(['FINANCE', 'BRANCH_MANAGER', 'STAFF']),
 })
+
+// -----------------------------------------------------------------------------
+// GET /api/staff
+// -----------------------------------------------------------------------------
 
 export async function GET(request: Request) {
   const { error, user } = await requireSession()
-  if (error || !user) return error
 
-  const canViewAll = hasPermission(user.role, 'staff:view_all')
-  const canViewOwnBranch = hasPermission(user.role, 'staff:view_own_branch')
-
-  if (!canViewAll && (!canViewOwnBranch || !user.branch)) {
-    return NextResponse.json({ message: 'Forbidden' }, { status: 403 })
+  if (error || !user) {
+    return error
   }
 
-  const { searchParams } = new URL(request.url)
-  const page = Number(searchParams.get('page') ?? '1')
-  const pageSize = Number(searchParams.get('pageSize') ?? '10')
-  const search = searchParams.get('search') ?? ''
-
   try {
+    const canViewAll = hasPermission(user.role, 'staff:view_all')
+
+    const canViewOwnBranch = hasPermission(user.role, 'staff:view_own_branch')
+
+    // -------------------------------------------------------------------------
+    // Determine branch filter
+    // -------------------------------------------------------------------------
+
+    let branch: string | undefined
+
+    if (canViewAll) {
+      /**
+       * Super Admin / Finance
+       *
+       * No branch filter.
+       */
+      branch = undefined
+    } else if (canViewOwnBranch) {
+      /**
+       * Branch Manager
+       *
+       * Must have a branch.
+       */
+      if (!user.branch) {
+        return NextResponse.json(
+          {
+            success: false,
+            message: 'Your account is not assigned to a branch.',
+          },
+          {
+            status: 403,
+          }
+        )
+      }
+
+      branch = user.branch
+    } else {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'You do not have permission to view staff.',
+        },
+        {
+          status: 403,
+        }
+      )
+    }
+
+    // -------------------------------------------------------------------------
+    // Query parameters
+    // -------------------------------------------------------------------------
+
+    const { searchParams } = new URL(request.url)
+
+    const pageParam = Number(searchParams.get('page') ?? '1')
+
+    const pageSizeParam = Number(searchParams.get('pageSize') ?? '10')
+
+    const page = Number.isFinite(pageParam) ? Math.max(1, Math.floor(pageParam)) : 1
+
+    const pageSize = Number.isFinite(pageSizeParam) ? Math.max(1, Math.floor(pageSizeParam)) : 10
+
+    const search = searchParams.get('search')?.trim() ?? ''
+
+    // -------------------------------------------------------------------------
+    // Load staff
+    // -------------------------------------------------------------------------
+
     const result = await listStaff({
       page,
       pageSize,
       search,
-      branch: canViewAll ? undefined : (user.branch ?? undefined),
+      branch,
     })
-    return NextResponse.json(result)
+
+    return NextResponse.json(result, {
+      headers: {
+        'Cache-Control': 'no-store',
+      },
+    })
   } catch (error) {
     console.error('List staff error:', error)
-    return NextResponse.json({ success: false, message: 'Failed to load staff' }, { status: 500 })
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Failed to load staff',
+      },
+      {
+        status: 500,
+      }
+    )
   }
 }
 
+// -----------------------------------------------------------------------------
+// POST /api/staff
+// -----------------------------------------------------------------------------
+
 export async function POST(request: Request) {
   const { error } = await requirePermission('staff:create')
-  if (error) return error
+
+  if (error) {
+    return error
+  }
 
   try {
     const body = await request.json()
@@ -61,9 +162,15 @@ export async function POST(request: Request) {
         message: 'Staff created successfully',
         data: staff,
       },
-      { status: 201 }
+      {
+        status: 201,
+      }
     )
   } catch (error) {
+    // -------------------------------------------------------------------------
+    // Validation error
+    // -------------------------------------------------------------------------
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         {
@@ -71,9 +178,15 @@ export async function POST(request: Request) {
           message: 'Invalid payload',
           errors: error.flatten(),
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       )
     }
+
+    // -------------------------------------------------------------------------
+    // Duplicate username/email
+    // -------------------------------------------------------------------------
 
     if (error instanceof Error && error.message === 'Username or email already exists') {
       return NextResponse.json(
@@ -81,9 +194,15 @@ export async function POST(request: Request) {
           success: false,
           message: error.message,
         },
-        { status: 409 }
+        {
+          status: 409,
+        }
       )
     }
+
+    // -------------------------------------------------------------------------
+    // Unexpected error
+    // -------------------------------------------------------------------------
 
     console.error('Create staff error:', error)
 
@@ -92,7 +211,9 @@ export async function POST(request: Request) {
         success: false,
         message: 'Failed to create staff',
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     )
   }
 }

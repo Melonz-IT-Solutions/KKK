@@ -1,5 +1,3 @@
-'use client'
-
 import Button from '@/components/button-v2/button'
 import PageV2Header from '@/components/headers/page-v2-header'
 import { FileText } from 'lucide-react'

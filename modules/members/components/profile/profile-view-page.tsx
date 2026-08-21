@@ -17,6 +17,7 @@ export default function MemberProfilePage({ profile }: MemberProfilePageProps) {
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6 p-4 md:p-6">
+      {/* Header */}
       <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-5">
         <div className="flex items-start gap-3">
           <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-sm">
@@ -46,6 +47,7 @@ export default function MemberProfilePage({ profile }: MemberProfilePageProps) {
         </div>
       </div>
 
+      {/* Principal Member */}
       <Card className="overflow-hidden border-emerald-100 shadow-sm">
         <CardHeader className="border-b border-emerald-100 bg-white px-5 py-4">
           <div className="flex items-center gap-3">
@@ -71,6 +73,8 @@ export default function MemberProfilePage({ profile }: MemberProfilePageProps) {
 
             <ProfileField label="Last Name" value={principal.lastName} />
 
+            <ProfileField label="Date of Birth" value={formatDate(principal.dateOfBirth)} />
+
             <ProfileField label="Age" value={principal.age} />
 
             <ProfileField
@@ -81,13 +85,14 @@ export default function MemberProfilePage({ profile }: MemberProfilePageProps) {
 
             <ProfileField label="Civil Status" value={principal.civilStatus} />
 
-            <div className="md:col-span-3">
+            <div className="md:col-span-2">
               <ProfileField label="Residential Address" value={principal.address} />
             </div>
           </div>
         </CardContent>
       </Card>
 
+      {/* Beneficiaries */}
       <Card className="overflow-hidden border-emerald-100 shadow-sm">
         <CardHeader className="border-b border-emerald-100 bg-white px-5 py-4">
           <div className="flex items-center gap-3">
@@ -151,6 +156,7 @@ export default function MemberProfilePage({ profile }: MemberProfilePageProps) {
         </CardContent>
       </Card>
 
+      {/* Dependents */}
       <Card className="overflow-hidden border-emerald-100 shadow-sm">
         <CardHeader className="border-b border-emerald-100 bg-white px-5 py-4">
           <div className="flex items-center gap-3">
@@ -221,6 +227,32 @@ export default function MemberProfilePage({ profile }: MemberProfilePageProps) {
     </div>
   )
 }
+
+// ---------------------------------------------------------------------------
+// Date formatting
+// ---------------------------------------------------------------------------
+
+function formatDate(value: Date | string | null | undefined): string {
+  if (!value) {
+    return '—'
+  }
+
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) {
+    return '—'
+  }
+
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Profile field
+// ---------------------------------------------------------------------------
 
 function ProfileField({
   label,

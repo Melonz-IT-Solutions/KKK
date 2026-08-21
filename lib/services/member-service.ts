@@ -1,13 +1,10 @@
 import { prisma } from '@/lib/prisma'
+
 import { Prisma, type Member } from '@prisma/client'
 
 import { createActivityLog } from '@/lib/services/activity-log-service'
 
 import { getCurrentActor, getCurrentActorName } from '@/lib/auth/get-current-user'
-
-// ---------------------------------------------------------------------------
-// TYPES
-// ---------------------------------------------------------------------------
 
 export type MemberStatusFilter = 'active' | 'hidden' | 'all'
 
@@ -18,9 +15,6 @@ export interface MemberListParams {
   pageSize?: number
   status?: MemberStatusFilter
 
-  /**
-   * When true, do not paginate.
-   */
   all?: boolean
 }
 
@@ -28,13 +22,10 @@ export interface MemberPayload {
   firstName: string
   middleName?: string | null
   lastName: string
-
   membership: string
   age: number
   address: string
-
   status: string
-
   civilStatus?: string | null
   clientId?: number | null
   transactionDate?: Date | null
@@ -278,7 +269,9 @@ function mapMember(member: Member) {
     id: member.id,
 
     firstName: member.firstName,
+
     middleName: member.middleName,
+
     lastName: member.lastName,
 
     fullName: getFullName(member.firstName, member.middleName, member.lastName),
@@ -288,6 +281,7 @@ function mapMember(member: Member) {
     membershipLabel: getMembershipLabel(member.membership),
 
     age: member.age,
+
     address: member.address,
 
     status: member.status,
@@ -474,6 +468,7 @@ export async function listMembers(params: MemberListParams = {}) {
 
   return {
     items: items.map(mapMember),
+
     total,
 
     page: shouldFetchAll ? 1 : page,
@@ -580,13 +575,13 @@ export async function createMemberWithRelations(payload: CombinedMemberPayload) 
   const member = await prisma.$transaction(async tx => {
     return tx.member.create({
       data: {
-        firstName: payload.principal.firstName,
+        firstName: payload.principal.firstName.trim(),
 
         middleName: payload.principal.middleName?.trim() || null,
 
-        lastName: payload.principal.lastName,
+        lastName: payload.principal.lastName.trim(),
 
-        address: payload.principal.address,
+        address: payload.principal.address.trim(),
 
         age: Number(payload.principal.age),
 
@@ -596,11 +591,25 @@ export async function createMemberWithRelations(payload: CombinedMemberPayload) 
 
         isDeleted: false,
 
+        civilStatus: payload.principal.civilStatus,
+
+        // ----------------------------------------------------------
+        // PRINCIPAL BIRTHDAY
+        // ----------------------------------------------------------
+        // Form field:
+        //   principal.birthday
+        //
+        // Database field:
+        //   dateOfBirth
+        //
+        // Convert the HTML date string to a Date before saving.
+        // ----------------------------------------------------------
+
+        dateOfBirth: payload.principal.birthday ? new Date(payload.principal.birthday) : null,
+
         transactionDate: payload.principal.transactionDate ?? new Date(),
 
         statusChangedAt: null,
-
-        civilStatus: payload.principal.civilStatus,
 
         ...(actor?.id
           ? {
@@ -612,26 +621,45 @@ export async function createMemberWithRelations(payload: CombinedMemberPayload) 
             }
           : {}),
 
+        // ----------------------------------------------------------
+        // BENEFICIARIES
+        // ----------------------------------------------------------
+
         beneficiaries: {
           create: [
             {
               role: 'primary',
+
               name: payload.beneficiaries.primary.name,
+
               address: payload.beneficiaries.primary.address,
+
               birthday: payload.beneficiaries.primary.birthday,
+
               gender: payload.beneficiaries.primary.gender,
+
               relationship: payload.beneficiaries.primary.relationship,
             },
+
             {
               role: 'secondary',
+
               name: payload.beneficiaries.secondary.name,
+
               address: payload.beneficiaries.secondary.address,
+
               birthday: payload.beneficiaries.secondary.birthday,
+
               gender: payload.beneficiaries.secondary.gender,
+
               relationship: payload.beneficiaries.secondary.relationship,
             },
           ],
         },
+
+        // ----------------------------------------------------------
+        // DEPENDENTS
+        // ----------------------------------------------------------
 
         dependents: {
           create: payload.dependents.map(dependent => ({
@@ -754,7 +782,6 @@ export interface UpdateMemberProfilePayload {
     firstName: string
     middleName?: string | null
     lastName: string
-
     address: string
     age: number
     membership: string
@@ -1181,6 +1208,7 @@ function parseMemberRow(
     membership: normalizeMembershipValue(String(membershipSource ?? '')),
 
     age,
+
     address,
 
     status: 'Active',

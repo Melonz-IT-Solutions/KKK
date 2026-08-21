@@ -36,6 +36,10 @@ export const CIVIL_STATUS_OPTIONS = [
     value: 'separated',
     label: 'Separated',
   },
+  {
+    value: 'divorced',
+    label: 'Divorced',
+  },
 ] as const
 
 export const GENDER_OPTIONS = [

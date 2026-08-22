@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
-import type { DashboardActivityLog } from '@/modules/dashboard/types/dashboard'
+import type { DashboardActivityLog } from '@/modules/dashboard/types/activity-logs'
 
 interface UseDashboardActivityLogsReturn {
   activities: DashboardActivityLog[]

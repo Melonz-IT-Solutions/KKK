@@ -1,18 +1,13 @@
 'use client'
 
-import Button from '@/components/button'
 import { Save } from 'lucide-react'
 
-import InfoField from '../account/info-field'
+import Button from '@/components/button'
+import InfoField from '@/modules/settings/components/info-field'
 
-import type { PasswordInfo } from '@/modules/settings/types/settings'
+import { PASSWORD_FIELDS } from '@/modules/settings/data/settings'
 
-interface PasswordSectionProps {
-  passwordInfo: PasswordInfo
-  updateField: (field: keyof PasswordInfo, value: string) => void
-  onSubmit: () => void
-  saving: boolean
-}
+import type { PasswordSectionProps } from '@/modules/settings/types/settings'
 
 export default function PasswordSection({
   passwordInfo,
@@ -23,34 +18,20 @@ export default function PasswordSection({
   return (
     <div className="w-full">
       <section className="grid gap-8 p-6">
-        <InfoField
-          label="Current Password"
-          type="password"
-          placeholder="**********"
-          value={passwordInfo.currentPassword}
-          onChange={value => updateField('currentPassword', value)}
-        />
-
-        <InfoField
-          label="New Password"
-          type="password"
-          placeholder="**********"
-          value={passwordInfo.newPassword}
-          onChange={value => updateField('newPassword', value)}
-        />
-
-        <InfoField
-          label="Confirm New Password"
-          type="password"
-          placeholder="**********"
-          value={passwordInfo.confirmPassword}
-          onChange={value => updateField('confirmPassword', value)}
-        />
+        {PASSWORD_FIELDS.map(field => (
+          <InfoField
+            key={field.key}
+            label={field.label}
+            type="password"
+            placeholder={field.placeholder}
+            value={passwordInfo[field.key]}
+            onChange={value => updateField(field.key, value)}
+          />
+        ))}
 
         <div className="flex justify-end">
           <Button onClick={onSubmit} disabled={saving}>
-            <Save />
-
+            <Save className="h-4 w-4" />
             {saving ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>

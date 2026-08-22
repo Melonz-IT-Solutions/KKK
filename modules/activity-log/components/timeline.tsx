@@ -17,12 +17,11 @@ export function ActivityLogsTimeline({ logs }: ActivityLogsTimelineProps) {
     <div className="w-full">
       {logs.map((log, index) => {
         const Icon = ACTIVITY_ICONS[log.type]
-
         const isLast = index === logs.length - 1
 
         return (
           <div key={log.id} className="flex gap-4">
-            {/* DATE - LEFT SIDE */}
+            {/* DATE */}
             <div className="text-muted-foreground w-24 shrink-0 pt-2 text-left text-xs">
               {log.date}
             </div>

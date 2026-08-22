@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
 import { hasPermission } from '@/lib/auth/permissions'
-import SettingsPageView from '@/modules/settings/components'
+import SettingsPageView from '@/modules/settings'
 
 export default async function SettingsPage() {
   const session = await auth()

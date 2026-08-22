@@ -2,7 +2,7 @@ import { unstable_noStore as noStore } from 'next/cache'
 
 import { prisma } from '@/lib/prisma'
 
-import type { MonthlyMemberData } from '@/modules/dashboard/types/chart'
+import type { MonthlyMemberData } from '@/modules/dashboard/types/dashboard'
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 

@@ -1,8 +1,11 @@
 import { Prisma, type Staff } from '@prisma/client'
 
 import { prisma } from '@/lib/prisma'
+
 import { createActivityLog } from '@/lib/services/activity-log-service'
+
 import { getCurrentActorName } from '@/lib/auth/get-current-user'
+
 import { hashPassword } from '@/lib/auth/password'
 
 import type { StaffRole, StaffStatus } from '@/types/accountfield'
@@ -69,6 +72,39 @@ function mapStaff(
     branch: staff.user?.branch ?? staff.branch ?? undefined,
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* STAFF ACTIVITY LOG                                                         */
+/* -------------------------------------------------------------------------- */
+
+function buildStaffUpdateDescription(changes: string[], passwordChanged: boolean): string {
+  if (changes.length === 0 && !passwordChanged) {
+    return 'staff information was updated'
+  }
+
+  const allChanges = [...changes]
+
+  if (passwordChanged) {
+    allChanges.push('password')
+  }
+
+  if (allChanges.length === 1) {
+    return `updated ${allChanges[0]}`
+  }
+
+  if (allChanges.length === 2) {
+    return `updated ${allChanges[0]} and ${allChanges[1]}`
+  }
+
+  const lastChange = allChanges[allChanges.length - 1]
+  const previousChanges = allChanges.slice(0, -1)
+
+  return `updated ${previousChanges.join(', ')}, and ${lastChange}`
+}
+
+/* -------------------------------------------------------------------------- */
+/* LIST STAFF                                                                 */
+/* -------------------------------------------------------------------------- */
 
 export async function listStaff(params: StaffListParams = {}) {
   const page = Math.max(1, Number(params.page ?? 1))
@@ -138,6 +174,7 @@ export async function listStaff(params: StaffListParams = {}) {
   const [items, total] = await Promise.all([
     prisma.staff.findMany({
       where,
+
       include: {
         user: {
           select: {
@@ -147,10 +184,13 @@ export async function listStaff(params: StaffListParams = {}) {
           },
         },
       },
+
       orderBy: {
         createdAt: 'desc',
       },
+
       skip: (page - 1) * pageSize,
+
       take: pageSize,
     }),
 
@@ -166,6 +206,10 @@ export async function listStaff(params: StaffListParams = {}) {
     pageSize,
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* CREATE STAFF                                                               */
+/* -------------------------------------------------------------------------- */
 
 export async function createStaff(payload: StaffPayload) {
   if (!payload.password) {
@@ -211,6 +255,7 @@ export async function createStaff(payload: StaffPayload) {
         active,
         userId: user.id,
       },
+
       include: {
         user: {
           select: {
@@ -225,23 +270,38 @@ export async function createStaff(payload: StaffPayload) {
 
   await createActivityLog({
     type: 'created',
+
     title: 'New Staff Created',
+
     description: 'was added to the staff system',
+
     subjectName: staff.name,
+
     actorName: await getCurrentActorName(),
+
     actionLabel: 'Created by',
+
     staffId: staff.id,
   })
 
   return mapStaff(staff)
 }
 
+/* -------------------------------------------------------------------------- */
+/* UPDATE STAFF                                                               */
+/* -------------------------------------------------------------------------- */
+
 export async function updateStaff(id: number, payload: Partial<StaffPayload>) {
   const existingStaff = await prisma.staff.findUnique({
     where: { id },
+
     select: {
       id: true,
       name: true,
+      email: true,
+      department: true,
+      branch: true,
+      active: true,
       userId: true,
     },
   })
@@ -256,9 +316,52 @@ export async function updateStaff(id: number, payload: Partial<StaffPayload>) {
     throw new Error('SUPER_ADMIN cannot be assigned from staff management.')
   }
 
+  /*
+   * Track changes BEFORE updating.
+   *
+   * Password is only recorded as "password".
+   * The actual password is NEVER stored in the activity log.
+   */
+  const changes: string[] = []
+
+  if (typeof payload.name === 'string' && payload.name !== existingStaff.name) {
+    changes.push('name')
+  }
+
+  if (typeof payload.email === 'string' && payload.email !== existingStaff.email) {
+    changes.push('email')
+  }
+
+  if (typeof payload.department === 'string' && payload.department !== existingStaff.department) {
+    changes.push('department')
+  }
+
+  if (typeof payload.branch === 'string' && (payload.branch || null) !== existingStaff.branch) {
+    changes.push('branch')
+  }
+
+  if (typeof payload.active === 'boolean' && payload.active !== existingStaff.active) {
+    changes.push(payload.active ? 'status to Active' : 'status to Inactive')
+  }
+
+  if (normalizedRole) {
+    changes.push('role')
+  }
+
+  if (typeof payload.username === 'string') {
+    changes.push('username')
+  }
+
+  if (typeof payload.contactNo === 'string') {
+    changes.push('contact number')
+  }
+
+  const passwordChanged = Boolean(payload.password)
+
   const updated = await prisma.$transaction(async tx => {
     await tx.staff.update({
       where: { id },
+
       data: {
         ...(typeof payload.name === 'string'
           ? {
@@ -297,6 +400,7 @@ export async function updateStaff(id: number, payload: Partial<StaffPayload>) {
         where: {
           id: existingStaff.userId,
         },
+
         data: {
           ...(typeof payload.name === 'string'
             ? {
@@ -331,6 +435,7 @@ export async function updateStaff(id: number, payload: Partial<StaffPayload>) {
           ...(typeof payload.active === 'boolean'
             ? {
                 active: payload.active,
+
                 isDeleted: !payload.active,
               }
             : {}),
@@ -352,6 +457,7 @@ export async function updateStaff(id: number, payload: Partial<StaffPayload>) {
 
     return tx.staff.findUniqueOrThrow({
       where: { id },
+
       include: {
         user: {
           select: {
@@ -364,22 +470,38 @@ export async function updateStaff(id: number, payload: Partial<StaffPayload>) {
     })
   })
 
+  /*
+   * Create activity log using only safe information.
+   */
+  const description = buildStaffUpdateDescription(changes, passwordChanged)
+
   await createActivityLog({
     type: 'updated',
+
     title: 'Staff Updated',
-    description: 'staff information was updated',
+
+    description,
+
     subjectName: updated.name,
+
     actorName: await getCurrentActorName(),
+
     actionLabel: 'Updated by',
+
     staffId: updated.id,
   })
 
   return mapStaff(updated)
 }
 
+/* -------------------------------------------------------------------------- */
+/* DELETE / DEACTIVATE STAFF                                                  */
+/* -------------------------------------------------------------------------- */
+
 export async function deleteStaff(id: number) {
   const staff = await prisma.staff.findUnique({
     where: { id },
+
     select: {
       id: true,
       name: true,
@@ -394,6 +516,7 @@ export async function deleteStaff(id: number) {
   await prisma.$transaction(async tx => {
     await tx.staff.update({
       where: { id },
+
       data: {
         active: false,
       },
@@ -404,6 +527,7 @@ export async function deleteStaff(id: number) {
         where: {
           id: staff.userId,
         },
+
         data: {
           active: false,
           isDeleted: true,
@@ -414,11 +538,17 @@ export async function deleteStaff(id: number) {
 
   await createActivityLog({
     type: 'deleted',
+
     title: 'Staff Deactivated',
+
     description: 'staff account was deactivated',
+
     subjectName: staff.name,
+
     actorName: await getCurrentActorName(),
+
     actionLabel: 'Deactivated by',
+
     staffId: staff.id,
   })
 }

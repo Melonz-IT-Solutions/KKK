@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
+
 import { Eye, EyeOff } from 'lucide-react'
 
 import { Field, FieldContent, FieldLabel } from '@/components/ui/field'
-
 import { Input } from '@/components/ui/input'
 
 import {
@@ -54,7 +54,7 @@ export default function InfoField({
               type={showPassword ? 'text' : 'password'}
               value={value}
               placeholder={placeholder}
-              onChange={e => onChange(e.target.value)}
+              onChange={event => onChange(event.target.value)}
               className="pr-10"
             />
 
@@ -72,7 +72,7 @@ export default function InfoField({
             type={type}
             value={value}
             placeholder={placeholder}
-            onChange={e => onChange(e.target.value)}
+            onChange={event => onChange(event.target.value)}
           />
         )}
       </FieldContent>

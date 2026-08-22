@@ -13,7 +13,7 @@ import {
   type ChartConfig,
 } from '@/components/ui/chart'
 
-import type { MonthlyMemberData } from '@/modules/dashboard/types/chart'
+import type { MonthlyMemberData } from '@/modules/dashboard/types/dashboard'
 
 export const description = 'Members overview bar chart'
 

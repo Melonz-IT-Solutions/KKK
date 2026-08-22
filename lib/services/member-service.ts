@@ -1,9 +1,7 @@
 import { prisma } from '@/lib/prisma'
-
 import { Prisma, type Member } from '@prisma/client'
 
 import { createActivityLog } from '@/lib/services/activity-log-service'
-
 import { getCurrentActor, getCurrentActorName } from '@/lib/auth/get-current-user'
 
 export type MemberStatusFilter = 'active' | 'hidden' | 'all'
@@ -14,7 +12,6 @@ export interface MemberListParams {
   page?: number
   pageSize?: number
   status?: MemberStatusFilter
-
   all?: boolean
 }
 
@@ -34,9 +31,9 @@ export interface MemberPayload {
   statusChangedAt?: Date | null
 }
 
-// ---------------------------------------------------------------------------
-// STATUS
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* NORMALIZERS                                                                */
+/* -------------------------------------------------------------------------- */
 
 function normalizeStatusValue(value: unknown): 'Active' | 'Inactive' {
   if (typeof value === 'boolean') {
@@ -57,10 +54,6 @@ function normalizeStatusValue(value: unknown): 'Active' | 'Inactive' {
 
   return 'Active'
 }
-
-// ---------------------------------------------------------------------------
-// MEMBERSHIP
-// ---------------------------------------------------------------------------
 
 function normalizeMembershipValue(value: string | null | undefined): string {
   const normalized = value?.trim().toLowerCase()
@@ -90,9 +83,9 @@ export function getMembershipLabel(value: string | null | undefined): string {
   return value?.trim() ?? ''
 }
 
-// ---------------------------------------------------------------------------
-// NAME
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* NAME HELPERS                                                               */
+/* -------------------------------------------------------------------------- */
 
 function getFullName(
   firstName: string,
@@ -143,9 +136,9 @@ function splitImportedName(value: string): {
   }
 }
 
-// ---------------------------------------------------------------------------
-// CREATE DATA
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* MEMBER DATA BUILDERS                                                       */
+/* -------------------------------------------------------------------------- */
 
 function buildMemberCreateData(
   payload: MemberPayload,
@@ -155,31 +148,18 @@ function buildMemberCreateData(
 
   return {
     firstName: payload.firstName.trim(),
-
     middleName: payload.middleName?.trim() || null,
-
     lastName: payload.lastName.trim(),
-
     membership: normalizeMembershipValue(payload.membership),
-
     age: payload.age,
-
     address: payload.address.trim(),
-
     status,
-
     isDeleted: false,
-
     civilStatus: payload.civilStatus ?? null,
-
     clientId: payload.clientId ?? null,
-
     transactionDate: payload.transactionDate ?? new Date(),
-
     dateOfBirth: payload.dateOfBirth ?? null,
-
     loanCycle: payload.loanCycle ?? null,
-
     statusChangedAt: status === 'Inactive' ? (payload.statusChangedAt ?? new Date()) : null,
 
     ...(createdById
@@ -193,10 +173,6 @@ function buildMemberCreateData(
       : {}),
   }
 }
-
-// ---------------------------------------------------------------------------
-// UPDATE DATA
-// ---------------------------------------------------------------------------
 
 function buildMemberUpdateData(payload: Partial<MemberPayload>): Prisma.MemberUpdateInput {
   const data: Prisma.MemberUpdateInput = {}
@@ -260,53 +236,202 @@ function buildMemberUpdateData(payload: Partial<MemberPayload>): Prisma.MemberUp
   return data
 }
 
-// ---------------------------------------------------------------------------
-// MAP MEMBER
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* MEMBER MAPPER                                                              */
+/* -------------------------------------------------------------------------- */
 
 function mapMember(member: Member) {
   return {
     id: member.id,
-
     firstName: member.firstName,
-
     middleName: member.middleName,
-
     lastName: member.lastName,
-
     fullName: getFullName(member.firstName, member.middleName, member.lastName),
-
     membership: member.membership,
-
     membershipLabel: getMembershipLabel(member.membership),
-
     age: member.age,
-
     address: member.address,
-
     status: member.status,
 
+    // Keep the existing active / hidden UI behavior.
     isDeleted: member.isDeleted,
-
     visibility: member.isDeleted ? 'hidden' : 'active',
 
     civilStatus: member.civilStatus,
-
     clientId: member.clientId,
-
     transactionDate: member.transactionDate,
-
     dateOfBirth: member.dateOfBirth,
-
     loanCycle: member.loanCycle,
-
     statusChangedAt: member.statusChangedAt,
   }
 }
 
-// ---------------------------------------------------------------------------
-// LIST MEMBERS
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* ACTIVITY LOG HELPERS                                                       */
+/* -------------------------------------------------------------------------- */
+
+function formatActivityValue(field: string, value: unknown): string {
+  if (value === null || value === undefined || value === '') {
+    return 'empty'
+  }
+
+  switch (field) {
+    case 'membership':
+      return getMembershipLabel(String(value))
+
+    case 'status':
+      return String(value)
+
+    case 'isDeleted':
+      return Boolean(value) ? 'Inactive' : 'Active'
+
+    case 'civilStatus':
+      return String(value)
+
+    case 'age':
+      return String(value)
+
+    case 'clientId':
+      return String(value)
+
+    case 'loanCycle':
+      return String(value)
+
+    case 'address':
+      return `"${String(value)}"`
+
+    case 'firstName':
+    case 'middleName':
+    case 'lastName':
+      return `"${String(value)}"`
+
+    case 'dateOfBirth':
+    case 'transactionDate':
+      if (value instanceof Date) {
+        return value.toLocaleDateString()
+      }
+
+      return String(value)
+
+    default:
+      return String(value)
+  }
+}
+
+function getChangedMemberFields(before: Member, after: Member): string[] {
+  const changes: string[] = []
+
+  const fields: {
+    key:
+      | 'firstName'
+      | 'middleName'
+      | 'lastName'
+      | 'membership'
+      | 'age'
+      | 'address'
+      | 'status'
+      | 'isDeleted'
+      | 'civilStatus'
+      | 'clientId'
+      | 'transactionDate'
+      | 'dateOfBirth'
+      | 'loanCycle'
+    label: string
+  }[] = [
+    {
+      key: 'firstName',
+      label: 'first name',
+    },
+    {
+      key: 'middleName',
+      label: 'middle name',
+    },
+    {
+      key: 'lastName',
+      label: 'last name',
+    },
+    {
+      key: 'membership',
+      label: 'membership',
+    },
+    {
+      key: 'age',
+      label: 'age',
+    },
+    {
+      key: 'address',
+      label: 'address',
+    },
+    {
+      key: 'status',
+      label: 'status',
+    },
+    {
+      key: 'isDeleted',
+      label: 'status',
+    },
+    {
+      key: 'civilStatus',
+      label: 'civil status',
+    },
+    {
+      key: 'clientId',
+      label: 'client ID',
+    },
+    {
+      key: 'transactionDate',
+      label: 'transaction date',
+    },
+    {
+      key: 'dateOfBirth',
+      label: 'date of birth',
+    },
+    {
+      key: 'loanCycle',
+      label: 'loan cycle',
+    },
+  ]
+
+  for (const field of fields) {
+    const oldValue = before[field.key]
+    const newValue = after[field.key]
+
+    const oldComparable = oldValue instanceof Date ? oldValue.getTime() : oldValue
+
+    const newComparable = newValue instanceof Date ? newValue.getTime() : newValue
+
+    if (oldComparable !== newComparable) {
+      changes.push(`${field.label} to ${formatActivityValue(field.key, newValue)}`)
+    }
+  }
+
+  return changes
+}
+
+function buildMemberUpdateDescription(before: Member, after: Member): string {
+  const changes = getChangedMemberFields(before, after)
+
+  if (changes.length === 0) {
+    return 'member information was updated'
+  }
+
+  if (changes.length === 1) {
+    return `updated ${changes[0]}`
+  }
+
+  if (changes.length === 2) {
+    return `updated ${changes[0]} and ${changes[1]}`
+  }
+
+  const lastChange = changes[changes.length - 1]
+  const previousChanges = changes.slice(0, -1)
+
+  return `updated ${previousChanges.join(', ')}, and ${lastChange}`
+}
+
+/* -------------------------------------------------------------------------- */
+/* LIST MEMBERS                                                               */
+/* -------------------------------------------------------------------------- */
 
 export async function listMembers(params: MemberListParams = {}) {
   const page = Math.max(1, Number(params.page ?? 1))
@@ -317,7 +442,6 @@ export async function listMembers(params: MemberListParams = {}) {
     Number.isFinite(requestedPageSize) && requestedPageSize > 0 ? requestedPageSize : 10
 
   const search = params.search?.trim() ?? ''
-
   const branch = params.branch?.trim() ?? ''
 
   const actor = await getCurrentActor()
@@ -331,17 +455,9 @@ export async function listMembers(params: MemberListParams = {}) {
     }
   }
 
-  // --------------------------------------------------
-  // STATUS / VISIBILITY
-  // --------------------------------------------------
-
   const requestedStatus: MemberStatusFilter = params.status ?? 'active'
 
   const status: MemberStatusFilter = actor.role === 'SUPER_ADMIN' ? requestedStatus : 'active'
-
-  // --------------------------------------------------
-  // OWNERSHIP
-  // --------------------------------------------------
 
   const ownershipFilter: Prisma.MemberWhereInput | null =
     actor.role === 'SUPER_ADMIN'
@@ -354,10 +470,6 @@ export async function listMembers(params: MemberListParams = {}) {
             id: -1,
           }
 
-  // --------------------------------------------------
-  // VISIBILITY
-  // --------------------------------------------------
-
   const visibilityFilter: Prisma.MemberWhereInput =
     status === 'active'
       ? {
@@ -368,10 +480,6 @@ export async function listMembers(params: MemberListParams = {}) {
             isDeleted: true,
           }
         : {}
-
-  // --------------------------------------------------
-  // SEARCH
-  // --------------------------------------------------
 
   const searchFilter: Prisma.MemberWhereInput = search
     ? {
@@ -416,10 +524,6 @@ export async function listMembers(params: MemberListParams = {}) {
       }
     : {}
 
-  // --------------------------------------------------
-  // BRANCH
-  // --------------------------------------------------
-
   const branchFilter: Prisma.MemberWhereInput =
     branch && branch !== 'all'
       ? {
@@ -430,24 +534,15 @@ export async function listMembers(params: MemberListParams = {}) {
         }
       : {}
 
-  // --------------------------------------------------
-  // WHERE
-  // --------------------------------------------------
-
   const where: Prisma.MemberWhereInput = {
     AND: [ownershipFilter ?? {}, searchFilter, branchFilter, visibilityFilter],
   }
-
-  // --------------------------------------------------
-  // QUERY
-  // --------------------------------------------------
 
   const shouldFetchAll = params.all === true
 
   const [items, total] = await Promise.all([
     prisma.member.findMany({
       where,
-
       orderBy: {
         createdAt: 'desc',
       },
@@ -456,7 +551,6 @@ export async function listMembers(params: MemberListParams = {}) {
         ? {}
         : {
             skip: (page - 1) * pageSize,
-
             take: pageSize,
           }),
     }),
@@ -468,18 +562,15 @@ export async function listMembers(params: MemberListParams = {}) {
 
   return {
     items: items.map(mapMember),
-
     total,
-
     page: shouldFetchAll ? 1 : page,
-
     pageSize: shouldFetchAll ? total : pageSize,
   }
 }
 
-// ---------------------------------------------------------------------------
-// GET MEMBER
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* GET MEMBER                                                                 */
+/* -------------------------------------------------------------------------- */
 
 export async function getMember(id: number) {
   const member = await prisma.member.findUnique({
@@ -491,9 +582,9 @@ export async function getMember(id: number) {
   return member ? mapMember(member) : null
 }
 
-// ---------------------------------------------------------------------------
-// CREATE MEMBER
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* CREATE MEMBER                                                              */
+/* -------------------------------------------------------------------------- */
 
 export async function createMember(payload: MemberPayload) {
   const actor = await getCurrentActor()
@@ -515,9 +606,9 @@ export async function createMember(payload: MemberPayload) {
   return mapMember(member)
 }
 
-// ---------------------------------------------------------------------------
-// COMBINED MEMBER TYPES
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* CREATE MEMBER WITH RELATIONS                                               */
+/* -------------------------------------------------------------------------- */
 
 export interface CombinedMemberPayload {
   principal: {
@@ -555,19 +646,11 @@ interface DependentInput {
   gender: string
 }
 
-// ---------------------------------------------------------------------------
-// MEMBERSHIP FROM CONTRIBUTION
-// ---------------------------------------------------------------------------
-
 function membershipFromContribution(weeklyContribution: string): string {
   const amount = Number(weeklyContribution)
 
   return Number.isFinite(amount) && amount >= 50 ? '50' : '25'
 }
-
-// ---------------------------------------------------------------------------
-// CREATE WITH RELATIONS
-// ---------------------------------------------------------------------------
 
 export async function createMemberWithRelations(payload: CombinedMemberPayload) {
   const actor = await getCurrentActor()
@@ -593,18 +676,6 @@ export async function createMemberWithRelations(payload: CombinedMemberPayload) 
 
         civilStatus: payload.principal.civilStatus,
 
-        // ----------------------------------------------------------
-        // PRINCIPAL BIRTHDAY
-        // ----------------------------------------------------------
-        // Form field:
-        //   principal.birthday
-        //
-        // Database field:
-        //   dateOfBirth
-        //
-        // Convert the HTML date string to a Date before saving.
-        // ----------------------------------------------------------
-
         dateOfBirth: payload.principal.birthday ? new Date(payload.principal.birthday) : null,
 
         transactionDate: payload.principal.transactionDate ?? new Date(),
@@ -621,45 +692,26 @@ export async function createMemberWithRelations(payload: CombinedMemberPayload) 
             }
           : {}),
 
-        // ----------------------------------------------------------
-        // BENEFICIARIES
-        // ----------------------------------------------------------
-
         beneficiaries: {
           create: [
             {
               role: 'primary',
-
               name: payload.beneficiaries.primary.name,
-
               address: payload.beneficiaries.primary.address,
-
               birthday: payload.beneficiaries.primary.birthday,
-
               gender: payload.beneficiaries.primary.gender,
-
               relationship: payload.beneficiaries.primary.relationship,
             },
-
             {
               role: 'secondary',
-
               name: payload.beneficiaries.secondary.name,
-
               address: payload.beneficiaries.secondary.address,
-
               birthday: payload.beneficiaries.secondary.birthday,
-
               gender: payload.beneficiaries.secondary.gender,
-
               relationship: payload.beneficiaries.secondary.relationship,
             },
           ],
         },
-
-        // ----------------------------------------------------------
-        // DEPENDENTS
-        // ----------------------------------------------------------
 
         dependents: {
           create: payload.dependents.map(dependent => ({
@@ -681,7 +733,7 @@ export async function createMemberWithRelations(payload: CombinedMemberPayload) 
   await createActivityLog({
     type: 'created',
     title: 'Member Created',
-    description: 'was added as a new member, with beneficiaries and dependents',
+    description: 'added a new member',
     subjectName: getFullName(member.firstName, member.middleName, member.lastName),
     actorName: actor?.name ?? 'System',
     actionLabel: 'Created by',
@@ -691,23 +743,34 @@ export async function createMemberWithRelations(payload: CombinedMemberPayload) 
   return member
 }
 
-// ---------------------------------------------------------------------------
-// UPDATE MEMBER
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* UPDATE MEMBER                                                              */
+/* -------------------------------------------------------------------------- */
 
 export async function updateMember(id: number, payload: Partial<MemberPayload>) {
+  const before = await prisma.member.findUnique({
+    where: {
+      id,
+    },
+  })
+
+  if (!before) {
+    throw new Error('Member not found')
+  }
+
   const member = await prisma.member.update({
     where: {
       id,
     },
-
     data: buildMemberUpdateData(payload),
   })
+
+  const description = buildMemberUpdateDescription(before, member)
 
   await createActivityLog({
     type: 'updated',
     title: 'Member Updated',
-    description: 'member information was updated',
+    description,
     subjectName: getFullName(member.firstName, member.middleName, member.lastName),
     actorName: await getCurrentActorName(),
     actionLabel: 'Updated by',
@@ -717,16 +780,15 @@ export async function updateMember(id: number, payload: Partial<MemberPayload>) 
   return mapMember(member)
 }
 
-// ---------------------------------------------------------------------------
-// HIDE
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* HIDE MEMBER                                                                */
+/* -------------------------------------------------------------------------- */
 
 export async function deleteMember(id: number) {
   const member = await prisma.member.update({
     where: {
       id,
     },
-
     data: {
       isDeleted: true,
     },
@@ -734,27 +796,26 @@ export async function deleteMember(id: number) {
 
   await createActivityLog({
     type: 'updated',
-    title: 'Member Hidden',
-    description: 'member was hidden from the active member list',
+    title: 'Member Updated',
+    description: 'updated status to Inactive',
     subjectName: getFullName(member.firstName, member.middleName, member.lastName),
     actorName: await getCurrentActorName(),
-    actionLabel: 'Hidden by',
+    actionLabel: 'Updated by',
     memberId: member.id,
   })
 
   return mapMember(member)
 }
 
-// ---------------------------------------------------------------------------
-// RESTORE
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* RESTORE MEMBER                                                             */
+/* -------------------------------------------------------------------------- */
 
 export async function restoreMember(id: number) {
   const member = await prisma.member.update({
     where: {
       id,
     },
-
     data: {
       isDeleted: false,
     },
@@ -762,20 +823,20 @@ export async function restoreMember(id: number) {
 
   await createActivityLog({
     type: 'updated',
-    title: 'Member Restored',
-    description: 'member was restored to the active member list',
+    title: 'Member Updated',
+    description: 'updated status to Active',
     subjectName: getFullName(member.firstName, member.middleName, member.lastName),
     actorName: await getCurrentActorName(),
-    actionLabel: 'Restored by',
+    actionLabel: 'Updated by',
     memberId: member.id,
   })
 
   return mapMember(member)
 }
 
-// ---------------------------------------------------------------------------
-// UPDATE MEMBER PROFILE
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* UPDATE MEMBER PROFILE                                                      */
+/* -------------------------------------------------------------------------- */
 
 export interface UpdateMemberProfilePayload {
   principal: {
@@ -786,18 +847,7 @@ export interface UpdateMemberProfilePayload {
     age: number
     membership: string
     civilStatus?: string | null
-
-    /**
-     * Database status.
-     * Active / Inactive
-     */
     status: string
-
-    /**
-     * Database visibility.
-     * false = visible
-     * true = hidden
-     */
     isDeleted: boolean
   }
 
@@ -831,11 +881,17 @@ export interface UpdateMemberProfilePayload {
 export async function updateMemberProfile(id: number, payload: UpdateMemberProfilePayload) {
   const actor = await getCurrentActor()
 
-  const result = await prisma.$transaction(async tx => {
-    // ------------------------------------------------
-    // MEMBER
-    // ------------------------------------------------
+  const before = await prisma.member.findUnique({
+    where: {
+      id,
+    },
+  })
 
+  if (!before) {
+    throw new Error('Member not found')
+  }
+
+  const result = await prisma.$transaction(async tx => {
     await tx.member.update({
       where: {
         id,
@@ -864,10 +920,6 @@ export async function updateMemberProfile(id: number, payload: UpdateMemberProfi
           normalizeStatusValue(payload.principal.status) === 'Inactive' ? new Date() : null,
       },
     })
-
-    // ------------------------------------------------
-    // PRIMARY BENEFICIARY
-    // ------------------------------------------------
 
     if (payload.beneficiaries.primary) {
       const primary = payload.beneficiaries.primary
@@ -908,10 +960,6 @@ export async function updateMemberProfile(id: number, payload: UpdateMemberProfi
       }
     }
 
-    // ------------------------------------------------
-    // SECONDARY BENEFICIARY
-    // ------------------------------------------------
-
     if (payload.beneficiaries.secondary) {
       const secondary = payload.beneficiaries.secondary
 
@@ -951,10 +999,6 @@ export async function updateMemberProfile(id: number, payload: UpdateMemberProfi
       }
     }
 
-    // ------------------------------------------------
-    // DEPENDENTS
-    // ------------------------------------------------
-
     for (const dependent of payload.dependents) {
       await tx.dependent.updateMany({
         where: {
@@ -970,10 +1014,6 @@ export async function updateMemberProfile(id: number, payload: UpdateMemberProfi
         },
       })
     }
-
-    // ------------------------------------------------
-    // GET UPDATED PROFILE
-    // ------------------------------------------------
 
     return tx.member.findUnique({
       where: {
@@ -991,10 +1031,12 @@ export async function updateMemberProfile(id: number, payload: UpdateMemberProfi
     throw new Error('Member not found')
   }
 
+  const description = buildMemberUpdateDescription(before, result)
+
   await createActivityLog({
     type: 'updated',
-    title: 'Member Profile Updated',
-    description: 'member information, beneficiaries, and dependents were updated',
+    title: 'Member Updated',
+    description,
     subjectName: getFullName(result.firstName, result.middleName, result.lastName),
     actorName: actor?.name ?? 'System',
     actionLabel: 'Updated by',
@@ -1004,9 +1046,9 @@ export async function updateMemberProfile(id: number, payload: UpdateMemberProfi
   return getMemberProfile(result.id)
 }
 
-// ---------------------------------------------------------------------------
-// GET MEMBER PROFILE
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* GET MEMBER PROFILE                                                         */
+/* -------------------------------------------------------------------------- */
 
 export async function getMemberProfile(id: number) {
   const member = await prisma.member.findUnique({
@@ -1031,41 +1073,28 @@ export async function getMemberProfile(id: number) {
   return {
     principal: {
       id: member.id,
-
       firstName: member.firstName,
-
       middleName: member.middleName,
-
       lastName: member.lastName,
 
       fullName: getFullName(member.firstName, member.middleName, member.lastName),
 
       address: member.address,
-
       age: member.age,
-
       membership: member.membership,
-
       membershipLabel: getMembershipLabel(member.membership),
-
       status: member.status,
-
       isDeleted: member.isDeleted,
 
+      // Keep UI value as active / hidden.
       visibility: member.isDeleted ? 'hidden' : 'active',
 
       civilStatus: member.civilStatus,
-
       clientId: member.clientId,
-
       transactionDate: member.transactionDate,
-
       dateOfBirth: member.dateOfBirth,
-
       loanCycle: member.loanCycle,
-
       statusChangedAt: member.statusChangedAt,
-
       createdAt: member.createdAt,
     },
 
@@ -1101,22 +1130,20 @@ export async function getMemberProfile(id: number) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// IMPORT
-// ---------------------------------------------------------------------------
+/* -------------------------------------------------------------------------- */
+/* IMPORT MEMBERS                                                             */
+/* -------------------------------------------------------------------------- */
 
 export interface ImportMembersResult {
   importedCount: number
+
   skippedCount: number
+
   errors: {
     row: number
     message: string
   }[]
 }
-
-// ---------------------------------------------------------------------------
-// DATE
-// ---------------------------------------------------------------------------
 
 function parseDateCell(value: unknown): Date | null {
   if (value instanceof Date && !Number.isNaN(value.getTime())) {
@@ -1133,10 +1160,6 @@ function parseDateCell(value: unknown): Date | null {
 
   return null
 }
-
-// ---------------------------------------------------------------------------
-// IMPORT ROW
-// ---------------------------------------------------------------------------
 
 function parseMemberRow(
   row: Record<string, unknown>,
@@ -1208,15 +1231,12 @@ function parseMemberRow(
     membership: normalizeMembershipValue(String(membershipSource ?? '')),
 
     age,
-
     address,
-
     status: 'Active',
 
     clientId: Number.isFinite(clientIdValue) ? clientIdValue : null,
 
     transactionDate,
-
     dateOfBirth,
 
     loanCycle: Number.isFinite(loanCycleValue) ? loanCycleValue : null,
@@ -1224,10 +1244,6 @@ function parseMemberRow(
     statusChangedAt: null,
   }
 }
-
-// ---------------------------------------------------------------------------
-// IMPORT MEMBERS
-// ---------------------------------------------------------------------------
 
 export async function importMembers(rows: Record<string, unknown>[]): Promise<ImportMembersResult> {
   const actor = await getCurrentActor()
@@ -1266,7 +1282,6 @@ export async function importMembers(rows: Record<string, unknown>[]): Promise<Im
       membership: normalizeMembershipValue(payload.membership),
 
       age: payload.age,
-
       address: payload.address,
 
       status: 'Active',
@@ -1295,9 +1310,13 @@ export async function importMembers(rows: Record<string, unknown>[]): Promise<Im
     await createActivityLog({
       type: 'created',
       title: 'Members Imported',
+
       description: `${result.count} member${result.count === 1 ? '' : 's'} imported`,
+
       subjectName: 'Members',
+
       actorName: await getCurrentActorName(),
+
       actionLabel: 'Imported by',
     })
   }

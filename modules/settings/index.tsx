@@ -1,10 +1,12 @@
 'use client'
-import PageHeader from '@/components/headers/page-header'
-import SettingsSidebar from './settings-sidebar'
-import AccountSection from './account/account-section'
-import PasswordSection from './password/password-section'
 
-import { useSettings } from '@/hooks/useSettings'
+import PageHeader from '@/components/headers/page-header'
+
+import SettingsSidebar from './components/settings-sidebar'
+import AccountSection from './components/account/account-section'
+import PasswordSection from './components/password/password-section'
+
+import { useSettings } from '@/modules/settings/hooks/settings'
 
 import { showErrorToast, showSuccessToast } from '@/lib/toast-messagealert/showSuccessToast'
 

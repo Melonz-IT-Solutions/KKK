@@ -1,24 +1,8 @@
 'use client'
 
-import type { SettingsSection } from '@/modules/settings/types/settings'
+import { SETTINGS_OPTIONS } from '@/modules/settings/data/settings'
 
-interface SettingsSidebarProps {
-  activeSection: SettingsSection
-  setActiveSection: (section: SettingsSection) => void
-}
-
-const SETTINGS_OPTIONS = [
-  {
-    id: 'account' as const,
-    title: 'Account info',
-    description: 'Personal profile details.',
-  },
-  {
-    id: 'password' as const,
-    title: 'Change password',
-    description: 'Update your security credentials.',
-  },
-]
+import type { SettingsSidebarProps } from '@/modules/settings/types/settings'
 
 export default function SettingsSidebar({ activeSection, setActiveSection }: SettingsSidebarProps) {
   return (

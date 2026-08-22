@@ -15,7 +15,6 @@ export function ActivityLogs() {
 
   const { activities, loading } = useDashboardActivityLogs()
 
-  // Show only the latest 5 activities on the dashboard
   const recentActivities = activities.slice(0, 4)
 
   return (
@@ -34,12 +33,10 @@ export function ActivityLogs() {
           </div>
         )}
 
-        {/* Latest 5 Activities */}
         {!loading && recentActivities.length > 0 && (
           <div className="flex flex-col gap-4">
             {recentActivities.map(activity => (
               <div key={activity.id} className="flex items-center justify-between gap-3">
-                {/* Activity information */}
                 <div className="flex min-w-0 flex-1 items-center gap-3">
                   <Avatar className="bg-muted h-9 w-9 shrink-0">
                     <AvatarFallback className="bg-muted text-muted-foreground">
@@ -52,18 +49,21 @@ export function ActivityLogs() {
                   </Avatar>
 
                   <div className="min-w-0 flex-1">
-                    {/* User who performed the action */}
                     <p className="text-foreground truncate text-sm font-medium">
                       {activity.actorName}
                     </p>
 
-                    {/* Action */}
-                    <p className="text-muted-foreground truncate text-sm">{activity.description}</p>
+                    <p className="text-muted-foreground truncate text-sm">
+                      {activity.description}
+                      {activity.subjectName && (
+                        <span className="text-foreground ml-1 font-medium">
+                          {activity.subjectName}
+                        </span>
+                      )}
+                    </p>
                   </div>
                 </div>
 
-                {/* Member details */}
-                {/* View Details */}
                 {activity.memberId && (
                   <Button
                     variant="link"

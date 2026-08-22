@@ -8,11 +8,8 @@ import { useLogin } from '@/modules/Login/auth/hooks/use-login'
 
 export default function Login() {
   const router = useRouter()
-
   const { status } = useSession()
-
   const { loading, authError, handleLogin } = useLogin()
-
   useEffect(() => {
     if (status === 'authenticated') {
       router.replace('/dashboard')

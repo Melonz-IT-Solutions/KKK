@@ -16,17 +16,6 @@ export interface PasswordInfo {
   confirmPassword: string
 }
 
-export interface AccountSectionProps {
-  accountInfo: AccountInfo
-  updateField: (field: keyof AccountInfo, value: string) => void
-}
-
-export interface PasswordSectionProps {
-  passwordInfo: PasswordInfo
-  updateField: (field: keyof PasswordInfo, value: string) => void
-  onSubmit: () => void
-}
-
 export interface InfoFieldProps {
   label: string
   value: string
@@ -34,6 +23,20 @@ export interface InfoFieldProps {
   type?: string
   placeholder?: string
   options?: string[]
+}
+
+export interface AccountSectionProps {
+  accountInfo: AccountInfo
+  updateField: (field: keyof AccountInfo, value: string) => void
+  onSave: () => void
+  saving: boolean
+}
+
+export interface PasswordSectionProps {
+  passwordInfo: PasswordInfo
+  updateField: (field: keyof PasswordInfo, value: string) => void
+  onSubmit: () => void
+  saving: boolean
 }
 
 export interface SettingsSidebarProps {

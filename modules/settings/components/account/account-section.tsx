@@ -1,44 +1,13 @@
 'use client'
 
-import Button from '@/components/button'
 import { Save } from 'lucide-react'
 
-import InfoField from '@/modules/settings/components/account/info-field'
+import Button from '@/components/button'
+import InfoField from '@/modules/settings/components/info-field'
 
-import type { AccountInfo } from '@/modules/settings/types/settings'
+import { ACCOUNT_FIELDS } from '@/modules/settings/data/settings'
 
-interface AccountSectionProps {
-  accountInfo: AccountInfo
-  updateField: (field: keyof AccountInfo, value: string) => void
-  onSave: () => void
-  saving: boolean
-}
-
-const ACCOUNT_FIELDS: {
-  key: keyof AccountInfo
-  label: string
-}[] = [
-  {
-    key: 'firstName',
-    label: 'First Name',
-  },
-  {
-    key: 'middleName',
-    label: 'Middle Name',
-  },
-  {
-    key: 'lastName',
-    label: 'Last Name',
-  },
-  {
-    key: 'email',
-    label: 'Email',
-  },
-  {
-    key: 'contactNumber',
-    label: 'Mobile Number',
-  },
-]
+import type { AccountSectionProps } from '@/modules/settings/types/settings'
 
 export default function AccountSection({
   accountInfo,
@@ -62,7 +31,6 @@ export default function AccountSection({
           <div className="flex justify-end">
             <Button onClick={onSave} disabled={saving}>
               <Save className="h-4 w-4" />
-
               {saving ? 'Updating...' : 'Update Account'}
             </Button>
           </div>

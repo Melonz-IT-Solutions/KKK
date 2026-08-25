@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Button } from '@/components/button-v2/button'
+import { Button as ButtonV2 } from '@/components/button-v2/button'
 
 import {
   Select,
@@ -20,6 +20,8 @@ import {
 import { showErrorToast, showSuccessToast } from '@/lib/toast-messagealert/showSuccessToast'
 
 import { UserRound, UsersRound, HeartHandshake, Save, X } from 'lucide-react'
+
+import { BranchCombobox } from '@/modules/members/components/add-member/branch-combobox'
 
 type MemberProfile = NonNullable<
   Awaited<ReturnType<typeof import('@/lib/services/member-service').getMemberProfile>>
@@ -188,6 +190,13 @@ export default function EditMemberProfile({ profile, onSaved, onCancel }: EditMe
               />
             </FormField>
 
+            <FormField label="Branch">
+              <BranchCombobox
+                value={principal.branch}
+                onChange={value => updatePrincipal('branch', value)}
+              />
+            </FormField>
+
             <FormField label="Age">
               <Input
                 type="number"
@@ -246,8 +255,8 @@ export default function EditMemberProfile({ profile, onSaved, onCancel }: EditMe
 
             <FormField label="Visibility">
               <Select
-                value={principal.isDeleted ? 'hidden' : 'active'}
-                onValueChange={value => updatePrincipal('isDeleted', value === 'hidden')}
+                value={principal.isDeleted ? 'inactive' : 'active'}
+                onValueChange={value => updatePrincipal('isDeleted', value === 'inactive')}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -465,7 +474,7 @@ export default function EditMemberProfile({ profile, onSaved, onCancel }: EditMe
           </p>
 
           <div className="ml-auto flex gap-2">
-            <Button
+            <ButtonV2
               type="button"
               variant="outline"
               onClick={onCancel}
@@ -474,9 +483,9 @@ export default function EditMemberProfile({ profile, onSaved, onCancel }: EditMe
             >
               <X className="mr-1.5 size-4" />
               Cancel
-            </Button>
+            </ButtonV2>
 
-            <Button
+            <ButtonV2
               type="button"
               onClick={handleSave}
               disabled={saving}
@@ -485,7 +494,7 @@ export default function EditMemberProfile({ profile, onSaved, onCancel }: EditMe
               <Save className="mr-1.5 size-4" />
 
               {saving ? 'Saving...' : 'Save Changes'}
-            </Button>
+            </ButtonV2>
           </div>
         </div>
       </div>

@@ -36,7 +36,7 @@ export default function DataTableCards() {
 
         return (
           <Link key={report.label} href={report.href}>
-            <Card className="hover:bg-muted/50 cursor-pointer transition-colors">
+            <Card className="hover:bg-muted/50 cursor-pointer bg-white transition-colors">
               <CardHeader>
                 <div className="flex items-start justify-between p-2">
                   <div className="rounded-lg">

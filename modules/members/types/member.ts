@@ -24,6 +24,7 @@ export interface MemberRow {
   membership: string
   age: number
   address: string
+  branch: string | null
   civilStatus: string | null
 }
 
@@ -53,7 +54,7 @@ export interface BranchOption {
 // Member filters
 // ---------------------------------------------------------------------------
 
-export type StatusFilter = 'active' | 'hidden' | 'all'
+export type StatusFilter = 'active' | 'inactive' | 'all'
 
 // ---------------------------------------------------------------------------
 // Add member form types

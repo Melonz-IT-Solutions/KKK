@@ -35,7 +35,7 @@ export default function MemberProfilePage({ profile }: MemberProfilePageProps) {
                     : 'border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-50'
                 }
               >
-                {principal.isDeleted ? 'Hidden' : 'Active'}
+                {principal.isDeleted ? 'Inactive' : 'Active'}
               </Badge>
             </div>
 
@@ -84,6 +84,8 @@ export default function MemberProfilePage({ profile }: MemberProfilePageProps) {
             />
 
             <ProfileField label="Civil Status" value={principal.civilStatus} />
+
+            <ProfileField label="Branch" value={principal.branch} />
 
             <div className="md:col-span-2">
               <ProfileField label="Residential Address" value={principal.address} />

@@ -15,8 +15,8 @@ interface UseMembersListResult {
   loading: boolean
   search: string
   setSearch: (value: string) => void
-  selectedBranch: string
-  setSelectedBranch: (value: string) => void
+  selectedBranches: string[]
+  setSelectedBranches: (value: string[]) => void
   statusFilter: StatusFilter
   setStatusFilter: (value: StatusFilter) => void
   hasFilters: boolean
@@ -26,7 +26,7 @@ interface UseMembersListResult {
 
 export function useMembersList({ isSuperAdmin }: UseMembersListParams): UseMembersListResult {
   const [search, setSearch] = useState('')
-  const [selectedBranch, setSelectedBranch] = useState('all')
+  const [selectedBranches, setSelectedBranches] = useState<string[]>([])
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('active')
 
   const [members, setMembers] = useState<MemberRow[]>([])
@@ -39,7 +39,7 @@ export function useMembersList({ isSuperAdmin }: UseMembersListParams): UseMembe
       const params = new URLSearchParams({
         pageSize: String(MAX_MEMBERS_PER_FETCH),
         search,
-        branch: selectedBranch,
+        branch: selectedBranches.length > 0 ? selectedBranches.join(',') : 'all',
         status: isSuperAdmin ? statusFilter : 'active',
       })
 
@@ -62,18 +62,18 @@ export function useMembersList({ isSuperAdmin }: UseMembersListParams): UseMembe
     } finally {
       setLoading(false)
     }
-  }, [search, selectedBranch, statusFilter, isSuperAdmin])
+  }, [search, selectedBranches, statusFilter, isSuperAdmin])
 
   useEffect(() => {
     void fetchMembers()
   }, [fetchMembers])
 
   const hasFilters =
-    search !== '' || selectedBranch !== 'all' || (isSuperAdmin && statusFilter !== 'active')
+    search !== '' || selectedBranches.length > 0 || (isSuperAdmin && statusFilter !== 'active')
 
   const clearFilters = useCallback(() => {
     setSearch('')
-    setSelectedBranch('all')
+    setSelectedBranches([])
     setStatusFilter('active')
   }, [])
 
@@ -82,8 +82,8 @@ export function useMembersList({ isSuperAdmin }: UseMembersListParams): UseMembe
     loading,
     search,
     setSearch,
-    selectedBranch,
-    setSelectedBranch,
+    selectedBranches,
+    setSelectedBranches,
     statusFilter,
     setStatusFilter,
     hasFilters,

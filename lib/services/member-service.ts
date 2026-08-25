@@ -4,7 +4,7 @@ import { Prisma, type Member } from '@prisma/client'
 import { createActivityLog } from '@/lib/services/activity-log-service'
 import { getCurrentActor, getCurrentActorName } from '@/lib/auth/get-current-user'
 
-export type MemberStatusFilter = 'active' | 'hidden' | 'all'
+export type MemberStatusFilter = 'active' | 'inactive' | 'all'
 
 export interface MemberListParams {
   search?: string
@@ -22,6 +22,7 @@ export interface MemberPayload {
   membership: string
   age: number
   address: string
+  branch?: string | null
   status: string
   civilStatus?: string | null
   clientId?: number | null
@@ -153,6 +154,7 @@ function buildMemberCreateData(
     membership: normalizeMembershipValue(payload.membership),
     age: payload.age,
     address: payload.address.trim(),
+    branch: payload.branch?.trim() || null,
     status,
     isDeleted: false,
     civilStatus: payload.civilStatus ?? null,
@@ -199,6 +201,10 @@ function buildMemberUpdateData(payload: Partial<MemberPayload>): Prisma.MemberUp
 
   if (typeof payload.address === 'string') {
     data.address = payload.address.trim()
+  }
+
+  if (payload.branch !== undefined) {
+    data.branch = payload.branch?.trim() || null
   }
 
   if (typeof payload.status === 'string') {
@@ -251,11 +257,12 @@ function mapMember(member: Member) {
     membershipLabel: getMembershipLabel(member.membership),
     age: member.age,
     address: member.address,
+    branch: member.branch,
     status: member.status,
 
     // Keep the existing active / hidden UI behavior.
     isDeleted: member.isDeleted,
-    visibility: member.isDeleted ? 'hidden' : 'active',
+    visibility: member.isDeleted ? 'inactive' : 'active',
 
     civilStatus: member.civilStatus,
     clientId: member.clientId,
@@ -474,10 +481,11 @@ export async function listMembers(params: MemberListParams = {}) {
     status === 'active'
       ? {
           isDeleted: false,
+          status: 'Active',
         }
-      : status === 'hidden'
+      : status === 'inactive'
         ? {
-            isDeleted: true,
+            OR: [{ isDeleted: true }, { status: 'Inactive' }],
           }
         : {}
 
@@ -524,13 +532,22 @@ export async function listMembers(params: MemberListParams = {}) {
       }
     : {}
 
+  const branches = branch
+    ? branch
+        .split(',')
+        .map(b => b.trim())
+        .filter(b => b && b !== 'all')
+    : []
+
   const branchFilter: Prisma.MemberWhereInput =
-    branch && branch !== 'all'
+    branches.length > 0
       ? {
-          address: {
-            contains: branch,
-            mode: Prisma.QueryMode.insensitive,
-          },
+          OR: branches.map(b => ({
+            branch: {
+              contains: b,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          })),
         }
       : {}
 
@@ -615,6 +632,7 @@ export interface CombinedMemberPayload {
     firstName: string
     middleName: string
     lastName: string
+    branch: string
     address: string
     birthday: string
     age: string
@@ -665,6 +683,8 @@ export async function createMemberWithRelations(payload: CombinedMemberPayload) 
         lastName: payload.principal.lastName.trim(),
 
         address: payload.principal.address.trim(),
+
+        branch: payload.principal.branch?.trim() || null,
 
         age: Number(payload.principal.age),
 
@@ -844,6 +864,7 @@ export interface UpdateMemberProfilePayload {
     middleName?: string | null
     lastName: string
     address: string
+    branch?: string | null
     age: number
     membership: string
     civilStatus?: string | null
@@ -905,6 +926,8 @@ export async function updateMemberProfile(id: number, payload: UpdateMemberProfi
         lastName: payload.principal.lastName.trim(),
 
         address: payload.principal.address.trim(),
+
+        branch: payload.principal.branch?.trim() || null,
 
         age: Number(payload.principal.age),
 
@@ -1080,14 +1103,15 @@ export async function getMemberProfile(id: number) {
       fullName: getFullName(member.firstName, member.middleName, member.lastName),
 
       address: member.address,
+      branch: member.branch,
       age: member.age,
       membership: member.membership,
       membershipLabel: getMembershipLabel(member.membership),
       status: member.status,
       isDeleted: member.isDeleted,
 
-      // Keep UI value as active / hidden.
-      visibility: member.isDeleted ? 'hidden' : 'active',
+      // Keep UI value as active / inactive.
+      visibility: member.isDeleted ? 'inactive' : 'active',
 
       civilStatus: member.civilStatus,
       clientId: member.clientId,
@@ -1179,7 +1203,7 @@ function parseMemberRow(
 
   const area = String(row['AREA'] ?? '').trim()
 
-  const address = [area, branch].filter(Boolean).join(' - ')
+  const address = area
 
   const membershipType = row['Membership Type']
 
@@ -1214,15 +1238,6 @@ function parseMemberRow(
     return null
   }
 
-  if (!address) {
-    errors.push({
-      row: rowNumber,
-      message: 'Missing Branch/AREA.',
-    })
-
-    return null
-  }
-
   return {
     firstName,
     middleName,
@@ -1232,6 +1247,7 @@ function parseMemberRow(
 
     age,
     address,
+    branch: branch || null,
     status: 'Active',
 
     clientId: Number.isFinite(clientIdValue) ? clientIdValue : null,
@@ -1283,6 +1299,7 @@ export async function importMembers(rows: Record<string, unknown>[]): Promise<Im
 
       age: payload.age,
       address: payload.address,
+      branch: payload.branch ?? null,
 
       status: 'Active',
 

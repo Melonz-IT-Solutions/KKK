@@ -62,11 +62,9 @@ export default function ImportMemberSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-sm">
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-md">
         <SheetHeader className="border-b border-neutral-200 px-6">
-          <SheetTitle className="p-4 text-lg font-semibold text-neutral-900">
-            Import File
-          </SheetTitle>
+          <SheetTitle className="text-xl font-semibold">Import File</SheetTitle>
 
           <SheetDescription className="sr-only">
             Upload an Excel file to import members in bulk.

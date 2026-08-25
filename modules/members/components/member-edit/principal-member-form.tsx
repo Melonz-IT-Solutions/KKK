@@ -15,6 +15,8 @@ import {
 
 import { UserRound } from 'lucide-react'
 
+import { BranchCombobox } from '@/modules/members/components/add-member/branch-combobox'
+
 import { FormField } from './form-field'
 
 import type { MemberProfile } from '@/modules/members/types/member-profile'
@@ -64,6 +66,13 @@ export function PrincipalMemberForm({ principal, onChange }: PrincipalMemberForm
             <Input
               value={principal.lastName ?? ''}
               onChange={e => onChange('lastName', e.target.value)}
+            />
+          </FormField>
+
+          <FormField label="Branch">
+            <BranchCombobox
+              value={principal.branch}
+              onChange={value => onChange('branch', value)}
             />
           </FormField>
 
@@ -122,8 +131,8 @@ export function PrincipalMemberForm({ principal, onChange }: PrincipalMemberForm
 
           <FormField label="Visibility">
             <Select
-              value={principal.isDeleted ? 'hidden' : 'active'}
-              onValueChange={value => onChange('isDeleted', value === 'hidden')}
+              value={principal.isDeleted ? 'inactive' : 'active'}
+              onValueChange={value => onChange('isDeleted', value === 'inactive')}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -131,7 +140,7 @@ export function PrincipalMemberForm({ principal, onChange }: PrincipalMemberForm
 
               <SelectContent>
                 <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="hidden">Hidden</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
             </Select>
           </FormField>

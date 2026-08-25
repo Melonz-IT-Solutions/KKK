@@ -18,7 +18,7 @@ export function ActivityLogs() {
   const recentActivities = activities.slice(0, 4)
 
   return (
-    <Card className="shadow-sm">
+    <Card className="bg-white shadow-sm">
       <CardHeader className="pb-2">
         <h3 className="text-foreground text-base font-semibold">Activity Logs</h3>
 

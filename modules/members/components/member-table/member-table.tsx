@@ -96,7 +96,7 @@ export default function MemberTable({ data, onDeleted, onEdit }: MemberV2TablePr
 
                   <TableCell className="font-medium text-slate-700">{row.age}</TableCell>
 
-                  <TableCell className="text-slate-600">{row.address}</TableCell>
+                  <TableCell className="text-slate-600">{row.branch ?? ''}</TableCell>
 
                   <TableCell className="text-slate-600">{row.civilStatus ?? ''}</TableCell>
 
@@ -132,14 +132,14 @@ export default function MemberTable({ data, onDeleted, onEdit }: MemberV2TablePr
       >
         <AlertDialogContent className="border-green-100">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-green-800">Hide member?</AlertDialogTitle>
+            <AlertDialogTitle className="text-primary">Set Member As Inactive</AlertDialogTitle>
 
             <AlertDialogDescription className="text-slate-600">
-              Are you sure you want to hide{' '}
-              <span className="font-semibold text-green-700">
+              Are you sure you want to set{' '}
+              <span className="text-primary font-semibold">
                 {deleteMember ? getMemberFullName(deleteMember) : ''}
               </span>{' '}
-              from the member list?
+              as an inactive from the member list?
               <br />
               <span className="mt-2 block text-sm text-slate-500">
                 The member will not be permanently deleted. You can keep the information in the
@@ -156,12 +156,8 @@ export default function MemberTable({ data, onDeleted, onEdit }: MemberV2TablePr
               Cancel
             </AlertDialogCancel>
 
-            <AlertDialogAction
-              onClick={confirmDelete}
-              disabled={deleting}
-              className="hover:bg-destructive/80 text-white"
-            >
-              {deleting ? 'Hiding...' : 'Hide Member'}
+            <AlertDialogAction onClick={confirmDelete} disabled={deleting} className="text-white">
+              {deleting ? 'Loading...' : 'Yes'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

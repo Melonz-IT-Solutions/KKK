@@ -1,41 +1,53 @@
 'use client'
 
+import { useState } from 'react'
+
 import Button from '@/components/button'
 
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxGroup,
+  ComboboxItem,
+  ComboboxLabel,
+  ComboboxList,
+  ComboboxSeparator,
+  ComboboxTrigger,
+} from '@/components/ui/combobox'
+
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 
 import { ChevronDown, SearchIcon, X } from 'lucide-react'
 
-import { BRANCH_OPTIONS } from '@/modules/members/constants/members'
+import { BRANCH_CLUSTERS } from '@/modules/members/constants/members'
 
 import type { StatusFilter } from '@/modules/members/types/member'
 
 interface MemberV2FiltersProps {
   search: string
-  selectedBranch: string
+  selectedBranches: string[]
   statusFilter: StatusFilter
   isSuperAdmin: boolean
   hasFilters: boolean
 
   onSearchChange: (value: string) => void
-  onBranchChange: (value: string) => void
+  onBranchChange: (values: string[]) => void
   onStatusChange: (value: StatusFilter) => void
   onClearFilters: () => void
 }
 
 export default function MemberV2Filters({
   search,
-  selectedBranch,
+  selectedBranches,
   statusFilter,
   isSuperAdmin,
   hasFilters,
@@ -44,15 +56,40 @@ export default function MemberV2Filters({
   onStatusChange,
   onClearFilters,
 }: MemberV2FiltersProps) {
-  const triggerLabel =
-    BRANCH_OPTIONS.find(option => option.value === selectedBranch)?.label ??
-    'Filter by Cluster / Branch'
+  const [branchSearch, setBranchSearch] = useState('')
+
+  const q = branchSearch.toLowerCase()
+
+  const filter = (options: { label: string; value: string }[]) =>
+    options.filter(o => o.label.toLowerCase().includes(q))
+
+  const clusters = [
+    { label: 'City Proper', options: filter(BRANCH_CLUSTERS.city_proper_cluster) },
+    { label: 'East Coast', options: filter(BRANCH_CLUSTERS.east_coast_cluster) },
+    { label: 'West Coast', options: filter(BRANCH_CLUSTERS.west_coast_cluster) },
+    { label: 'Sibugay', options: filter(BRANCH_CLUSTERS.sibugay_cluster) },
+    { label: 'North', options: filter(BRANCH_CLUSTERS.north_cluster) },
+    { label: 'Basulta', options: filter(BRANCH_CLUSTERS.basulta_cluster) },
+  ]
+
+  const hasResults = clusters.some(c => c.options.length > 0)
+
+  const selectCluster = (options: { label: string; value: string }[]) => {
+    const values = options.map(o => o.value)
+    const allSelected = values.every(v => selectedBranches.includes(v))
+
+    if (allSelected) {
+      onBranchChange(selectedBranches.filter(v => !values.includes(v)))
+    } else {
+      onBranchChange(Array.from(new Set([...selectedBranches, ...values])))
+    }
+  }
 
   const statusLabel =
-    statusFilter === 'active' ? 'Active' : statusFilter === 'hidden' ? 'Hidden' : 'All'
+    statusFilter === 'active' ? 'Active' : statusFilter === 'inactive' ? 'Inactive' : 'All'
 
   return (
-    <div className="relative flex gap-6">
+    <div className="relative flex gap-3">
       {/* SEARCH */}
 
       <InputGroup className="h-10">
@@ -67,113 +104,68 @@ export default function MemberV2Filters({
         </InputGroupAddon>
       </InputGroup>
 
-      {/* BRANCH */}
+      {/* BRANCH — multi-select combobox */}
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button className="flex h-10 items-center gap-2 rounded-md border px-3 text-sm whitespace-nowrap">
-            {triggerLabel}
+      <Combobox multiple value={selectedBranches} onValueChange={onBranchChange}>
+        <ComboboxTrigger className="flex h-10 items-center gap-2 rounded-md border px-3 text-sm whitespace-nowrap">
+          {selectedBranches.length === 0
+            ? 'Filter by Cluster / Branch'
+            : `${selectedBranches.length} branch${selectedBranches.length !== 1 ? 'es' : ''} selected`}
+        </ComboboxTrigger>
 
-            <ChevronDown className="h-4 w-4" />
-          </button>
-        </DropdownMenuTrigger>
+        <ComboboxContent className="w-64">
+          {/* Manual search input */}
+          <div className="border-input/30 bg-input/30 m-1 mb-0 flex h-8 items-center rounded-md border px-2">
+            <SearchIcon className="text-muted-foreground mr-1.5 size-3.5 shrink-0" />
+            <input
+              className="placeholder:text-muted-foreground flex-1 bg-transparent text-sm outline-none"
+              placeholder="Search branch..."
+              value={branchSearch}
+              onChange={e => setBranchSearch(e.target.value)}
+              onKeyDown={e => e.stopPropagation()}
+            />
+            {branchSearch && (
+              <button
+                className="text-muted-foreground hover:text-foreground ml-1"
+                onClick={() => setBranchSearch('')}
+              >
+                <X className="size-3" />
+              </button>
+            )}
+          </div>
 
-        <DropdownMenuContent align="start" className="h-125 w-55 overflow-y-auto">
-          {/* CITY PROPER */}
+          <ComboboxList>
+            {hasResults ? (
+              clusters.map((cluster, index) => {
+                if (cluster.options.length === 0) return null
 
-          <DropdownMenuGroup>
-            <DropdownMenuLabel>City Proper</DropdownMenuLabel>
+                return (
+                  <span key={cluster.label}>
+                    {index > 0 && <ComboboxSeparator />}
 
-            <DropdownMenuSeparator />
+                    <ComboboxGroup>
+                      <ComboboxLabel
+                        className="hover:text-foreground cursor-pointer text-sm"
+                        onClick={() => selectCluster(cluster.options)}
+                      >
+                        {cluster.label}
+                      </ComboboxLabel>
 
-            {BRANCH_OPTIONS.slice(0, 4).map(option => (
-              <DropdownMenuItem key={option.value} onSelect={() => onBranchChange(option.value)}>
-                {option.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuGroup>
-
-          <DropdownMenuSeparator />
-
-          {/* EAST COAST */}
-
-          <DropdownMenuGroup>
-            <DropdownMenuLabel>East Coast</DropdownMenuLabel>
-
-            <DropdownMenuSeparator />
-
-            {BRANCH_OPTIONS.slice(4, 8).map(option => (
-              <DropdownMenuItem key={option.value} onSelect={() => onBranchChange(option.value)}>
-                {option.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuGroup>
-
-          <DropdownMenuSeparator />
-
-          {/* WEST COAST */}
-
-          <DropdownMenuGroup>
-            <DropdownMenuLabel>West Coast</DropdownMenuLabel>
-
-            <DropdownMenuSeparator />
-
-            {BRANCH_OPTIONS.slice(8, 12).map(option => (
-              <DropdownMenuItem key={option.value} onSelect={() => onBranchChange(option.value)}>
-                {option.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuGroup>
-
-          <DropdownMenuSeparator />
-
-          {/* SIBUGAY */}
-
-          <DropdownMenuGroup>
-            <DropdownMenuLabel>Sibugay</DropdownMenuLabel>
-
-            <DropdownMenuSeparator />
-
-            {BRANCH_OPTIONS.slice(12, 15).map(option => (
-              <DropdownMenuItem key={option.value} onSelect={() => onBranchChange(option.value)}>
-                {option.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuGroup>
-
-          <DropdownMenuSeparator />
-
-          {/* NORTH */}
-
-          <DropdownMenuGroup>
-            <DropdownMenuLabel>North</DropdownMenuLabel>
-
-            <DropdownMenuSeparator />
-
-            {BRANCH_OPTIONS.slice(15, 18).map(option => (
-              <DropdownMenuItem key={option.value} onSelect={() => onBranchChange(option.value)}>
-                {option.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuGroup>
-
-          <DropdownMenuSeparator />
-
-          {/* BASULTA */}
-
-          <DropdownMenuGroup>
-            <DropdownMenuLabel>Basulta</DropdownMenuLabel>
-
-            <DropdownMenuSeparator />
-
-            {BRANCH_OPTIONS.slice(18, 21).map(option => (
-              <DropdownMenuItem key={option.value} onSelect={() => onBranchChange(option.value)}>
-                {option.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
+                      {cluster.options.map(option => (
+                        <ComboboxItem className="px-4" key={option.value} value={option.value}>
+                          {option.label}
+                        </ComboboxItem>
+                      ))}
+                    </ComboboxGroup>
+                  </span>
+                )
+              })
+            ) : (
+              <p className="text-muted-foreground py-4 text-center text-sm">No branch found.</p>
+            )}
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
 
       {/* STATUS */}
 
@@ -185,7 +177,7 @@ export default function MemberV2Filters({
                 className={`h-2 w-2 shrink-0 rounded-full ${
                   statusFilter === 'active'
                     ? 'bg-green-500'
-                    : statusFilter === 'hidden'
+                    : statusFilter === 'inactive'
                       ? 'bg-slate-400'
                       : 'bg-blue-500'
                 }`}
@@ -207,9 +199,9 @@ export default function MemberV2Filters({
               Active
             </DropdownMenuItem>
 
-            <DropdownMenuItem onSelect={() => onStatusChange('hidden')}>
+            <DropdownMenuItem onSelect={() => onStatusChange('inactive')}>
               <span className="mr-2 size-2 rounded-full bg-slate-400" />
-              Hidden
+              Inactive
             </DropdownMenuItem>
 
             <DropdownMenuItem onSelect={() => onStatusChange('all')}>
@@ -225,7 +217,7 @@ export default function MemberV2Filters({
       {hasFilters && (
         <Button
           variant="outline"
-          className="bg-secondary hover:bg-primary rounded-sm border-gray-300 text-white hover:text-white"
+          className="hover:bg-primary rounded-sm border-gray-300 bg-white text-sm text-gray-700 hover:text-white"
           onClick={onClearFilters}
         >
           <X className="text-destructive h-4 w-4" />

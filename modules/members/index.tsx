@@ -29,8 +29,8 @@ export default function MemberV2Page({ userRole }: MemberV2PageProps) {
     loading,
     search,
     setSearch,
-    selectedBranch,
-    setSelectedBranch,
+    selectedBranches,
+    setSelectedBranches,
     statusFilter,
     setStatusFilter,
     hasFilters,
@@ -72,17 +72,17 @@ export default function MemberV2Page({ userRole }: MemberV2PageProps) {
 
   return (
     <div className="p-4">
-      <PageV2Header title="Member" description="Manage KKK Members." />
+      <PageV2Header title="Member" description="" />
 
       <div className="flex justify-between">
         <MemberV2Filters
           search={search}
-          selectedBranch={selectedBranch}
+          selectedBranches={selectedBranches}
           statusFilter={statusFilter}
           isSuperAdmin={isSuperAdmin}
           hasFilters={hasFilters}
           onSearchChange={setSearch}
-          onBranchChange={setSelectedBranch}
+          onBranchChange={setSelectedBranches}
           onStatusChange={setStatusFilter}
           onClearFilters={clearFilters}
         />

@@ -15,6 +15,8 @@ export const principalMemberSchema = z.object({
 
   lastName: z.string().min(1, 'Last name is required.'),
 
+  branch: z.string().min(1, 'Branch is required.'),
+
   address: z.string().min(1, 'Address is required.'),
 
   birthday: z.string().min(1, 'Birthday is required.'),

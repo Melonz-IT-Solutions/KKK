@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { MoreVertical } from 'lucide-react'
+import { MoreVertical, Eye, Pencil, XCircle } from 'lucide-react'
 
 interface RowMenuProps {
   onView: () => void
@@ -36,9 +36,9 @@ export default function RowMenu({ onView, onEdit, onDelete }: RowMenuProps) {
               closeMenu()
               onView()
             }}
-            className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+            className="flex w-full cursor-pointer items-center px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
           >
-            View details
+            <Eye className="mr-2 h-4 w-4" /> View details
           </button>
 
           <button
@@ -47,8 +47,9 @@ export default function RowMenu({ onView, onEdit, onDelete }: RowMenuProps) {
               closeMenu()
               onEdit()
             }}
-            className="block w-full px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
+            className="flex w-full cursor-pointer items-center border-b px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
           >
+            <Pencil className="mr-2 h-4 w-4" />
             Edit
           </button>
 
@@ -58,9 +59,9 @@ export default function RowMenu({ onView, onEdit, onDelete }: RowMenuProps) {
               closeMenu()
               onDelete()
             }}
-            className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
+            className="flex w-full cursor-pointer items-center px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50"
           >
-            Delete
+            <XCircle className="mr-2 h-4 w-4" /> Set as Inactive
           </button>
         </div>
       )}

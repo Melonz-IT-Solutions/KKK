@@ -79,11 +79,11 @@ export const RELATIONSHIP_OPTIONS = [
 export const WEEKLY_CONTRIBUTION_OPTIONS = [
   {
     value: '25',
-    label: '25',
+    label: '₱ 25.00',
   },
   {
     value: '50',
-    label: '50',
+    label: '₱ 50.00',
   },
 ] as const
 
@@ -119,6 +119,7 @@ export const DEFAULT_MEMBER_FORM_VALUES: MemberFormValues = {
     firstName: '',
     middleName: '',
     lastName: '',
+    branch: '',
     address: '',
     birthday: '',
     age: '',

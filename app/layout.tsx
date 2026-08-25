@@ -11,7 +11,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: process.env.NEXT_PUBLIC_APP_NAME,
+  title: process.env.NEXT_PUBLIC_APP_NAME ?? 'KKK',
   description: 'Kapuso, Kasali, Kasalo',
 }
 

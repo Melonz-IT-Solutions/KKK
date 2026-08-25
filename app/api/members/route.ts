@@ -20,6 +20,7 @@ const memberSchema = z.object({
   membership: z.string().min(1),
   age: z.number().int().min(1),
   address: z.string().min(1),
+  branch: z.string().optional().nullable(),
   status: z.string().min(1),
   civilStatus: z.string().optional(),
   clientId: z.number().int().optional().nullable(),
@@ -41,6 +42,8 @@ const combinedMemberSchema = z.object({
     lastName: z.string().min(1),
 
     address: z.string().min(1),
+
+    branch: z.string().optional().nullable(),
 
     birthday: z.string().min(1),
 
@@ -101,7 +104,7 @@ export async function GET(request: Request) {
 
   const statusParam = searchParams.get('status')
 
-  const status = statusParam === 'hidden' || statusParam === 'all' ? statusParam : 'active'
+  const status = statusParam === 'inactive' || statusParam === 'all' ? statusParam : 'active'
 
   try {
     const result = await listMembers({

@@ -29,7 +29,7 @@ interface ChartBarProps {
 
 export function ChartBar({ data }: ChartBarProps) {
   return (
-    <Card className="w-full">
+    <Card className="w-full bg-white">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-base font-semibold">Members Overview</CardTitle>
 

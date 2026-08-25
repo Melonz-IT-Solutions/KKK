@@ -22,6 +22,8 @@ import {
   WEEKLY_CONTRIBUTION_OPTIONS,
 } from '@/modules/members/constants/member-form'
 
+import { BranchCombobox } from '@/modules/members/components/add-member/branch-combobox'
+
 import type { MemberFormValues } from '@/modules/members/types/member'
 import { useComputedAge } from '@/modules/members/hooks/use-computed-age'
 
@@ -107,6 +109,26 @@ export function PrincipalMemberFields({
         />
 
         {errors?.lastName && <p className="text-destructive text-sm">{errors.lastName.message}</p>}
+      </div>
+
+      {/* Branch */}
+      <div className="grid gap-2">
+        <Label htmlFor="branch">Branch</Label>
+
+        <Controller
+          control={control}
+          name="principal.branch"
+          render={({ field }) => (
+            <BranchCombobox
+              id="branch"
+              value={field.value}
+              onChange={field.onChange}
+              invalid={!!errors?.branch}
+            />
+          )}
+        />
+
+        {errors?.branch && <p className="text-destructive text-sm">{errors.branch.message}</p>}
       </div>
 
       {/* Address */}

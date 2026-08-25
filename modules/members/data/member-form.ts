@@ -75,6 +75,7 @@ export const DEFAULT_MEMBER_FORM_VALUES: MemberFormValues = {
     firstName: '',
     middleName: '',
     lastName: '',
+    branch: '',
     address: '',
     birthday: '',
     age: '',

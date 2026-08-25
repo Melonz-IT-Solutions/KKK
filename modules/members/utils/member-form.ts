@@ -6,6 +6,7 @@ export const isPrincipalComplete = (principal: MemberFormValues['principal']): b
   return (
     principal.firstName.trim() !== '' &&
     principal.lastName.trim() !== '' &&
+    principal.branch.trim() !== '' &&
     principal.address.trim() !== '' &&
     principal.birthday.trim() !== '' &&
     principal.civilStatus !== '' &&

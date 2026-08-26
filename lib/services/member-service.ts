@@ -632,7 +632,7 @@ export interface CombinedMemberPayload {
     firstName: string
     middleName: string
     lastName: string
-    branch: string
+    branch?: string | null
     address: string
     birthday: string
     age: string

@@ -1,7 +1,10 @@
-export default function MembersPage() {
-  return (
-    <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <div className="bg-muted/50 min-h-screen flex-1 rounded-xl md:min-h-min" />
-    </div>
-  )
+import { auth } from '@/auth'
+import MemberV2Page from '@/modules/members'
+
+export default async function MembersPage() {
+  const session = await auth()
+
+  const userRole = session?.user?.role ?? 'STAFF'
+
+  return <MemberV2Page userRole={userRole} />
 }

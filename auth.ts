@@ -1,59 +1,160 @@
-import CredentialsProvider from 'next-auth/providers/credentials'
-import { prisma } from './lib/prisma'
-import { compare } from 'bcrypt'
 import NextAuth from 'next-auth'
+import CredentialsProvider from 'next-auth/providers/credentials'
 
-// Prisma client is imported from singleton in lib/prisma.ts
+import { prisma } from '@/lib/prisma'
+import { isStaffRole, type StaffRole } from '@/lib/auth/permissions'
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
+import { verifyPassword } from '@/lib/auth/password'
+
+export const { handlers, auth, signIn, signOut } = NextAuth({
+  // -------------------------------------------------------------------------
+  // HOST
+  // -------------------------------------------------------------------------
+
+  trustHost: true,
+
+  // -------------------------------------------------------------------------
+  // SESSION
+  // -------------------------------------------------------------------------
+
+  session: {
+    strategy: 'jwt',
+    maxAge: 8 * 60 * 60,
+  },
+
+  // -------------------------------------------------------------------------
+  // PROVIDERS
+  // -------------------------------------------------------------------------
+
   providers: [
     CredentialsProvider({
       name: 'Credentials',
-      credentials: {
-        username: { label: 'Username', type: 'text' },
-        password: { label: 'Password', type: 'password' },
-      },
-      async authorize(credentials) {
-        console.log('credentials', credentials)
 
-        if (!credentials?.username || !credentials?.password) {
+      credentials: {
+        username: {
+          label: 'Username',
+          type: 'text',
+        },
+
+        password: {
+          label: 'Password',
+          type: 'password',
+        },
+      },
+
+      // ---------------------------------------------------------------------
+      // AUTHORIZE
+      // ---------------------------------------------------------------------
+
+      async authorize(credentials) {
+        const username = String(credentials?.username ?? '')
+
+        const password = String(credentials?.password ?? '')
+
+        if (!username || !password) {
           return null
         }
 
         const user = await prisma.user.findUnique({
-          where: { username: String(credentials.username) },
+          where: {
+            username,
+          },
+
+          include: {
+            staff: {
+              select: {
+                branch: true,
+              },
+            },
+          },
         })
 
-        if (!user) {
+        // -------------------------------------------------------------------
+        // ACCOUNT CHECK
+        // -------------------------------------------------------------------
+
+        if (!user || !user.active || user.isDeleted || !isStaffRole(user.roles)) {
           return null
         }
-        // If you add a password field to your User model, update this logic accordingly
-        // For now, skip password check since User model has no password field
-        // const isValid = await compare(credentials.password, user.password)
-        // if (!isValid) {
-        //   throw new Error('Invalid password')
-        // }
+
+        // -------------------------------------------------------------------
+        // PASSWORD CHECK
+        // -------------------------------------------------------------------
+
+        const passwordMatches = await verifyPassword(password, user.password)
+
+        if (!passwordMatches) {
+          return null
+        }
+
+        // -------------------------------------------------------------------
+        // USER
+        // -------------------------------------------------------------------
+
         return {
-          id: user.id.toString(),
+          id: String(user.id),
+
           name: user.name ?? '',
-          email: user.email ?? '',
+
+          email: user.email,
+
+          username: user.username,
+
+          role: user.roles,
+
+          branch: user.branch ?? user.staff?.branch ?? null,
         }
       },
     }),
   ],
-  session: {
-    strategy: 'jwt',
-  },
-  pages: {
-    signIn: '/login',
-  },
-  secret: process.env.NEXTAUTH_SECRET,
+
+  // -------------------------------------------------------------------------
+  // CALLBACKS
+  // -------------------------------------------------------------------------
+
   callbacks: {
-    async session({ session, token }) {
-      if (token && session.user && typeof token.sub === 'string') {
-        session.user.id = token.sub
+    async jwt({ token, user }) {
+      if (user) {
+        token.role = user.role
+
+        token.branch = user.branch
+
+        token.username = user.username
       }
+
+      return token
+    },
+
+    async session({ session, token }) {
+      if (session.user) {
+        const tokenRole: unknown = token.role
+
+        const role: StaffRole = isStaffRole(tokenRole) ? tokenRole : 'STAFF'
+
+        const branch: string | null = typeof token.branch === 'string' ? token.branch : null
+
+        const username: string = typeof token.username === 'string' ? token.username : ''
+
+        session.user.id = typeof token.sub === 'string' ? token.sub : ''
+
+        session.user.role = role
+
+        session.user.branch = branch
+
+        session.user.username = username
+      }
+
       return session
     },
   },
+
+  // -------------------------------------------------------------------------
+  // LOGIN PAGE
+  // -------------------------------------------------------------------------
+
+  pages: {
+    signIn: '/login',
+  },
+
+  secret: process.env.NEXTAUTH_SECRET,
 })

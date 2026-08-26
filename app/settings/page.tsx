@@ -1,7 +1,12 @@
-export default function SettingsPage() {
-  return (
-    <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-      <div className="bg-muted/50 min-h-screen flex-1 rounded-xl md:min-h-min" />
-    </div>
-  )
+import { redirect } from 'next/navigation'
+import { auth } from '@/auth'
+import { hasPermission } from '@/lib/auth/permissions'
+import SettingsPageView from '@/modules/settings'
+
+export default async function SettingsPage() {
+  const session = await auth()
+  if (!session?.user) redirect('/login')
+  if (!hasPermission(session.user.role, 'settings:access')) redirect('/unauthorized')
+
+  return <SettingsPageView />
 }

@@ -1,17 +1,37 @@
+// proxy.ts
+
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { auth } from '@/auth' // adjust path if needed
+import { auth } from '@/auth'
 
 export async function proxy(request: NextRequest) {
   const session = await auth()
-  if (!session) {
-    // Not authenticated, redirect to login
-    return NextResponse.redirect(new URL('/login', request.url))
+
+  const isLoginPage = request.nextUrl.pathname === '/login'
+
+  // Already logged in
+  // Do not allow the user to stay on /login.
+  if (isLoginPage && session) {
+    return NextResponse.redirect(new URL('/', request.url))
   }
-  // Authenticated, allow access
+
+  // Login page is public.
+  if (isLoginPage) {
+    return NextResponse.next()
+  }
+
+  // Everything else requires authentication.
+  if (!session) {
+    const loginUrl = new URL('/login', request.url)
+
+    loginUrl.searchParams.set('callbackUrl', request.nextUrl.pathname + request.nextUrl.search)
+
+    return NextResponse.redirect(loginUrl)
+  }
+
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/about/:path*', '/dashboard/:path*'],
+  matcher: ['/((?!api/auth|_next/static|_next/image|favicon.ico|.*\\..*).*)'],
 }

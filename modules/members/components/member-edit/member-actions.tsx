@@ -1,6 +1,6 @@
 'use client'
 
-import { Save, X } from 'lucide-react'
+import { Check, X } from 'lucide-react'
 
 import { Button } from '@/components/button-v2/button'
 
@@ -36,7 +36,7 @@ export function EditMemberActions({ saving, onSave, onCancel }: EditMemberAction
             disabled={saving}
             className="bg-emerald-600 text-white shadow-sm hover:bg-emerald-700"
           >
-            <Save className="mr-1.5 size-4" />
+            <Check className="mr-1.5 size-4" />
 
             {saving ? 'Saving...' : 'Save Changes'}
           </Button>

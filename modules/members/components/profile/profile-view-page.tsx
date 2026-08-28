@@ -2,14 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-
+import { CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-
-import { UserRound, UsersRound, HeartHandshake, UserPlus, Pencil } from 'lucide-react'
-import { Button } from '@base-ui/react'
-
+import { UserRound, UsersRound, HeartHandshake } from 'lucide-react'
 import EditMemberProfile from '@/modules/members/components/profile/edit-member-profile'
 import { formatDate } from '@/lib/utils/date'
 

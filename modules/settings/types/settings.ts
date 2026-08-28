@@ -6,6 +6,7 @@ export interface AccountInfo {
   firstName: string
   middleName: string
   lastName: string
+  userName: string
   email: string
   contactNumber: string
 }

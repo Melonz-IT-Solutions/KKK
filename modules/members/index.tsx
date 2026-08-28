@@ -72,7 +72,7 @@ export default function MemberV2Page({ userRole }: MemberV2PageProps) {
 
   return (
     <div className="p-4">
-      <PageV2Header title="Member" description="" />
+      <PageV2Header title="Members" description="" />
 
       <div className="flex justify-between">
         <MemberV2Filters

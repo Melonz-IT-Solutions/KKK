@@ -55,7 +55,7 @@ export default function InfoField({
               value={value}
               placeholder={placeholder}
               onChange={event => onChange(event.target.value)}
-              className="pr-10"
+              className="h-10 pr-10"
             />
 
             <button
@@ -72,6 +72,7 @@ export default function InfoField({
             type={type}
             value={value}
             placeholder={placeholder}
+            className="h-10"
             onChange={event => onChange(event.target.value)}
           />
         )}

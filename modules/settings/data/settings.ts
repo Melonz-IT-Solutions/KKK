@@ -4,6 +4,7 @@ export const DEFAULT_ACCOUNT_INFO: AccountInfo = {
   firstName: '',
   middleName: '',
   lastName: '',
+  userName: '',
   email: '',
   contactNumber: '',
 }
@@ -46,6 +47,10 @@ export const ACCOUNT_FIELDS: {
   {
     key: 'lastName',
     label: 'Last Name',
+  },
+  {
+    key: 'userName',
+    label: 'Username',
   },
   {
     key: 'email',

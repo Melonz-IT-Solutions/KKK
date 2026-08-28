@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 
-import { Pencil, UserPlus, X } from 'lucide-react'
+import { Pencil, SearchIcon, UserPlus, X } from 'lucide-react'
 
 import {
   Table,
@@ -16,7 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-import { InputGroup, InputGroupInput } from '@/components/ui/input-group'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 
 import Button from '@/components/button-v2/button'
 import PageV2Header from '@/components/headers/page-v2-header'
@@ -119,12 +119,16 @@ export default function StaffTable({ data, onAddStaff, onUpdateStaff }: StaffTab
 
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <InputGroup className="h-10 w-64">
+          <InputGroup className="h-10">
             <InputGroupInput
               placeholder="Search Staff..."
               value={search}
               onChange={event => handleSearchChange(event.target.value)}
             />
+
+            <InputGroupAddon>
+              <SearchIcon />
+            </InputGroupAddon>
           </InputGroup>
 
           {(statusFilter !== 'all' || search !== '') && (

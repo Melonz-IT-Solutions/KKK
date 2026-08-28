@@ -11,6 +11,7 @@ import { UserRound, UsersRound, HeartHandshake, UserPlus, Pencil } from 'lucide-
 import { Button } from '@base-ui/react'
 
 import EditMemberProfile from '@/modules/members/components/profile/edit-member-profile'
+import { formatDate } from '@/lib/utils/date'
 
 interface MemberProfilePageProps {
   profile: Awaited<ReturnType<typeof import('@/lib/services/member-service').getMemberProfile>>
@@ -261,28 +262,6 @@ export default function MemberProfilePage({ profile }: MemberProfilePageProps) {
       </div>
     </div>
   )
-}
-
-// ---------------------------------------------------------------------------
-// Date formatting
-// ---------------------------------------------------------------------------
-
-function formatDate(value: Date | string | null | undefined): string {
-  if (!value) {
-    return '—'
-  }
-
-  const date = new Date(value)
-
-  if (Number.isNaN(date.getTime())) {
-    return '—'
-  }
-
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
 }
 
 // ---------------------------------------------------------------------------

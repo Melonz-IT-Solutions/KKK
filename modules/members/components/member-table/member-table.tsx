@@ -86,7 +86,7 @@ export default function MemberTable({ data, onDeleted, onEdit }: MemberV2TablePr
 
               {pageRows.map(row => (
                 <TableRow key={row.id} className="hover:bg-slate-50/70">
-                  <TableCell className="font-medium whitespace-nowrap text-slate-900">
+                  <TableCell className="font-medium whitespace-nowrap text-slate-900 uppercase">
                     {getMemberFullName(row)}
                   </TableCell>
 
@@ -96,9 +96,11 @@ export default function MemberTable({ data, onDeleted, onEdit }: MemberV2TablePr
 
                   <TableCell className="font-medium text-slate-700">{row.age}</TableCell>
 
-                  <TableCell className="text-slate-600">{row.branch ?? ''}</TableCell>
+                  <TableCell className="text-slate-600 uppercase">{row.branch ?? ''}</TableCell>
 
-                  <TableCell className="text-slate-600">{row.civilStatus ?? ''}</TableCell>
+                  <TableCell className="text-slate-600 uppercase">
+                    {row.civilStatus ?? ''}
+                  </TableCell>
 
                   <TableCell className="text-right">
                     <RowMenu

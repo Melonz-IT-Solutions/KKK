@@ -38,7 +38,7 @@ export default function RowMenu({ onView, onEdit, onDelete }: RowMenuProps) {
             }}
             className="flex w-full cursor-pointer items-center px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-50"
           >
-            <Eye className="mr-2 h-4 w-4" /> View details
+            <Eye className="mr-2 h-4 w-4" /> View Details
           </button>
 
           <button

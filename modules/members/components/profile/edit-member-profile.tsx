@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
 import { Button as ButtonV2 } from '@/components/button-v2/button'
 
 import {
@@ -19,7 +20,7 @@ import {
 
 import { showErrorToast, showSuccessToast } from '@/lib/toast-messagealert/showSuccessToast'
 
-import { UserRound, UsersRound, HeartHandshake, Save, X } from 'lucide-react'
+import { UserRound, UsersRound, HeartHandshake, Save, X, Check } from 'lucide-react'
 
 import { BranchCombobox } from '@/modules/members/components/add-member/branch-combobox'
 
@@ -127,30 +128,30 @@ export default function EditMemberProfile({ profile, onSaved, onCancel }: EditMe
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6 p-4 md:p-6">
+    <div className="w-full max-w-6xl space-y-6 p-4 md:p-6">
       <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-sm">
+            <div className="bg-primary flex size-10 shrink-0 items-center justify-center rounded-lg text-white shadow-sm">
               <UserRound className="size-5" />
             </div>
 
             <div>
               <h1 className="text-lg font-bold text-emerald-950">Edit Member Profile</h1>
 
-              <p className="mt-0.5 text-sm text-emerald-700/80">
+              <p className="text-sm text-emerald-700/80">
                 Update member information, beneficiaries, and dependents.
               </p>
             </div>
           </div>
 
-          <div className="hidden rounded-full border border-emerald-200 bg-white px-3 py-1 text-xs font-semibold text-emerald-700 sm:block">
+          <div className="hidden rounded-md border border-emerald-200 bg-white px-3 py-1 text-xs font-semibold text-emerald-700 sm:block">
             Member #{principal.id}
           </div>
         </div>
       </div>
 
-      <Card className="overflow-hidden border-emerald-100 shadow-sm">
+      <div className="group/card bg-card text-card-foreground ring-foreground/10 flex flex-col gap-4 overflow-hidden rounded-xl border-emerald-100 text-sm shadow-sm ring-1 has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl">
         <CardHeader className="border-b border-emerald-100 bg-white px-5 py-4">
           <div className="flex items-center gap-3">
             <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
@@ -172,6 +173,7 @@ export default function EditMemberProfile({ profile, onSaved, onCancel }: EditMe
             <FormField label="First Name">
               <Input
                 value={principal.firstName ?? ''}
+                className="h-10 bg-white"
                 onChange={e => updatePrincipal('firstName', e.target.value)}
               />
             </FormField>
@@ -179,6 +181,7 @@ export default function EditMemberProfile({ profile, onSaved, onCancel }: EditMe
             <FormField label="Middle Name">
               <Input
                 value={principal.middleName ?? ''}
+                className="h-10 bg-white"
                 onChange={e => updatePrincipal('middleName', e.target.value)}
               />
             </FormField>
@@ -186,6 +189,7 @@ export default function EditMemberProfile({ profile, onSaved, onCancel }: EditMe
             <FormField label="Last Name">
               <Input
                 value={principal.lastName ?? ''}
+                className="h-10 bg-white"
                 onChange={e => updatePrincipal('lastName', e.target.value)}
               />
             </FormField>
@@ -193,6 +197,7 @@ export default function EditMemberProfile({ profile, onSaved, onCancel }: EditMe
             <FormField label="Branch">
               <BranchCombobox
                 value={principal.branch}
+                className="h-10 bg-white"
                 onChange={value => updatePrincipal('branch', value)}
               />
             </FormField>
@@ -200,6 +205,7 @@ export default function EditMemberProfile({ profile, onSaved, onCancel }: EditMe
             <FormField label="Age">
               <Input
                 type="number"
+                className="h-10 bg-white"
                 value={principal.age ?? ''}
                 onChange={e => updatePrincipal('age', Number(e.target.value))}
               />
@@ -210,7 +216,7 @@ export default function EditMemberProfile({ profile, onSaved, onCancel }: EditMe
                 value={principal.membership ?? ''}
                 onValueChange={value => updatePrincipal('membership', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-white">
                   <SelectValue placeholder="Select membership" />
                 </SelectTrigger>
 
@@ -227,7 +233,7 @@ export default function EditMemberProfile({ profile, onSaved, onCancel }: EditMe
                 value={principal.civilStatus ?? ''}
                 onValueChange={value => updatePrincipal('civilStatus', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-white">
                   <SelectValue placeholder="Select civil status" />
                 </SelectTrigger>
 
@@ -246,34 +252,30 @@ export default function EditMemberProfile({ profile, onSaved, onCancel }: EditMe
             <div className="md:col-span-3">
               <FormField label="Residential Address">
                 <Textarea
-                  className="min-h-22.5 resize-none"
+                  className="min-h-22.5 resize-none bg-white"
                   value={principal.address ?? ''}
                   onChange={e => updatePrincipal('address', e.target.value)}
                 />
               </FormField>
             </div>
 
-            <FormField label="Visibility">
-              <Select
-                value={principal.isDeleted ? 'inactive' : 'active'}
-                onValueChange={value => updatePrincipal('isDeleted', value === 'inactive')}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+            <FormField label="Status">
+              <div className="flex h-10 items-center gap-2">
+                <Switch
+                  checked={!principal.isDeleted}
+                  onCheckedChange={checked => updatePrincipal('isDeleted', !checked)}
+                />
 
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-
-                  <SelectItem value="hidden">Hidden</SelectItem>
-                </SelectContent>
-              </Select>
+                <span className="text-sm text-slate-700">
+                  {principal.isDeleted ? 'Inactive' : 'Active'}
+                </span>
+              </div>
             </FormField>
           </div>
         </CardContent>
-      </Card>
+      </div>
 
-      <Card className="overflow-hidden border-emerald-100 shadow-sm">
+      <div className="group/card bg-card text-card-foreground ring-foreground/10 flex flex-col gap-4 overflow-hidden rounded-xl border-emerald-100 text-sm shadow-sm ring-1 has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl">
         <CardHeader className="border-b border-emerald-100 bg-white px-5 py-4">
           <div className="flex items-center gap-3">
             <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
@@ -366,9 +368,9 @@ export default function EditMemberProfile({ profile, onSaved, onCancel }: EditMe
             })}
           </div>
         </CardContent>
-      </Card>
+      </div>
 
-      <Card className="overflow-hidden border-emerald-100 shadow-sm">
+      <div className="group/card bg-card text-card-foreground ring-foreground/10 flex flex-col gap-4 overflow-hidden rounded-xl border-emerald-100 text-sm shadow-sm ring-1 has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl">
         <CardHeader className="border-b border-emerald-100 bg-white px-5 py-4">
           <div className="flex items-center gap-3">
             <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
@@ -465,7 +467,7 @@ export default function EditMemberProfile({ profile, onSaved, onCancel }: EditMe
             </div>
           )}
         </CardContent>
-      </Card>
+      </div>
 
       <div className="sticky bottom-0 z-20 -mx-4 border-t border-emerald-100 bg-white/95 px-4 py-4 backdrop-blur md:-mx-6 md:px-6">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3">
@@ -491,7 +493,7 @@ export default function EditMemberProfile({ profile, onSaved, onCancel }: EditMe
               disabled={saving}
               className="bg-emerald-600 text-white shadow-sm hover:bg-emerald-700"
             >
-              <Save className="mr-1.5 size-4" />
+              <Check className="mr-1.5 size-4" />
 
               {saving ? 'Saving...' : 'Save Changes'}
             </ButtonV2>

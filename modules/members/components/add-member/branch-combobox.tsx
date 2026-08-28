@@ -20,12 +20,12 @@ import { BRANCH_CLUSTERS } from '@/modules/members/constants/members'
 import { cn } from '@/lib/utils'
 
 const CLUSTER_LABELS: Record<string, string> = {
-  city_proper_cluster: 'City Proper Cluster',
-  east_coast_cluster: 'East Coast Cluster',
-  west_coast_cluster: 'West Coast Cluster',
-  sibugay_cluster: 'Sibugay Cluster',
-  north_cluster: 'North Cluster',
-  basulta_cluster: 'Basulta Cluster',
+  city_proper_cluster: 'City Proper',
+  east_coast_cluster: 'East Coast',
+  west_coast_cluster: 'West Coast',
+  sibugay_cluster: 'Sibugay',
+  north_cluster: 'North',
+  basulta_cluster: 'Basulta',
 }
 
 const BRANCH_LABEL_BY_VALUE = new Map(
@@ -56,7 +56,7 @@ export function BranchCombobox({ id, value, onChange, invalid, className }: Bran
           aria-expanded={open}
           aria-invalid={invalid}
           className={cn(
-            'h-10 w-full justify-between font-normal',
+            'h-10 w-full justify-between bg-white font-normal',
             !value && 'text-muted-foreground',
             className
           )}
@@ -73,7 +73,7 @@ export function BranchCombobox({ id, value, onChange, invalid, className }: Bran
         <Command className="max-h-full">
           <CommandInput placeholder="Search branch..." />
 
-          <CommandList className="max-h-[min(calc(--spacing(72)---spacing(9)),calc(var(--radix-popover-content-available-height)---spacing(9)))] overscroll-contain">
+          <CommandList className="">
             <CommandEmpty>No branch found.</CommandEmpty>
 
             {Object.entries(BRANCH_CLUSTERS).map(([clusterKey, options]) => (

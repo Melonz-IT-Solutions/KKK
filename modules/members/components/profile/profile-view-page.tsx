@@ -1,30 +1,55 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 import { Badge } from '@/components/ui/badge'
 
-import { UserRound, UsersRound, HeartHandshake } from 'lucide-react'
+import { UserRound, UsersRound, HeartHandshake, UserPlus, Pencil } from 'lucide-react'
+import { Button } from '@base-ui/react'
+
+import EditMemberProfile from '@/modules/members/components/profile/edit-member-profile'
 
 interface MemberProfilePageProps {
   profile: Awaited<ReturnType<typeof import('@/lib/services/member-service').getMemberProfile>>
 }
 
 export default function MemberProfilePage({ profile }: MemberProfilePageProps) {
+  const router = useRouter()
+
+  const [isEditing, setIsEditing] = useState(false)
+
   if (!profile) {
     return null
+  }
+
+  if (isEditing) {
+    return (
+      <EditMemberProfile
+        profile={profile}
+        onCancel={() => setIsEditing(false)}
+        onSaved={() => {
+          setIsEditing(false)
+          router.refresh()
+        }}
+      />
+    )
   }
 
   const { principal, beneficiaries, dependents } = profile
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6 p-4 md:p-6">
+    <div className="w-full max-w-6xl space-y-6 p-4 md:p-6">
       {/* Header */}
       <div className="rounded-xl border border-emerald-100 bg-emerald-50/60 p-5">
         <div className="flex items-start gap-3">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-sm">
+          <div className="bg-primary flex size-11 shrink-0 items-center justify-center rounded-lg text-white shadow-sm">
             <UserRound className="size-5" />
           </div>
 
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-lg font-bold text-emerald-950">{principal.fullName}</h1>
 
@@ -39,16 +64,24 @@ export default function MemberProfilePage({ profile }: MemberProfilePageProps) {
               </Badge>
             </div>
 
-            <p className="mt-1 text-sm text-emerald-700/80">
+            <p className="text-sm text-emerald-700/80">
               Member #{principal.id}
               {principal.membershipLabel ? ` • ${principal.membershipLabel}` : ''}
             </p>
           </div>
+
+          <button
+            type="button"
+            onClick={() => setIsEditing(true)}
+            className="bg-primary flex shrink-0 cursor-pointer items-center gap-1 self-start rounded-md px-3 py-2 text-sm text-white"
+          >
+            Edit Member
+          </button>
         </div>
       </div>
 
       {/* Principal Member */}
-      <Card className="overflow-hidden border-emerald-100 shadow-sm">
+      <div className="group/card bg-card text-card-foreground ring-foreground/10 flex flex-col gap-4 overflow-hidden rounded-xl border-emerald-100 text-sm shadow-sm ring-1 has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl">
         <CardHeader className="border-b border-emerald-100 bg-white px-5 py-4">
           <div className="flex items-center gap-3">
             <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
@@ -92,10 +125,10 @@ export default function MemberProfilePage({ profile }: MemberProfilePageProps) {
             </div>
           </div>
         </CardContent>
-      </Card>
+      </div>
 
       {/* Beneficiaries */}
-      <Card className="overflow-hidden border-emerald-100 shadow-sm">
+      <div className="group/card bg-card text-card-foreground ring-foreground/10 flex flex-col gap-4 overflow-hidden rounded-xl border-emerald-100 text-sm shadow-sm ring-1 has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl">
         <CardHeader className="border-b border-emerald-100 bg-white px-5 py-4">
           <div className="flex items-center gap-3">
             <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
@@ -156,10 +189,10 @@ export default function MemberProfilePage({ profile }: MemberProfilePageProps) {
             })}
           </div>
         </CardContent>
-      </Card>
+      </div>
 
       {/* Dependents */}
-      <Card className="overflow-hidden border-emerald-100 shadow-sm">
+      <div className="group/card bg-card text-card-foreground ring-foreground/10 flex flex-col gap-4 overflow-hidden rounded-xl border-emerald-100 text-sm shadow-sm ring-1 has-data-[slot=card-footer]:pb-0 has-[>img:first-child]:pt-0 data-[size=sm]:gap-3 data-[size=sm]:py-3 data-[size=sm]:has-data-[slot=card-footer]:pb-0 *:[img:first-child]:rounded-t-xl *:[img:last-child]:rounded-b-xl">
         <CardHeader className="border-b border-emerald-100 bg-white px-5 py-4">
           <div className="flex items-center gap-3">
             <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700">
@@ -225,7 +258,7 @@ export default function MemberProfilePage({ profile }: MemberProfilePageProps) {
             </div>
           )}
         </CardContent>
-      </Card>
+      </div>
     </div>
   )
 }

@@ -207,38 +207,41 @@ export default function StaffTable({ data, loading, onAddStaff, onUpdateStaff }:
                 </TableRow>
               )}
 
-              {!loading && pageRows.map(row => (
-                <TableRow key={row.id} className="hover:bg-slate-50/70">
-                  <TableCell>
-                    <DepartmentBadge value={row.department} />
-                  </TableCell>
+              {!loading &&
+                pageRows.map(row => (
+                  <TableRow key={row.id} className="hover:bg-slate-50/70">
+                    <TableCell>
+                      <DepartmentBadge value={row.department} />
+                    </TableCell>
 
-                  <TableCell className="font-medium text-slate-700">{row.name}</TableCell>
+                    <TableCell className="font-medium text-slate-700">{row.name}</TableCell>
 
-                  <TableCell className="text-slate-600">{row.email}</TableCell>
+                    <TableCell className="text-slate-600">{row.email}</TableCell>
 
-                  <TableCell className="text-slate-600">{row.role.replaceAll('_', ' ')}</TableCell>
+                    <TableCell className="text-slate-600">
+                      {row.role.replaceAll('_', ' ')}
+                    </TableCell>
 
-                  <TableCell className="text-slate-600">{row.status}</TableCell>
+                    <TableCell className="text-slate-600">{row.status}</TableCell>
 
-                  <TableCell className="text-primary text-right">
-                    {canEditStaff ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedStaff(row)
-                          setIsEditOpen(true)
-                        }}
-                        className="inline-flex items-center justify-center rounded-md p-1 hover:bg-slate-100"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </button>
-                    ) : (
-                      <span className="text-sm text-slate-400">View only</span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
+                    <TableCell className="text-primary text-right">
+                      {canEditStaff ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedStaff(row)
+                            setIsEditOpen(true)
+                          }}
+                          className="inline-flex items-center justify-center rounded-md p-1 hover:bg-slate-100"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                      ) : (
+                        <span className="text-sm text-slate-400">View only</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </div>

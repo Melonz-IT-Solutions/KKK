@@ -85,7 +85,7 @@ export default function MemberTable({ data, loading, onDeleted, onEdit }: Member
                         </TableCell>
                       ))}
                       <TableCell>
-                        <Skeleton className="h-4 w-6 ml-auto" />
+                        <Skeleton className="ml-auto h-4 w-6" />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -103,33 +103,34 @@ export default function MemberTable({ data, loading, onDeleted, onEdit }: Member
                 </TableRow>
               )}
 
-              {!loading && pageRows.map(row => (
-                <TableRow key={row.id} className="hover:bg-slate-50/70">
-                  <TableCell className="font-medium whitespace-nowrap text-slate-900 uppercase">
-                    {getMemberFullName(row)}
-                  </TableCell>
+              {!loading &&
+                pageRows.map(row => (
+                  <TableRow key={row.id} className="hover:bg-slate-50/70">
+                    <TableCell className="font-medium whitespace-nowrap text-slate-900 uppercase">
+                      {getMemberFullName(row)}
+                    </TableCell>
 
-                  <TableCell>
-                    <MembershipBadge value={row.membership} />
-                  </TableCell>
+                    <TableCell>
+                      <MembershipBadge value={row.membership} />
+                    </TableCell>
 
-                  <TableCell className="font-medium text-slate-700">{row.age}</TableCell>
+                    <TableCell className="font-medium text-slate-700">{row.age}</TableCell>
 
-                  <TableCell className="text-slate-600 uppercase">{row.branch ?? ''}</TableCell>
+                    <TableCell className="text-slate-600 uppercase">{row.branch ?? ''}</TableCell>
 
-                  <TableCell className="text-slate-600 uppercase">
-                    {row.civilStatus ?? ''}
-                  </TableCell>
+                    <TableCell className="text-slate-600 uppercase">
+                      {row.civilStatus ?? ''}
+                    </TableCell>
 
-                  <TableCell className="text-right">
-                    <RowMenu
-                      onView={() => handleAction('view', row)}
-                      onEdit={() => handleAction('edit', row)}
-                      onDelete={() => handleAction('delete', row)}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
+                    <TableCell className="text-right">
+                      <RowMenu
+                        onView={() => handleAction('view', row)}
+                        onEdit={() => handleAction('edit', row)}
+                        onDelete={() => handleAction('delete', row)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </div>

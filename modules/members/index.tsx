@@ -37,8 +37,7 @@ export default function MemberV2Page({ userRole }: MemberV2PageProps) {
     refetch: refetchMembers,
   } = useMembersList({ isSuperAdmin })
 
-  const { selectedMember, loadMemberProfile, clearSelectedMember } =
-    useMemberProfile()
+  const { selectedMember, loadMemberProfile, clearSelectedMember } = useMemberProfile()
 
   const { addMember, handleImported, handleMemberSaved } = useMemberMutations({
     refetchMembers,
@@ -85,7 +84,12 @@ export default function MemberV2Page({ userRole }: MemberV2PageProps) {
       </div>
 
       <div className="py-6">
-        <MemberV2Table data={members} loading={loading} onDeleted={refetchMembers} onEdit={loadMemberProfile} />
+        <MemberV2Table
+          data={members}
+          loading={loading}
+          onDeleted={refetchMembers}
+          onEdit={loadMemberProfile}
+        />
       </div>
 
       <AddMemberSheet

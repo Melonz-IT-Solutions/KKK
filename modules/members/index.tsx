@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import PageV2Header from '@/components/headers/page-v2-header'
-import LoadingOverlay from '@/components/loading/loading-overlay'
 import MemberV2Filters from '@/modules/members/components/member-view/filters'
 import MemberV2Actions from '@/modules/members/components/member-view/actions'
 import MemberV2Table from '@/modules/members/components/member-table/member-table'
@@ -38,7 +37,7 @@ export default function MemberV2Page({ userRole }: MemberV2PageProps) {
     refetch: refetchMembers,
   } = useMembersList({ isSuperAdmin })
 
-  const { selectedMember, loadingProfile, loadMemberProfile, clearSelectedMember } =
+  const { selectedMember, loadMemberProfile, clearSelectedMember } =
     useMemberProfile()
 
   const { addMember, handleImported, handleMemberSaved } = useMemberMutations({
@@ -54,19 +53,11 @@ export default function MemberV2Page({ userRole }: MemberV2PageProps) {
 
   if (selectedMember) {
     return (
-      <>
-        <EditMemberProfile
-          profile={selectedMember}
-          onCancel={clearSelectedMember}
-          onSaved={onSaveEdit}
-        />
-
-        <LoadingOverlay
-          loading={loadingProfile}
-          title="Loading member profile"
-          description="Please wait..."
-        />
-      </>
+      <EditMemberProfile
+        profile={selectedMember}
+        onCancel={clearSelectedMember}
+        onSaved={onSaveEdit}
+      />
     )
   }
 
@@ -94,7 +85,7 @@ export default function MemberV2Page({ userRole }: MemberV2PageProps) {
       </div>
 
       <div className="py-6">
-        <MemberV2Table data={members} onDeleted={refetchMembers} onEdit={loadMemberProfile} />
+        <MemberV2Table data={members} loading={loading} onDeleted={refetchMembers} onEdit={loadMemberProfile} />
       </div>
 
       <AddMemberSheet
@@ -107,14 +98,6 @@ export default function MemberV2Page({ userRole }: MemberV2PageProps) {
         open={isImportOpen}
         onOpenChange={setIsImportOpen}
         onImported={handleImported}
-      />
-
-      <LoadingOverlay loading={loading} title="Loading members" description="Please wait..." />
-
-      <LoadingOverlay
-        loading={loadingProfile}
-        title="Loading member profile"
-        description="Please wait..."
       />
     </div>
   )

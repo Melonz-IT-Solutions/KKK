@@ -32,6 +32,7 @@ export interface StaffUpdateValues extends StaffRow {
 
 export interface StaffTableProps {
   data: StaffRow[]
+  loading?: boolean
   onAddStaff?: () => void
   onUpdateStaff?: (staff: StaffUpdateValues) => Promise<void>
 }

@@ -15,10 +15,9 @@ import { requirePermission, requireSession } from '@/lib/auth/authorize'
 
 type ConfigurableRole = Exclude<StaffRole, 'SUPER_ADMIN'>
 
-const CONFIGURABLE_ROLES = ROLES.filter((role): role is ConfigurableRole => role !== 'SUPER_ADMIN') as [
-  ConfigurableRole,
-  ...ConfigurableRole[],
-]
+const CONFIGURABLE_ROLES = ROLES.filter(
+  (role): role is ConfigurableRole => role !== 'SUPER_ADMIN'
+) as [ConfigurableRole, ...ConfigurableRole[]]
 
 const createStaffSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),

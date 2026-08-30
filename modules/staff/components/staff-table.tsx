@@ -16,6 +16,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
+import { Skeleton } from '@/components/ui/skeleton'
+
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 
 import Button from '@/components/button-v2/button'
@@ -34,7 +36,7 @@ import type { StaffRow, StaffTableProps } from '@/modules/staff/types/staff'
 
 type StaffStatusFilter = 'active' | 'inactive' | 'all'
 
-export default function StaffTable({ data, onAddStaff, onUpdateStaff }: StaffTableProps) {
+export default function StaffTable({ data, loading, onAddStaff, onUpdateStaff }: StaffTableProps) {
   const { data: session } = useSession()
 
   const router = useRouter()
@@ -183,7 +185,21 @@ export default function StaffTable({ data, onAddStaff, onUpdateStaff }: StaffTab
             </TableHeader>
 
             <TableBody>
-              {pageRows.length === 0 && (
+              {loading && (
+                <>
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {Array.from({ length: 6 }).map((__, j) => (
+                        <TableCell key={j}>
+                          <Skeleton className="h-4 w-full" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </>
+              )}
+
+              {!loading && pageRows.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} className="py-10 text-center text-sm text-slate-400">
                     No results found.
@@ -191,7 +207,7 @@ export default function StaffTable({ data, onAddStaff, onUpdateStaff }: StaffTab
                 </TableRow>
               )}
 
-              {pageRows.map(row => (
+              {!loading && pageRows.map(row => (
                 <TableRow key={row.id} className="hover:bg-slate-50/70">
                   <TableCell>
                     <DepartmentBadge value={row.department} />

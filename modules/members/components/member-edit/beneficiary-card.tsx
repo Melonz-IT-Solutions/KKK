@@ -17,8 +17,7 @@ import type { MemberProfile } from '@/modules/members/types/member-profile'
 interface BeneficiaryCardProps {
   role: 'primary' | 'secondary'
   beneficiary:
-    | MemberProfile['beneficiaries']['primary']
-    | MemberProfile['beneficiaries']['secondary']
+    MemberProfile['beneficiaries']['primary'] | MemberProfile['beneficiaries']['secondary']
   onChange: (
     role: 'primary' | 'secondary',
     key: 'name' | 'address' | 'birthday' | 'gender' | 'relationship',

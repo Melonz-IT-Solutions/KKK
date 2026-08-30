@@ -35,6 +35,7 @@ export interface MemberColumn {
 
 export interface MemberV2TableProps {
   data: MemberRow[]
+  loading?: boolean
   onDeleted: () => Promise<void>
   onEdit: (memberId: number) => void
 }

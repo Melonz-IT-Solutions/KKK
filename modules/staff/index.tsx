@@ -12,7 +12,7 @@ import type { StaffFormValues } from '@/modules/staff/types/staff'
 export default function StaffModule() {
   const [isAddStaffOpen, setIsAddStaffOpen] = useState(false)
 
-  const { staff, addStaff, updateStaff } = useStaff()
+  const { staff, loading, addStaff, updateStaff } = useStaff()
 
   const handleSaveStaff = async (values: StaffFormValues) => {
     const username = values.email
@@ -33,6 +33,7 @@ export default function StaffModule() {
     <div>
       <StaffTable
         data={staff}
+        loading={loading}
         onAddStaff={() => setIsAddStaffOpen(true)}
         onUpdateStaff={updateStaff}
       />

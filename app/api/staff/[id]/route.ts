@@ -8,10 +8,9 @@ import { ROLES, type StaffRole } from '@/lib/auth/permissions'
 
 type ConfigurableRole = Exclude<StaffRole, 'SUPER_ADMIN'>
 
-const CONFIGURABLE_ROLES = ROLES.filter((role): role is ConfigurableRole => role !== 'SUPER_ADMIN') as [
-  ConfigurableRole,
-  ...ConfigurableRole[],
-]
+const CONFIGURABLE_ROLES = ROLES.filter(
+  (role): role is ConfigurableRole => role !== 'SUPER_ADMIN'
+) as [ConfigurableRole, ...ConfigurableRole[]]
 
 const staffUpdateSchema = z.object({
   name: z.string().min(1).optional(),

@@ -1,6 +1,7 @@
-import type { StaffRole, StaffStatus } from '@/types/accountfield'
+import type { StaffStatus } from '@/types/accountfield'
+import type { StaffRole } from '@/lib/auth/permissions'
 
-export type Department = 'Finance' | 'Branch Management' | 'General Staff'
+export type Department = string
 
 export interface StaffRow {
   id: number

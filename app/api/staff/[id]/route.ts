@@ -4,6 +4,14 @@ import { z } from 'zod'
 import { deleteStaff, updateStaff } from '@/lib/services/staff-service'
 
 import { requirePermission } from '@/lib/auth/authorize'
+import { ROLES, type StaffRole } from '@/lib/auth/permissions'
+
+type ConfigurableRole = Exclude<StaffRole, 'SUPER_ADMIN'>
+
+const CONFIGURABLE_ROLES = ROLES.filter((role): role is ConfigurableRole => role !== 'SUPER_ADMIN') as [
+  ConfigurableRole,
+  ...ConfigurableRole[],
+]
 
 const staffUpdateSchema = z.object({
   name: z.string().min(1).optional(),
@@ -14,7 +22,7 @@ const staffUpdateSchema = z.object({
 
   branch: z.string().optional(),
 
-  role: z.enum(['SUPER_ADMIN', 'FINANCE', 'STAFF', 'BRANCH_MANAGER']).optional(),
+  role: z.enum(CONFIGURABLE_ROLES).optional(),
 
   active: z.boolean().optional(),
 

@@ -129,7 +129,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session.user) {
         const tokenRole: unknown = token.role
 
-        const role: StaffRole = isStaffRole(tokenRole) ? tokenRole : 'STAFF'
+        const role: StaffRole = isStaffRole(tokenRole) ? tokenRole : 'GUEST'
 
         const branch: string | null = typeof token.branch === 'string' ? token.branch : null
 

@@ -1,13 +1,11 @@
 'use client'
 
-import { SETTINGS_OPTIONS } from '@/modules/settings/data/settings'
-
 import type { SettingsSidebarProps } from '@/modules/settings/types/settings'
 
-export default function SettingsSidebar({ activeSection, setActiveSection }: SettingsSidebarProps) {
+export default function SettingsSidebar({ activeSection, setActiveSection, options }: SettingsSidebarProps) {
   return (
     <div className="flex flex-col gap-2">
-      {SETTINGS_OPTIONS.map(option => (
+      {options.map(option => (
         <button
           key={option.id}
           type="button"

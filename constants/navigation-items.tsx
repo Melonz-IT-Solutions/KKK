@@ -28,7 +28,7 @@ export const NavigationItems = [
     icon: <FilePenLine />,
   },
   {
-    title: 'Activity Log',
+    title: 'Activity Logs',
     url: '/activity-log',
     icon: <History />,
   },

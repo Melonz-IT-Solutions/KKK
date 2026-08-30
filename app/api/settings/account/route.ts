@@ -63,6 +63,7 @@ export async function GET() {
         id: true,
         name: true,
         email: true,
+        username: true,
         contactNo: true,
         active: true,
         isDeleted: true,
@@ -99,6 +100,7 @@ export async function GET() {
       middleName: name.middleName,
       lastName: name.lastName,
       email: user.email,
+      userName: user.username,
       contactNumber: user.contactNo ?? '',
     })
   } catch (error) {
@@ -139,6 +141,7 @@ export async function PUT(request: Request) {
     const middleName = String(body.middleName ?? '').trim()
     const lastName = String(body.lastName ?? '').trim()
     const email = String(body.email ?? '').trim()
+    const userName = String(body.userName ?? '').trim()
     const contactNumber = String(body.contactNumber ?? '').trim()
 
     if (!firstName) {
@@ -174,6 +177,17 @@ export async function PUT(request: Request) {
       )
     }
 
+    if (!userName) {
+      return NextResponse.json(
+        {
+          message: 'Username is required',
+        },
+        {
+          status: 400,
+        }
+      )
+    }
+
     const name = [firstName, middleName, lastName].filter(Boolean).join(' ')
 
     const existingEmail = await prisma.user.findFirst({
@@ -199,6 +213,29 @@ export async function PUT(request: Request) {
       )
     }
 
+    const existingUsername = await prisma.user.findFirst({
+      where: {
+        username: userName,
+        NOT: {
+          id: userId,
+        },
+      },
+      select: {
+        id: true,
+      },
+    })
+
+    if (existingUsername) {
+      return NextResponse.json(
+        {
+          message: 'Username is already taken',
+        },
+        {
+          status: 409,
+        }
+      )
+    }
+
     const user = await prisma.user.update({
       where: {
         id: userId,
@@ -206,12 +243,14 @@ export async function PUT(request: Request) {
       data: {
         name,
         email,
+        username: userName,
         contactNo: contactNumber,
       },
       select: {
         id: true,
         name: true,
         email: true,
+        username: true,
         contactNo: true,
       },
     })

@@ -8,7 +8,9 @@ import { getCurrentActorName } from '@/lib/auth/get-current-user'
 
 import { hashPassword } from '@/lib/auth/password'
 
-import type { StaffRole, StaffStatus } from '@/types/accountfield'
+import { isStaffRole, type StaffRole } from '@/lib/auth/permissions'
+
+import type { StaffStatus } from '@/types/accountfield'
 
 export interface StaffListParams {
   search?: string
@@ -31,24 +33,12 @@ export interface StaffPayload {
 
 const normalizeStaffRole = (role?: string): StaffRole => {
   if (!role) {
-    return 'STAFF'
+    return 'FDO'
   }
 
   const normalized = role.toUpperCase().replace(/-/g, '_')
 
-  switch (normalized) {
-    case 'SUPER_ADMIN':
-      return 'SUPER_ADMIN'
-
-    case 'FINANCE':
-      return 'FINANCE'
-
-    case 'BRANCH_MANAGER':
-      return 'BRANCH_MANAGER'
-
-    default:
-      return 'STAFF'
-  }
+  return isStaffRole(normalized) ? normalized : 'FDO'
 }
 
 function mapStaff(

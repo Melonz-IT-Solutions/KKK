@@ -1,6 +1,6 @@
 import type { StaffRole } from '@/types/accountfield'
 
-export type SettingsSection = 'account' | 'password'
+export type SettingsSection = 'account' | 'password' | 'roles'
 
 export interface AccountInfo {
   firstName: string
@@ -40,9 +40,17 @@ export interface PasswordSectionProps {
   saving: boolean
 }
 
+export interface SettingsOption {
+  id: SettingsSection
+  title: string
+  description: string
+  superAdminOnly?: boolean
+}
+
 export interface SettingsSidebarProps {
   activeSection: SettingsSection
   setActiveSection: (section: SettingsSection) => void
+  options: SettingsOption[]
 }
 
 export interface SettingsAccountResponse {

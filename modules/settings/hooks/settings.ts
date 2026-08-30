@@ -55,6 +55,7 @@ export function useSettings() {
           middleName: data.middleName ?? '',
           lastName: data.lastName ?? '',
           email: data.email ?? '',
+          userName: data.userName ?? '',
           contactNumber: data.contactNumber ?? '',
         })
       } catch (error) {
@@ -105,6 +106,7 @@ export function useSettings() {
           middleName: '',
           lastName: '',
           email: data.user.email ?? '',
+          userName: data.user.username ?? '',
           contactNumber: data.user.contactNo ?? '',
         })
       }

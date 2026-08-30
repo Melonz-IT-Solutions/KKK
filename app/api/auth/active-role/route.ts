@@ -10,13 +10,14 @@ import {
 } from '@/lib/auth/effective-role'
 
 import { isStaffRole, normalizeRole } from '@/lib/auth/permissions'
+import { getPermissionsForRole } from '@/lib/auth/get-role-permissions'
 
 // -----------------------------------------------------------------------------
 // Schema
 // -----------------------------------------------------------------------------
 
 const activeRoleSchema = z.object({
-  role: z.enum(['SUPER_ADMIN', 'FINANCE', 'BRANCH_MANAGER', 'STAFF']),
+  role: z.enum(['SUPER_ADMIN', 'FINANCE', 'MIS', 'CLUSTER_MANAGER', 'BRANCH_MANAGER', 'FDO']),
 })
 
 // -----------------------------------------------------------------------------
@@ -65,12 +66,15 @@ export async function GET() {
       )
     }
 
+    const permissions = await getPermissionsForRole(effectiveRole)
+
     return NextResponse.json(
       {
         success: true,
         role: effectiveRole,
         realRole,
         isSuperAdmin: realRole === 'SUPER_ADMIN',
+        permissions,
       },
       {
         headers: {

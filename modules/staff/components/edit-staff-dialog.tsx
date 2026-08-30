@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 
 import {
@@ -35,6 +35,11 @@ interface StaffEditDialogProps {
   onSave: (staff: StaffUpdateValues) => Promise<void> | void
 }
 
+interface RoleOption {
+  name: string
+  label: string
+}
+
 export function StaffEditDialog({ staff, open, onOpenChange, onSave }: StaffEditDialogProps) {
   const { data: session } = useSession()
 
@@ -44,9 +49,32 @@ export function StaffEditDialog({ staff, open, onOpenChange, onSave }: StaffEdit
 
   const [password, setPassword] = useState('')
 
+  const [roleOptions, setRoleOptions] = useState<RoleOption[]>([])
+
   const canEdit = session?.user
     ? hasPermission(session.user.role, 'staff:change_permission')
     : false
+
+  useEffect(() => {
+    if (!open || !canEdit) {
+      return
+    }
+
+    fetch('/api/staff/departments', { cache: 'no-store' })
+      .then(async response => {
+        const data = await response.json()
+
+        if (!response.ok || !Array.isArray(data.roles)) {
+          throw new Error(data.message ?? 'Failed to load roles')
+        }
+
+        return data.roles as RoleOption[]
+      })
+      .then(setRoleOptions)
+      .catch(error => {
+        console.error('Failed to load roles:', error)
+      })
+  }, [open, canEdit])
 
   const handleSave = async () => {
     await onSave({
@@ -66,7 +94,7 @@ export function StaffEditDialog({ staff, open, onOpenChange, onSave }: StaffEdit
         <DialogHeader>
           <DialogTitle>Edit Staff</DialogTitle>
 
-          <DialogDescription>Update staff permissions and status.</DialogDescription>
+          <DialogDescription>Update Role, Status & Password.</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-2">
@@ -80,11 +108,11 @@ export function StaffEditDialog({ staff, open, onOpenChange, onSave }: StaffEdit
                 </SelectTrigger>
 
                 <SelectContent>
-                  <SelectItem value="FINANCE">Finance</SelectItem>
-
-                  <SelectItem value="BRANCH_MANAGER">Branch Manager</SelectItem>
-
-                  <SelectItem value="STAFF">Staff</SelectItem>
+                  {roleOptions.map(option => (
+                    <SelectItem key={option.name} value={option.name}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             ) : (
@@ -118,6 +146,7 @@ export function StaffEditDialog({ staff, open, onOpenChange, onSave }: StaffEdit
                 type="password"
                 placeholder="Enter new password"
                 value={password}
+                className="h-10"
                 onChange={event => setPassword(event.target.value)}
               />
             </div>

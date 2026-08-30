@@ -18,16 +18,22 @@ import {
 
 import { NavigationItems } from '@/constants/navigation-items'
 
-import { hasPermission, type ActiveRole } from '@/lib/auth/permissions'
+import type { Permission } from '@/lib/auth/permissions'
+import { useRoleStore } from '@/lib/stores/role-store'
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { data: session, status } = useSession()
 
-  const [activeRole, setActiveRole] = React.useState<ActiveRole | null>(null)
-
-  const [realRole, setRealRole] = React.useState<ActiveRole | null>(null)
-
-  const [roleLoading, setRoleLoading] = React.useState(true)
+  const {
+    activeRole,
+    realRole,
+    permissions,
+    roleLoading,
+    setActiveRole,
+    setRealRole,
+    setPermissions,
+    setRoleLoading,
+  } = useRoleStore()
 
   React.useEffect(() => {
     if (status !== 'authenticated') {
@@ -58,6 +64,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
         setActiveRole(data.role ?? null)
         setRealRole(data.realRole ?? null)
+        setPermissions(data.permissions ?? [])
       } catch (error) {
         console.error('Failed to load active role:', error)
       } finally {
@@ -72,41 +79,66 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     return () => {
       cancelled = true
     }
-  }, [status])
+  }, [status, setActiveRole, setRealRole, setPermissions, setRoleLoading])
+
+  const can = React.useCallback(
+    (permission: Permission) => permissions.includes(permission),
+    [permissions]
+  )
 
   const filteredItems = React.useMemo(() => {
-    if (!activeRole) {
+    if (!activeRole || permissions.length === 0) {
       return []
     }
 
     return NavigationItems.filter(item => {
       switch (item.title) {
-        case 'Settings':
-          return hasPermission(activeRole, 'settings:access')
+        case 'Members':
+          return can('member:view')
 
-        case 'Activity Log':
-          return hasPermission(activeRole, 'activity_logs:view')
+        case 'Settings':
+          return can('settings:access')
+
+        case 'Activity Logs':
+          return can('activity_logs:view')
 
         case 'Reports':
-          return hasPermission(activeRole, 'reports:view')
+          return can('reports:view')
 
         case 'Staff':
-          return (
-            hasPermission(activeRole, 'staff:view_all') ||
-            hasPermission(activeRole, 'staff:view_own_branch')
-          )
+          return can('staff:view_all') || can('staff:view_own_branch')
 
         default:
           return true
       }
     })
-  }, [activeRole])
+  }, [activeRole, permissions, can])
+
+  const handleRoleChange = React.useCallback(
+    async (role: Parameters<typeof setActiveRole>[0]) => {
+      setActiveRole(role)
+      try {
+        const response = await fetch('/api/auth/active-role', {
+          method: 'GET',
+          credentials: 'include',
+          cache: 'no-store',
+        })
+        if (!response.ok) return
+        const data = await response.json()
+        if (!data.success) return
+        setPermissions(data.permissions ?? [])
+      } catch (error) {
+        console.error('Failed to refresh permissions after role change:', error)
+      }
+    },
+    [setActiveRole, setPermissions]
+  )
 
   const user = React.useMemo(
     () => ({
       name: session?.user?.name ?? 'Loading user',
       email: session?.user?.email ?? '',
-      avatar: '/avatars/avatar.jpg',
+      // avatar: '/avatars/avatar.jpg',
     }),
     [session?.user?.name, session?.user?.email]
   )
@@ -118,7 +150,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           <DepartmentSwitcher
             activeRole={activeRole}
             realRole={realRole}
-            onRoleChange={setActiveRole}
+            onRoleChange={handleRoleChange}
           />
         </SidebarHeader>
 
@@ -139,7 +171,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <DepartmentSwitcher
           activeRole={activeRole}
           realRole={realRole}
-          onRoleChange={setActiveRole}
+          onRoleChange={handleRoleChange}
         />
       </SidebarHeader>
 

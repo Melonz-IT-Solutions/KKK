@@ -134,7 +134,7 @@ export default function StaffTable({ data, onAddStaff, onUpdateStaff }: StaffTab
           {(statusFilter !== 'all' || search !== '') && (
             <Button
               variant="outline"
-              className="bg-secondary hover:bg-primary rounded-sm border-gray-300 text-white hover:text-white"
+              className="hover:bg-primary rounded-sm border-gray-300 bg-white text-sm text-gray-700 hover:text-white"
               onClick={handleClearFilters}
             >
               <X className="text-destructive h-4 w-4" />

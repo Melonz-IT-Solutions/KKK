@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import Button from '@/components/button-v2/button'
 import Input from '@/components/input'
@@ -22,18 +22,42 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 
-import type { Department, StaffFormValues, AddStaffSheetProps } from '@/modules/staff/types/staff'
+import type { StaffFormValues, AddStaffSheetProps } from '@/modules/staff/types/staff'
 
-import {
-  DEPARTMENT_OPTIONS,
-  DEPARTMENT_ROLE_MAP,
-  EMPTY_STAFF_FORM,
-} from '@/modules/staff/data/staff-options'
+import { EMPTY_STAFF_FORM } from '@/modules/staff/data/staff-options'
+
+interface DepartmentOption {
+  name: StaffFormValues['role']
+  label: string
+}
 
 export function AddStaffSheet({ open, onOpenChange, onSave }: AddStaffSheetProps) {
   const [form, setForm] = useState<StaffFormValues>(EMPTY_STAFF_FORM)
 
   const [errors, setErrors] = useState<Partial<Record<keyof StaffFormValues, string>>>({})
+
+  const [departmentOptions, setDepartmentOptions] = useState<DepartmentOption[]>([])
+
+  useEffect(() => {
+    if (!open) {
+      return
+    }
+
+    fetch('/api/staff/departments', { cache: 'no-store' })
+      .then(async response => {
+        const data = await response.json()
+
+        if (!response.ok || !Array.isArray(data.roles)) {
+          throw new Error(data.message ?? 'Failed to load departments')
+        }
+
+        return data.roles as DepartmentOption[]
+      })
+      .then(setDepartmentOptions)
+      .catch(error => {
+        console.error('Failed to load departments:', error)
+      })
+  }, [open])
 
   // ---------------------------------------------------------------------------
   // Saving state
@@ -61,13 +85,17 @@ export function AddStaffSheet({ open, onOpenChange, onSave }: AddStaffSheetProps
   // Department change
   // ---------------------------------------------------------------------------
 
-  const handleDepartmentChange = (department: Department) => {
-    const role = DEPARTMENT_ROLE_MAP[department]
+  const handleDepartmentChange = (roleName: string) => {
+    const option = departmentOptions.find(item => item.name === roleName)
+
+    if (!option) {
+      return
+    }
 
     setForm(prev => ({
       ...prev,
-      department,
-      role,
+      department: option.label,
+      role: option.name,
     }))
 
     setErrors(prev => ({
@@ -231,8 +259,33 @@ export function AddStaffSheet({ open, onOpenChange, onSave }: AddStaffSheetProps
           <SheetDescription className="sr-only">Form to add a new staff member.</SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="grid gap-4 p-6">
+            {/* Department */}
+            <div className="grid gap-2">
+              <Label htmlFor="department">Department</Label>
+
+              <Select value={form.role} onValueChange={handleDepartmentChange} disabled={isSaving}>
+                <SelectTrigger
+                  id="department"
+                  aria-invalid={!!errors.department}
+                  className="w-full"
+                >
+                  <SelectValue placeholder="Select Department" />
+                </SelectTrigger>
+
+                <SelectContent>
+                  {departmentOptions.map(option => (
+                    <SelectItem key={option.name} value={option.name}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {errors.department && <p className="text-destructive text-sm">{errors.department}</p>}
+            </div>
+
             {/* Username */}
             <div className="grid gap-2">
               <Label htmlFor="username">Username</Label>
@@ -247,35 +300,6 @@ export function AddStaffSheet({ open, onOpenChange, onSave }: AddStaffSheetProps
               />
 
               {errors.username && <p className="text-destructive text-sm">{errors.username}</p>}
-            </div>
-
-            {/* Department */}
-            <div className="grid gap-2">
-              <Label htmlFor="department">Department</Label>
-
-              <Select
-                value={form.department}
-                onValueChange={value => handleDepartmentChange(value as Department)}
-                disabled={isSaving}
-              >
-                <SelectTrigger
-                  id="department"
-                  aria-invalid={!!errors.department}
-                  className="w-full"
-                >
-                  <SelectValue placeholder="Select Department" />
-                </SelectTrigger>
-
-                <SelectContent>
-                  {DEPARTMENT_OPTIONS.map(option => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {errors.department && <p className="text-destructive text-sm">{errors.department}</p>}
             </div>
 
             {/* Name */}

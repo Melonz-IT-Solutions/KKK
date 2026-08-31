@@ -31,7 +31,7 @@ function splitName(name: string | null) {
   }
 }
 
-function buildFullName(accountInfo: AccountInfo) {
+function buildFullName(accountInfo: Pick<AccountInfo, 'firstName' | 'middleName' | 'lastName'>) {
   return [accountInfo.firstName, accountInfo.middleName, accountInfo.lastName]
     .map(value => value.trim())
     .filter(Boolean)
@@ -111,8 +111,6 @@ export async function updateSettingsAccount(userId: number, accountInfo: Account
     firstName,
     middleName,
     lastName,
-    email,
-    contactNumber,
   })
 
   const user = await prisma.user.update({

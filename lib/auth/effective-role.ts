@@ -77,7 +77,7 @@ export async function getEffectiveRole(): Promise<ActiveRole | null> {
 
   const normalizedRole = normalizeRole(selectedRole)
 
-  const allowedRoles: ActiveRole[] = ['SUPER_ADMIN', 'FINANCE', 'BRANCH_MANAGER', 'STAFF']
+  const allowedRoles: ActiveRole[] = ['SUPER_ADMIN', 'FINANCE', 'BRANCH_MANAGER', 'FDO']
 
   if (!allowedRoles.includes(normalizedRole)) {
     return 'SUPER_ADMIN'

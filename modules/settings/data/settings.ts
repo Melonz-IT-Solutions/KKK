@@ -1,9 +1,10 @@
-import type { AccountInfo, PasswordInfo, SettingsSection } from '@/modules/settings/types/settings'
+import type { AccountInfo, PasswordInfo, SettingsOption } from '@/modules/settings/types/settings'
 
 export const DEFAULT_ACCOUNT_INFO: AccountInfo = {
   firstName: '',
   middleName: '',
   lastName: '',
+  userName: '',
   email: '',
   contactNumber: '',
 }
@@ -14,11 +15,7 @@ export const DEFAULT_PASSWORD_INFO: PasswordInfo = {
   confirmPassword: '',
 }
 
-export const SETTINGS_OPTIONS: {
-  id: SettingsSection
-  title: string
-  description: string
-}[] = [
+export const SETTINGS_OPTIONS: SettingsOption[] = [
   {
     id: 'account',
     title: 'Account info',
@@ -28,6 +25,12 @@ export const SETTINGS_OPTIONS: {
     id: 'password',
     title: 'Change password',
     description: 'Update your security credentials.',
+  },
+  {
+    id: 'roles',
+    title: 'Roles & Permissions',
+    description: 'Configure access for each role.',
+    superAdminOnly: true,
   },
 ]
 
@@ -46,6 +49,10 @@ export const ACCOUNT_FIELDS: {
   {
     key: 'lastName',
     label: 'Last Name',
+  },
+  {
+    key: 'userName',
+    label: 'Username',
   },
   {
     key: 'email',

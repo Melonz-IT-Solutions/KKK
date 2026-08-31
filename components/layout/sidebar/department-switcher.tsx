@@ -18,11 +18,11 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 
-import { ChevronsUpDown, Undo2, Wallet, Users, Building2 } from 'lucide-react'
+import { ChevronsUpDown, Undo2, Wallet, Users, Building2, Network, UserCheck } from 'lucide-react'
 
 import Logo from '../logo'
 
-import { ROLE_LABELS, type ActiveRole } from '@/lib/auth/permissions'
+import { ROLE_LABELS, isStaffRole, type ActiveRole } from '@/lib/auth/permissions'
 
 interface RoleOption {
   value: ActiveRole
@@ -39,26 +39,21 @@ interface DepartmentSwitcherProps {
   onRoleChange: (role: ActiveRole) => void
 }
 
-const ROLE_OPTIONS: RoleOption[] = [
-  {
-    value: 'FINANCE',
-    name: 'Finance',
-    description: 'Finance department',
-    icon: Wallet,
-  },
-  {
-    value: 'STAFF',
-    name: 'MIS',
-    description: 'Staff / MIS department',
-    icon: Users,
-  },
-  {
-    value: 'BRANCH_MANAGER',
-    name: 'Branch Manager',
-    description: 'Branch management',
-    icon: Building2,
-  },
-]
+interface RoleApiItem {
+  name: string
+  label: string
+}
+
+const ROLE_ICONS: Partial<Record<ActiveRole, React.ComponentType<{ className?: string }>>> = {
+  FINANCE: Wallet,
+  MIS: Users,
+  CLUSTER_MANAGER: Network,
+  BRANCH_MANAGER: Building2,
+  FDO: UserCheck,
+  GUEST: Users,
+}
+
+const DEFAULT_ROLE_ICON = Building2
 
 export function DepartmentSwitcher({
   activeRole,
@@ -68,10 +63,53 @@ export function DepartmentSwitcher({
   const { isMobile } = useSidebar()
 
   const [changing, setChanging] = React.useState(false)
+  const [roleOptions, setRoleOptions] = React.useState<RoleOption[]>([])
 
   const selectedRole = activeRole ?? realRole ?? 'SUPER_ADMIN'
 
   const selectedName = ROLE_LABELS[selectedRole]
+
+  React.useEffect(() => {
+    if (realRole !== 'SUPER_ADMIN') {
+      return
+    }
+
+    let cancelled = false
+
+    fetch('/api/settings/roles', { cache: 'no-store' })
+      .then(async response => {
+        const data = await response.json()
+
+        if (!response.ok || !Array.isArray(data.roles)) {
+          throw new Error(data.message ?? 'Failed to load roles')
+        }
+
+        return data.roles as RoleApiItem[]
+      })
+      .then(roles => {
+        if (cancelled) {
+          return
+        }
+
+        const options = roles
+          .filter(role => isStaffRole(role.name) && role.name !== 'SUPER_ADMIN')
+          .map(role => ({
+            value: role.name as ActiveRole,
+            name: role.label,
+            description: `${role.label} department`,
+            icon: ROLE_ICONS[role.name as ActiveRole] ?? DEFAULT_ROLE_ICON,
+          }))
+
+        setRoleOptions(options)
+      })
+      .catch(error => {
+        console.error('Failed to load department roles:', error)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [realRole])
 
   const handleRoleChange = async (role: ActiveRole) => {
     if (changing || role === activeRole || realRole !== 'SUPER_ADMIN') {
@@ -163,7 +201,7 @@ export function DepartmentSwitcher({
 
             <DropdownMenuSeparator />
 
-            {ROLE_OPTIONS.map(role => {
+            {roleOptions.map(role => {
               const Icon = role.icon
               const isSelected = activeRole === role.value
 

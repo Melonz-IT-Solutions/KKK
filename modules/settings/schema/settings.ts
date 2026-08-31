@@ -4,7 +4,8 @@ export const accountSchema = z.object({
   firstName: z.string().min(1, 'First name is required'),
   middleName: z.string(),
   lastName: z.string().min(1, 'Last name is required'),
-  email: z.string().email('Invalid email address'),
+  userName: z.string().min(1, 'Username is required'),
+  email: z.email('Invalid email address'),
   contactNumber: z.string().min(1, 'Mobile number is required'),
 })
 

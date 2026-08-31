@@ -1,6 +1,7 @@
-import type { StaffRole, StaffStatus } from '@/types/accountfield'
+import type { StaffStatus } from '@/types/accountfield'
+import type { StaffRole } from '@/lib/auth/permissions'
 
-export type Department = 'Finance' | 'Branch Management' | 'General Staff'
+export type Department = string
 
 export interface StaffRow {
   id: number
@@ -31,6 +32,7 @@ export interface StaffUpdateValues extends StaffRow {
 
 export interface StaffTableProps {
   data: StaffRow[]
+  loading?: boolean
   onAddStaff?: () => void
   onUpdateStaff?: (staff: StaffUpdateValues) => Promise<void>
 }

@@ -20,6 +20,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 
+import { Skeleton } from '@/components/ui/skeleton'
+
 import { MEMBER_TABLE_COLUMNS } from '@/modules/members/constants/members'
 
 import MembershipBadge from '@/modules/members/components/member-table/membership-badge'
@@ -33,7 +35,7 @@ import type { MemberV2TableProps } from '@/modules/members/types/member'
 
 import { getMemberFullName } from '@/modules/members/utils/member-table'
 
-export default function MemberTable({ data, onDeleted, onEdit }: MemberV2TableProps) {
+export default function MemberTable({ data, loading, onDeleted, onEdit }: MemberV2TableProps) {
   const {
     deleteMember,
     deleting,
@@ -73,7 +75,24 @@ export default function MemberTable({ data, onDeleted, onEdit }: MemberV2TablePr
             </TableHeader>
 
             <TableBody>
-              {pageRows.length === 0 && (
+              {loading && (
+                <>
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {MEMBER_TABLE_COLUMNS.map(col => (
+                        <TableCell key={col.key}>
+                          <Skeleton className="h-4 w-full" />
+                        </TableCell>
+                      ))}
+                      <TableCell>
+                        <Skeleton className="ml-auto h-4 w-6" />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </>
+              )}
+
+              {!loading && pageRows.length === 0 && (
                 <TableRow>
                   <TableCell
                     colSpan={MEMBER_TABLE_COLUMNS.length + 1}
@@ -84,33 +103,34 @@ export default function MemberTable({ data, onDeleted, onEdit }: MemberV2TablePr
                 </TableRow>
               )}
 
-              {pageRows.map(row => (
-                <TableRow key={row.id} className="hover:bg-slate-50/70">
-                  <TableCell className="font-medium whitespace-nowrap text-slate-900 uppercase">
-                    {getMemberFullName(row)}
-                  </TableCell>
+              {!loading &&
+                pageRows.map(row => (
+                  <TableRow key={row.id} className="hover:bg-slate-50/70">
+                    <TableCell className="font-medium whitespace-nowrap text-slate-900 uppercase">
+                      {getMemberFullName(row)}
+                    </TableCell>
 
-                  <TableCell>
-                    <MembershipBadge value={row.membership} />
-                  </TableCell>
+                    <TableCell>
+                      <MembershipBadge value={row.membership} />
+                    </TableCell>
 
-                  <TableCell className="font-medium text-slate-700">{row.age}</TableCell>
+                    <TableCell className="font-medium text-slate-700">{row.age}</TableCell>
 
-                  <TableCell className="text-slate-600 uppercase">{row.branch ?? ''}</TableCell>
+                    <TableCell className="text-slate-600 uppercase">{row.branch ?? ''}</TableCell>
 
-                  <TableCell className="text-slate-600 uppercase">
-                    {row.civilStatus ?? ''}
-                  </TableCell>
+                    <TableCell className="text-slate-600 uppercase">
+                      {row.civilStatus ?? ''}
+                    </TableCell>
 
-                  <TableCell className="text-right">
-                    <RowMenu
-                      onView={() => handleAction('view', row)}
-                      onEdit={() => handleAction('edit', row)}
-                      onDelete={() => handleAction('delete', row)}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
+                    <TableCell className="text-right">
+                      <RowMenu
+                        onView={() => handleAction('view', row)}
+                        onEdit={() => handleAction('edit', row)}
+                        onDelete={() => handleAction('delete', row)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </div>

@@ -8,9 +8,11 @@ import { showErrorToast, showSuccessToast } from '@/lib/toast-messagealert/showS
 
 export function useStaff() {
   const [staff, setStaff] = useState<StaffRow[]>([])
+  const [loading, setLoading] = useState(true)
 
   const loadStaff = useCallback(async () => {
     try {
+      setLoading(true)
       const response = await fetch('/api/staff?pageSize=1000', {
         method: 'GET',
         cache: 'no-store',
@@ -29,6 +31,8 @@ export function useStaff() {
       setStaff([])
 
       showErrorToast(error instanceof Error ? error.message : 'Failed to load staff')
+    } finally {
+      setLoading(false)
     }
   }, [])
 
@@ -106,6 +110,7 @@ export function useStaff() {
 
   return {
     staff,
+    loading,
     loadStaff,
     addStaff,
     updateStaff,

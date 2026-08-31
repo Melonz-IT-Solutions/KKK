@@ -13,6 +13,10 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: process.env.NEXT_PUBLIC_APP_NAME ?? 'KKK',
   description: 'Kapuso, Kasali, Kasalo',
+  icons: {
+    icon: '@/public/favicon.ico',
+    shortcut: '@/public/favicon.ico',
+  },
 }
 
 export default function RootLayout({

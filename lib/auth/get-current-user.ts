@@ -13,7 +13,7 @@ export async function getCurrentActor(): Promise<CurrentActor | null> {
   return {
     id: Number(session.user.id),
     name: session.user.name || 'System',
-    role: session.user.role ?? 'STAFF',
+    role: session.user.role ?? 'FDO',
   }
 }
 

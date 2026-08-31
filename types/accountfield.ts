@@ -7,7 +7,7 @@ export type { Department } from '@/constants/departments'
 // ENUM TYPES
 // =====================
 
-export type StaffRole = 'SUPER_ADMIN' | 'FINANCE' | 'BRANCH_MANAGER' | 'STAFF'
+export type StaffRole = 'SUPER_ADMIN' | 'FINANCE' | 'BRANCH_MANAGER' | 'FDO'
 
 export type StaffStatus = 'ACTIVE' | 'INACTIVE'
 
@@ -118,6 +118,6 @@ export interface StaffTableColumn {
 // DATA
 // =====================
 
-export const STAFF_ROLES: StaffRole[] = ['SUPER_ADMIN', 'FINANCE', 'BRANCH_MANAGER', 'STAFF']
+export const STAFF_ROLES: StaffRole[] = ['SUPER_ADMIN', 'FINANCE', 'BRANCH_MANAGER', 'FDO']
 
 export const DEPARTMENTS = DEPARTMENT_NAMES

@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 
 import { auth } from '@/auth'
-import { hasPermission } from '@/lib/auth/permissions'
+import { hasPermissionAsync } from '@/lib/auth/get-role-permissions'
 
 import StaffModule from '@/modules/staff'
 
@@ -13,8 +13,8 @@ export default async function Page() {
   }
 
   const canViewStaff =
-    hasPermission(session.user.role, 'staff:view_all') ||
-    hasPermission(session.user.role, 'staff:view_own_branch')
+    (await hasPermissionAsync(session.user.role, 'staff:view_all')) ||
+    (await hasPermissionAsync(session.user.role, 'staff:view_own_branch'))
 
   if (!canViewStaff) {
     redirect('/unauthorized')

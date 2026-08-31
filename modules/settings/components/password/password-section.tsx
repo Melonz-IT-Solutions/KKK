@@ -1,6 +1,6 @@
 'use client'
 
-import { Save } from 'lucide-react'
+import { Check } from 'lucide-react'
 
 import Button from '@/components/button'
 import InfoField from '@/modules/settings/components/info-field'
@@ -31,7 +31,7 @@ export default function PasswordSection({
 
         <div className="flex justify-end">
           <Button onClick={onSubmit} disabled={saving}>
-            <Save className="h-4 w-4" />
+            <Check className="h-4 w-4" />
             {saving ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>

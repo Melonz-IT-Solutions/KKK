@@ -14,7 +14,7 @@ model User {
   password  String
   contactNo String?
 
-  roles String @default("STAFF")
+  roles String @default("GUEST")
 
   branch      String?
   active      Boolean  @default(true)
@@ -27,6 +27,21 @@ model User {
   staff          Staff?
   activityLogs   ActivityLog[]
   createdMembers Member[]
+}
+
+model Role {
+  id          Int          @id @default(autoincrement())
+  name        String       @unique
+  label       String
+  permissions Permission[]
+}
+
+model Permission {
+  id       Int    @id @default(autoincrement())
+  name     String @unique
+  label    String
+  category String
+  roles    Role[]
 }
 
 model Member {

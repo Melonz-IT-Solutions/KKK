@@ -44,7 +44,6 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 export const isSuperAdmin = (user: CurrentUser) => user.role === 'SUPER_ADMIN'
 export const isFinance = (user: CurrentUser) => user.role === 'FINANCE'
 export const isBranchManager = (user: CurrentUser) => user.role === 'BRANCH_MANAGER'
-export const isStaffUser = (user: CurrentUser) => user.role === 'STAFF'
 export const userHasPermission = (user: CurrentUser, permission: Permission) =>
   hasPermission(user.role, permission)
 

@@ -5,13 +5,19 @@ import { z } from 'zod'
 
 import { createStaff, listStaff } from '@/lib/services/staff-service'
 
-import { hasPermission } from '@/lib/auth/permissions'
+import { hasPermission, ROLES, type StaffRole } from '@/lib/auth/permissions'
 
 import { requirePermission, requireSession } from '@/lib/auth/authorize'
 
 // -----------------------------------------------------------------------------
 // Schema
 // -----------------------------------------------------------------------------
+
+type ConfigurableRole = Exclude<StaffRole, 'SUPER_ADMIN'>
+
+const CONFIGURABLE_ROLES = ROLES.filter(
+  (role): role is ConfigurableRole => role !== 'SUPER_ADMIN'
+) as [ConfigurableRole, ...ConfigurableRole[]]
 
 const createStaffSchema = z.object({
   name: z.string().trim().min(1, 'Name is required'),
@@ -28,7 +34,7 @@ const createStaffSchema = z.object({
 
   branch: z.string().trim().optional(),
 
-  role: z.enum(['FINANCE', 'BRANCH_MANAGER', 'STAFF']),
+  role: z.enum(CONFIGURABLE_ROLES),
 })
 
 // -----------------------------------------------------------------------------

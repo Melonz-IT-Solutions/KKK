@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 
-import { Pencil, UserPlus, X } from 'lucide-react'
+import { Pencil, SearchIcon, UserPlus, X } from 'lucide-react'
 
 import {
   Table,
@@ -16,7 +16,9 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-import { InputGroup, InputGroupInput } from '@/components/ui/input-group'
+import { Skeleton } from '@/components/ui/skeleton'
+
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 
 import Button from '@/components/button-v2/button'
 import PageV2Header from '@/components/headers/page-v2-header'
@@ -34,7 +36,7 @@ import type { StaffRow, StaffTableProps } from '@/modules/staff/types/staff'
 
 type StaffStatusFilter = 'active' | 'inactive' | 'all'
 
-export default function StaffTable({ data, onAddStaff, onUpdateStaff }: StaffTableProps) {
+export default function StaffTable({ data, loading, onAddStaff, onUpdateStaff }: StaffTableProps) {
   const { data: session } = useSession()
 
   const router = useRouter()
@@ -119,18 +121,22 @@ export default function StaffTable({ data, onAddStaff, onUpdateStaff }: StaffTab
 
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <InputGroup className="h-10 w-64">
+          <InputGroup className="h-10">
             <InputGroupInput
               placeholder="Search Staff..."
               value={search}
               onChange={event => handleSearchChange(event.target.value)}
             />
+
+            <InputGroupAddon>
+              <SearchIcon />
+            </InputGroupAddon>
           </InputGroup>
 
           {(statusFilter !== 'all' || search !== '') && (
             <Button
               variant="outline"
-              className="bg-secondary hover:bg-primary rounded-sm border-gray-300 text-white hover:text-white"
+              className="hover:bg-primary rounded-sm border-gray-300 bg-white text-sm text-gray-700 hover:text-white"
               onClick={handleClearFilters}
             >
               <X className="text-destructive h-4 w-4" />
@@ -179,7 +185,21 @@ export default function StaffTable({ data, onAddStaff, onUpdateStaff }: StaffTab
             </TableHeader>
 
             <TableBody>
-              {pageRows.length === 0 && (
+              {loading && (
+                <>
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {Array.from({ length: 6 }).map((__, j) => (
+                        <TableCell key={j}>
+                          <Skeleton className="h-4 w-full" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </>
+              )}
+
+              {!loading && pageRows.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={6} className="py-10 text-center text-sm text-slate-400">
                     No results found.
@@ -187,38 +207,41 @@ export default function StaffTable({ data, onAddStaff, onUpdateStaff }: StaffTab
                 </TableRow>
               )}
 
-              {pageRows.map(row => (
-                <TableRow key={row.id} className="hover:bg-slate-50/70">
-                  <TableCell>
-                    <DepartmentBadge value={row.department} />
-                  </TableCell>
+              {!loading &&
+                pageRows.map(row => (
+                  <TableRow key={row.id} className="hover:bg-slate-50/70">
+                    <TableCell>
+                      <DepartmentBadge value={row.department} />
+                    </TableCell>
 
-                  <TableCell className="font-medium text-slate-700">{row.name}</TableCell>
+                    <TableCell className="font-medium text-slate-700">{row.name}</TableCell>
 
-                  <TableCell className="text-slate-600">{row.email}</TableCell>
+                    <TableCell className="text-slate-600">{row.email}</TableCell>
 
-                  <TableCell className="text-slate-600">{row.role.replaceAll('_', ' ')}</TableCell>
+                    <TableCell className="text-slate-600">
+                      {row.role.replaceAll('_', ' ')}
+                    </TableCell>
 
-                  <TableCell className="text-slate-600">{row.status}</TableCell>
+                    <TableCell className="text-slate-600">{row.status}</TableCell>
 
-                  <TableCell className="text-primary text-right">
-                    {canEditStaff ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedStaff(row)
-                          setIsEditOpen(true)
-                        }}
-                        className="inline-flex items-center justify-center rounded-md p-1 hover:bg-slate-100"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </button>
-                    ) : (
-                      <span className="text-sm text-slate-400">View only</span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
+                    <TableCell className="text-primary text-right">
+                      {canEditStaff ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedStaff(row)
+                            setIsEditOpen(true)
+                          }}
+                          className="inline-flex items-center justify-center rounded-md p-1 hover:bg-slate-100"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </button>
+                      ) : (
+                        <span className="text-sm text-slate-400">View only</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </div>

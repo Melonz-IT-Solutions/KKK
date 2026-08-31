@@ -7,6 +7,7 @@ import { Activity, User } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 
 import { useDashboardActivityLogs } from '@/modules/dashboard/hooks/use-dashboard-activity-logs'
 
@@ -28,8 +29,16 @@ export function ActivityLogs() {
       <CardContent className="flex flex-col gap-4">
         {/* Loading */}
         {loading && (
-          <div className="text-muted-foreground py-6 text-center text-sm">
-            Loading activities...
+          <div className="flex flex-col gap-4">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3">
+                <Skeleton className="h-9 w-9 shrink-0 rounded-full" />
+                <div className="flex flex-1 flex-col gap-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-48" />
+                </div>
+              </div>
+            ))}
           </div>
         )}
 

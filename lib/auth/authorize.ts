@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 
-import { hasPermission, isStaffRole, type Permission, type StaffRole } from '@/lib/auth/permissions'
+import { isStaffRole, type Permission, type StaffRole } from '@/lib/auth/permissions'
+import { hasPermissionAsync } from '@/lib/auth/get-role-permissions'
 
 import { getRoleContext } from '@/lib/auth/effective-role'
 
@@ -104,7 +105,7 @@ export async function requirePermission(permission: Permission) {
     }
   }
 
-  if (!hasPermission(user.role, permission)) {
+  if (!(await hasPermissionAsync(user.role, permission))) {
     return {
       error: NextResponse.json(
         {

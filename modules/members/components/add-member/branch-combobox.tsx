@@ -28,7 +28,14 @@ interface BranchComboboxProps {
   readOnly?: boolean
 }
 
-export function BranchCombobox({ id, value, onChange, invalid, className, readOnly }: BranchComboboxProps) {
+export function BranchCombobox({
+  id,
+  value,
+  onChange,
+  invalid,
+  className,
+  readOnly,
+}: BranchComboboxProps) {
   const [open, setOpen] = useState(false)
   const { clusters } = useClusters()
 

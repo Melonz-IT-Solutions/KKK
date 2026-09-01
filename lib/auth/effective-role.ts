@@ -30,7 +30,6 @@ async function getAuthenticatedUser() {
       email: true,
       username: true,
       roles: true,
-      branch: true,
       active: true,
       isDeleted: true,
     },

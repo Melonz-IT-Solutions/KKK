@@ -34,7 +34,6 @@ export async function listReports() {
 export async function createReport(
   payload: ReportPayload,
   actorName: string,
-  staffId?: number | null,
   userId?: number | null
 ) {
   const report = await prisma.report.create({
@@ -48,7 +47,6 @@ export async function createReport(
     subjectName: 'Report',
     actorName,
     actionLabel: 'Created by',
-    staffId: staffId ?? null,
     userId: userId ?? null,
   })
 

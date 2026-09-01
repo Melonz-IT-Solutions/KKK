@@ -4,15 +4,6 @@ import { useEffect, useState } from 'react'
 import { useSession } from 'next-auth/react'
 
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -21,10 +12,22 @@ import {
 } from '@/components/ui/select'
 
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 
 import Button from '@/components/button-v2/button'
 
 import { hasPermission } from '@/lib/auth/permissions'
+
+import { BranchCombobox } from '@/modules/members/components/add-member/branch-combobox'
+import { useClusters } from '@/modules/members/hooks/use-clusters'
 
 import type { StaffRow, StaffUpdateValues } from '@/modules/staff/types/staff'
 
@@ -44,16 +47,30 @@ export function StaffEditDialog({ staff, open, onOpenChange, onSave }: StaffEdit
   const { data: session } = useSession()
 
   const [status, setStatus] = useState(staff.status)
-
   const [role, setRole] = useState(staff.role)
-
+  const [cluster, setCluster] = useState(staff.cluster ?? '')
+  const [branch, setBranch] = useState(staff.branch ?? '')
   const [password, setPassword] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
 
   const [roleOptions, setRoleOptions] = useState<RoleOption[]>([])
+
+  const { clusters } = useClusters()
 
   const canEdit = session?.user
     ? hasPermission(session.user.role, 'staff:change_permission')
     : false
+
+  // Reset form fields when the sheet opens with a (possibly different) staff
+  useEffect(() => {
+    if (open) {
+      setStatus(staff.status)
+      setRole(staff.role)
+      setCluster(staff.cluster ?? '')
+      setBranch(staff.branch ?? '')
+      setPassword('')
+    }
+  }, [open, staff])
 
   useEffect(() => {
     if (!open || !canEdit) {
@@ -76,94 +93,179 @@ export function StaffEditDialog({ staff, open, onOpenChange, onSave }: StaffEdit
       })
   }, [open, canEdit])
 
-  const handleSave = async () => {
-    await onSave({
-      ...staff,
-      role,
-      status,
-      ...(password ? { newPassword: password } : {}),
-    })
+  const handleRoleChange = (value: StaffRow['role']) => {
+    setRole(value)
+    setCluster('')
+    setBranch('')
+  }
 
-    setPassword('')
-    onOpenChange(false)
+  const handleSave = async () => {
+    if (isSaving) return
+
+    setIsSaving(true)
+
+    try {
+      await onSave({
+        ...staff,
+        role,
+        status,
+        cluster: role === 'CLUSTER_MANAGER' ? cluster : '',
+        branch: role === 'BRANCH_MANAGER' ? branch : '',
+        ...(password ? { newPassword: password } : {}),
+      })
+
+      setPassword('')
+      onOpenChange(false)
+    } catch (error) {
+      console.error('Failed to save staff:', error)
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Edit Staff</DialogTitle>
+    <Sheet
+      open={open}
+      onOpenChange={nextOpen => {
+        if (!nextOpen && isSaving) return
+        onOpenChange(nextOpen)
+      }}
+    >
+      <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-md">
+        <SheetHeader className="border-b px-6 py-5">
+          <SheetTitle className="text-xl font-semibold">Edit Staff</SheetTitle>
 
-          <DialogDescription>Update Role, Status & Password.</DialogDescription>
-        </DialogHeader>
+          <SheetDescription className="sr-only">Update role, status and password.</SheetDescription>
+        </SheetHeader>
 
-        <div className="grid gap-4 py-2">
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Role</label>
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="grid gap-4 p-6">
+            {/* Role */}
+            <div className="grid gap-2">
+              <Label>Role</Label>
 
-            {canEdit ? (
-              <Select value={role} onValueChange={value => setRole(value as StaffRow['role'])}>
+              {canEdit ? (
+                <Select
+                  value={role}
+                  onValueChange={value => handleRoleChange(value as StaffRow['role'])}
+                  disabled={isSaving}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {roleOptions.map(option => (
+                      <SelectItem key={option.name} value={option.name}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+                  {staff.role.replaceAll('_', ' ')}
+                </div>
+              )}
+            </div>
+
+            {/* Cluster (Cluster Manager only) */}
+            {role === 'CLUSTER_MANAGER' && (
+              <div className="grid gap-2">
+                <Label>Cluster</Label>
+
+                <Select
+                  value={cluster}
+                  onValueChange={setCluster}
+                  disabled={isSaving}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select Cluster" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {clusters.map(c => (
+                      <SelectItem key={c.id} value={c.name}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Branch (Branch Manager only) */}
+            {role === 'BRANCH_MANAGER' && (
+              <div className="grid gap-2">
+                <Label>Branch</Label>
+
+                <BranchCombobox
+                  value={branch}
+                  onChange={setBranch}
+                />
+              </div>
+            )}
+
+            {/* Status */}
+            <div className="grid gap-2">
+              <Label>Status</Label>
+
+              <Select
+                value={status}
+                onValueChange={value => setStatus(value as StaffRow['status'])}
+                disabled={isSaving}
+              >
                 <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
 
                 <SelectContent>
-                  {roleOptions.map(option => (
-                    <SelectItem key={option.name} value={option.name}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="ACTIVE">Active</SelectItem>
+                  <SelectItem value="INACTIVE">Inactive</SelectItem>
                 </SelectContent>
               </Select>
-            ) : (
-              <div className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
-                {staff.role.replaceAll('_', ' ')}
+            </div>
+
+            {/* Reset Password */}
+            {canEdit && (
+              <div className="grid gap-2">
+                <Label>Reset Password</Label>
+
+                <Input
+                  type="password"
+                  placeholder="Enter new password (optional)"
+                  value={password}
+                  className="h-10"
+                  disabled={isSaving}
+                  onChange={event => setPassword(event.target.value)}
+                />
               </div>
             )}
           </div>
-
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Status</label>
-
-            <Select value={status} onValueChange={value => setStatus(value as StaffRow['status'])}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectItem value="ACTIVE">Active</SelectItem>
-
-                <SelectItem value="INACTIVE">Inactive</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {canEdit && (
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">Reset Password</label>
-
-              <Input
-                type="password"
-                placeholder="Enter new password"
-                value={password}
-                className="h-10"
-                onChange={event => setPassword(event.target.value)}
-              />
-            </div>
-          )}
         </div>
 
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+        {/* Footer */}
+        <div className="flex flex-col gap-4 space-y-2 border-t p-6 px-6 py-4">
+          <Button
+            variant="primary"
+            size="full"
+            onClick={() => void handleSave()}
+            disabled={isSaving}
+          >
+            {isSaving ? 'Saving...' : 'Save Changes'}
           </Button>
 
-          <Button type="button" onClick={() => void handleSave()}>
-            Save Changes
+          <Button
+            variant="outline"
+            size="full"
+            onClick={() => onOpenChange(false)}
+            disabled={isSaving}
+          >
+            Cancel
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </SheetContent>
+    </Sheet>
   )
 }
 

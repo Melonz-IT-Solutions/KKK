@@ -4,6 +4,7 @@ export interface CurrentActor {
   id: number
   name: string
   role: string
+  branch: string | null
 }
 
 export async function getCurrentActor(): Promise<CurrentActor | null> {
@@ -12,8 +13,9 @@ export async function getCurrentActor(): Promise<CurrentActor | null> {
 
   return {
     id: Number(session.user.id),
-    name: session.user.name || 'System',
-    role: session.user.role ?? 'FDO',
+    name: session.user.name || '',
+    role: session.user.role,
+    branch: session.user.branch ?? null,
   }
 }
 

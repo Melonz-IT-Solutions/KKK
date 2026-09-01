@@ -167,8 +167,6 @@ export async function POST(request: Request) {
 
       user.name ?? 'System',
 
-      user.staff?.id ?? null,
-
       user.id
     )
 

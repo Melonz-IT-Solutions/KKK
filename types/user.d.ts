@@ -8,7 +8,6 @@ type UserType = {
   username: string
   password: string
   roles: string
-  departments: string[]
   active?: boolean
   is_deleted: boolean
 }

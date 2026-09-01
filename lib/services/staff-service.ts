@@ -1,15 +1,9 @@
-import { Prisma, type Staff } from '@prisma/client'
-
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
-
 import { createActivityLog } from '@/lib/services/activity-log-service'
-
 import { getCurrentActorName } from '@/lib/auth/get-current-user'
-
 import { hashPassword } from '@/lib/auth/password'
-
 import { isStaffRole, type StaffRole } from '@/lib/auth/permissions'
-
 import type { StaffStatus } from '@/types/accountfield'
 
 export interface StaffListParams {
@@ -25,11 +19,27 @@ export interface StaffPayload {
   username: string
   department: string
   branch?: string
+  cluster?: string
   contactNo?: string
   password?: string
   active?: boolean
   role?: StaffRole
 }
+
+/* -------------------------------------------------------------------------- */
+/* INTERNAL TYPES                                                              */
+/* -------------------------------------------------------------------------- */
+
+const userWithAssignments = {
+  clusterManagers: { include: { cluster: true }, take: 1 },
+  branchManagers: { include: { branch: true }, take: 1 },
+} as const
+
+type UserWithAssignments = Prisma.UserGetPayload<{ include: typeof userWithAssignments }>
+
+/* -------------------------------------------------------------------------- */
+/* HELPERS                                                                     */
+/* -------------------------------------------------------------------------- */
 
 const normalizeStaffRole = (role?: string): StaffRole => {
   if (!role) {
@@ -41,30 +51,22 @@ const normalizeStaffRole = (role?: string): StaffRole => {
   return isStaffRole(normalized) ? normalized : 'FDO'
 }
 
-function mapStaff(
-  staff: Staff & {
-    user?: {
-      username: string
-      roles: string
-      branch: string | null
-    } | null
-  }
-) {
+function mapStaff(user: UserWithAssignments) {
   return {
-    id: staff.id,
-    name: staff.name,
-    email: staff.email,
-    username: staff.user?.username ?? '',
-    department: staff.department,
-    createdAt: staff.createdAt.toISOString(),
-    role: normalizeStaffRole(staff.user?.roles),
-    status: staff.active ? ('ACTIVE' as StaffStatus) : ('INACTIVE' as StaffStatus),
-    branch: staff.user?.branch ?? staff.branch ?? undefined,
+    id: user.id,
+    name: user.name ?? '',
+    email: user.email,
+    username: user.username,
+    createdAt: user.createdAt.toISOString(),
+    role: normalizeStaffRole(user.roles),
+    status: user.active ? ('ACTIVE' as StaffStatus) : ('INACTIVE' as StaffStatus),
+    branch: user.branchManagers[0]?.branch.name ?? '',
+    cluster: user.clusterManagers[0]?.cluster.name ?? '',
   }
 }
 
 /* -------------------------------------------------------------------------- */
-/* STAFF ACTIVITY LOG                                                         */
+/* STAFF ACTIVITY LOG                                                          */
 /* -------------------------------------------------------------------------- */
 
 function buildStaffUpdateDescription(changes: string[], passwordChanged: boolean): string {
@@ -93,7 +95,7 @@ function buildStaffUpdateDescription(changes: string[], passwordChanged: boolean
 }
 
 /* -------------------------------------------------------------------------- */
-/* LIST STAFF                                                                 */
+/* LIST STAFF                                                                  */
 /* -------------------------------------------------------------------------- */
 
 export async function listStaff(params: StaffListParams = {}) {
@@ -103,90 +105,46 @@ export async function listStaff(params: StaffListParams = {}) {
 
   const search = params.search?.trim() ?? ''
 
-  const where: Prisma.StaffWhereInput = {
+  const where: Prisma.UserWhereInput = {
+    isDeleted: false,
+    roles: {
+      notIn: ['SUPER_ADMIN'],
+    },
     AND: [
       search
         ? {
             OR: [
-              {
-                name: {
-                  contains: search,
-                  mode: Prisma.QueryMode.insensitive,
-                },
-              },
-              {
-                email: {
-                  contains: search,
-                  mode: Prisma.QueryMode.insensitive,
-                },
-              },
-              {
-                department: {
-                  contains: search,
-                  mode: Prisma.QueryMode.insensitive,
-                },
-              },
-              {
-                user: {
-                  username: {
-                    contains: search,
-                    mode: Prisma.QueryMode.insensitive,
-                  },
-                },
-              },
+              { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
+              { email: { contains: search, mode: Prisma.QueryMode.insensitive } },
+              { username: { contains: search, mode: Prisma.QueryMode.insensitive } },
             ],
           }
         : {},
 
       params.branch
         ? {
-            OR: [
-              {
+            branchManagers: {
+              some: {
                 branch: {
-                  contains: params.branch,
-                  mode: Prisma.QueryMode.insensitive,
+                  name: { contains: params.branch, mode: Prisma.QueryMode.insensitive },
                 },
               },
-              {
-                user: {
-                  branch: {
-                    contains: params.branch,
-                    mode: Prisma.QueryMode.insensitive,
-                  },
-                },
-              },
-            ],
+            },
           }
         : {},
     ],
   }
 
   const [items, total] = await Promise.all([
-    prisma.staff.findMany({
+    prisma.user.findMany({
       where,
-
-      include: {
-        user: {
-          select: {
-            username: true,
-            roles: true,
-            branch: true,
-          },
-        },
-      },
-
-      orderBy: {
-        createdAt: 'desc',
-      },
-
+      include: userWithAssignments,
+      orderBy: { createdAt: 'desc' },
       skip: (page - 1) * pageSize,
-
       take: pageSize,
     }),
 
-    prisma.staff.count({
-      where,
-    }),
+    prisma.user.count({ where }),
   ])
 
   return {
@@ -198,7 +156,7 @@ export async function listStaff(params: StaffListParams = {}) {
 }
 
 /* -------------------------------------------------------------------------- */
-/* CREATE STAFF                                                               */
+/* CREATE STAFF                                                                */
 /* -------------------------------------------------------------------------- */
 
 export async function createStaff(payload: StaffPayload) {
@@ -220,8 +178,10 @@ export async function createStaff(payload: StaffPayload) {
 
   const active = payload.active ?? true
 
-  const staff = await prisma.$transaction(async tx => {
-    const user = await tx.user.create({
+  let userId: number
+
+  try {
+    const user = await prisma.user.create({
       data: {
         name: payload.name,
         email: payload.email,
@@ -229,74 +189,60 @@ export async function createStaff(payload: StaffPayload) {
         password: passwordHash,
         contactNo: payload.contactNo,
         roles: role,
-        branch: payload.branch || null,
+        department: payload.department,
         active,
         isDeleted: false,
-        departments: [payload.department],
       },
     })
 
-    return tx.staff.create({
-      data: {
-        name: payload.name,
-        email: payload.email,
-        department: payload.department,
-        branch: payload.branch || null,
-        active,
-        userId: user.id,
-      },
+    userId = user.id
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      throw new Error('Username or email already exists')
+    }
+    throw err
+  }
 
-      include: {
-        user: {
-          select: {
-            username: true,
-            roles: true,
-            branch: true,
-          },
-        },
-      },
-    })
+  // Create join table records
+  await assignBranchOrCluster(userId, role, payload.branch, payload.cluster)
+
+  const user = await prisma.user.findUniqueOrThrow({
+    where: { id: userId },
+    include: userWithAssignments,
   })
 
   await createActivityLog({
     type: 'created',
-
     title: 'New Staff Created',
-
     description: 'was added to the staff system',
-
-    subjectName: staff.name,
-
+    subjectName: user.name ?? user.username,
     actorName: await getCurrentActorName(),
-
     actionLabel: 'Created by',
-
-    staffId: staff.id,
+    userId: user.id,
   })
 
-  return mapStaff(staff)
+  return mapStaff(user)
 }
 
 /* -------------------------------------------------------------------------- */
-/* UPDATE STAFF                                                               */
+/* UPDATE STAFF                                                                */
 /* -------------------------------------------------------------------------- */
 
 export async function updateStaff(id: number, payload: Partial<StaffPayload>) {
-  const existingStaff = await prisma.staff.findUnique({
+  const existingUser = await prisma.user.findUnique({
     where: { id },
-
     select: {
       id: true,
       name: true,
       email: true,
       department: true,
-      branch: true,
       active: true,
-      userId: true,
+      branchManagers: { include: { branch: true }, take: 1 },
+      clusterManagers: { include: { cluster: true }, take: 1 },
     },
   })
 
-  if (!existingStaff) {
+  if (!existingUser) {
     throw new Error('Staff not found')
   }
 
@@ -306,31 +252,32 @@ export async function updateStaff(id: number, payload: Partial<StaffPayload>) {
     throw new Error('SUPER_ADMIN cannot be assigned from staff management.')
   }
 
-  /*
-   * Track changes BEFORE updating.
-   *
-   * Password is only recorded as "password".
-   * The actual password is NEVER stored in the activity log.
-   */
+  const existingBranch = existingUser.branchManagers[0]?.branch.name ?? null
+  const existingCluster = existingUser.clusterManagers[0]?.cluster.name ?? null
+
   const changes: string[] = []
 
-  if (typeof payload.name === 'string' && payload.name !== existingStaff.name) {
+  if (typeof payload.name === 'string' && payload.name !== existingUser.name) {
     changes.push('name')
   }
 
-  if (typeof payload.email === 'string' && payload.email !== existingStaff.email) {
+  if (typeof payload.email === 'string' && payload.email !== existingUser.email) {
     changes.push('email')
   }
 
-  if (typeof payload.department === 'string' && payload.department !== existingStaff.department) {
+  if (typeof payload.department === 'string' && payload.department !== existingUser.department) {
     changes.push('department')
   }
 
-  if (typeof payload.branch === 'string' && (payload.branch || null) !== existingStaff.branch) {
+  if (typeof payload.branch === 'string' && (payload.branch || null) !== existingBranch) {
     changes.push('branch')
   }
 
-  if (typeof payload.active === 'boolean' && payload.active !== existingStaff.active) {
+  if (typeof payload.cluster === 'string' && (payload.cluster || null) !== existingCluster) {
+    changes.push('cluster')
+  }
+
+  if (typeof payload.active === 'boolean' && payload.active !== existingUser.active) {
     changes.push(payload.active ? 'status to Active' : 'status to Inactive')
   }
 
@@ -348,197 +295,134 @@ export async function updateStaff(id: number, payload: Partial<StaffPayload>) {
 
   const passwordChanged = Boolean(payload.password)
 
-  const updated = await prisma.$transaction(async tx => {
-    await tx.staff.update({
-      where: { id },
-
-      data: {
-        ...(typeof payload.name === 'string'
-          ? {
-              name: payload.name,
-            }
-          : {}),
-
-        ...(typeof payload.email === 'string'
-          ? {
-              email: payload.email,
-            }
-          : {}),
-
-        ...(typeof payload.department === 'string'
-          ? {
-              department: payload.department,
-            }
-          : {}),
-
-        ...(typeof payload.branch === 'string'
-          ? {
-              branch: payload.branch || null,
-            }
-          : {}),
-
-        ...(typeof payload.active === 'boolean'
-          ? {
-              active: payload.active,
-            }
-          : {}),
-      },
-    })
-
-    if (existingStaff.userId) {
-      await tx.user.update({
-        where: {
-          id: existingStaff.userId,
-        },
-
-        data: {
-          ...(typeof payload.name === 'string'
-            ? {
-                name: payload.name,
-              }
-            : {}),
-
-          ...(typeof payload.email === 'string'
-            ? {
-                email: payload.email,
-              }
-            : {}),
-
-          ...(typeof payload.username === 'string'
-            ? {
-                username: payload.username,
-              }
-            : {}),
-
-          ...(typeof payload.contactNo === 'string'
-            ? {
-                contactNo: payload.contactNo,
-              }
-            : {}),
-
-          ...(typeof payload.branch === 'string'
-            ? {
-                branch: payload.branch || null,
-              }
-            : {}),
-
-          ...(typeof payload.active === 'boolean'
-            ? {
-                active: payload.active,
-
-                isDeleted: !payload.active,
-              }
-            : {}),
-
-          ...(normalizedRole
-            ? {
-                roles: normalizedRole,
-              }
-            : {}),
-
-          ...(payload.password
-            ? {
-                password: await hashPassword(payload.password),
-              }
-            : {}),
-        },
-      })
-    }
-
-    return tx.staff.findUniqueOrThrow({
-      where: { id },
-
-      include: {
-        user: {
-          select: {
-            username: true,
-            roles: true,
-            branch: true,
-          },
-        },
-      },
-    })
+  await prisma.user.update({
+    where: { id },
+    data: {
+      ...(typeof payload.name === 'string' ? { name: payload.name } : {}),
+      ...(typeof payload.email === 'string' ? { email: payload.email } : {}),
+      ...(typeof payload.username === 'string' ? { username: payload.username } : {}),
+      ...(typeof payload.contactNo === 'string' ? { contactNo: payload.contactNo } : {}),
+      ...(typeof payload.department === 'string' ? { department: payload.department } : {}),
+      ...(typeof payload.active === 'boolean'
+        ? { active: payload.active, isDeleted: !payload.active }
+        : {}),
+      ...(normalizedRole ? { roles: normalizedRole } : {}),
+      ...(payload.password ? { password: await hashPassword(payload.password) } : {}),
+    },
   })
 
-  /*
-   * Create activity log using only safe information.
-   */
+  // Update join table records when role, branch, or cluster changes
+  const roleForAssignment =
+    normalizedRole ??
+    normalizeStaffRole(
+      (await prisma.user.findUniqueOrThrow({ where: { id }, select: { roles: true } })).roles
+    )
+
+  if (normalizedRole || typeof payload.branch === 'string' || typeof payload.cluster === 'string') {
+    await assignBranchOrCluster(id, roleForAssignment, payload.branch, payload.cluster)
+  }
+
+  const updated = await prisma.user.findUniqueOrThrow({
+    where: { id },
+    include: userWithAssignments,
+  })
+
   const description = buildStaffUpdateDescription(changes, passwordChanged)
 
   await createActivityLog({
     type: 'updated',
-
     title: 'Staff Updated',
-
     description,
-
-    subjectName: updated.name,
-
+    subjectName: updated.name ?? updated.username,
     actorName: await getCurrentActorName(),
-
     actionLabel: 'Updated by',
-
-    staffId: updated.id,
+    userId: updated.id,
   })
 
   return mapStaff(updated)
 }
 
 /* -------------------------------------------------------------------------- */
-/* DELETE / DEACTIVATE STAFF                                                  */
+/* DELETE / DEACTIVATE STAFF                                                   */
 /* -------------------------------------------------------------------------- */
 
 export async function deleteStaff(id: number) {
-  const staff = await prisma.staff.findUnique({
+  const user = await prisma.user.findUnique({
     where: { id },
-
-    select: {
-      id: true,
-      name: true,
-      userId: true,
-    },
+    select: { id: true, name: true, username: true },
   })
 
-  if (!staff) {
+  if (!user) {
     throw new Error('Staff not found')
   }
 
-  await prisma.$transaction(async tx => {
-    await tx.staff.update({
-      where: { id },
-
-      data: {
-        active: false,
-      },
-    })
-
-    if (staff.userId) {
-      await tx.user.update({
-        where: {
-          id: staff.userId,
-        },
-
-        data: {
-          active: false,
-          isDeleted: true,
-        },
-      })
-    }
+  await prisma.user.update({
+    where: { id },
+    data: { active: false, isDeleted: true },
   })
 
   await createActivityLog({
     type: 'deleted',
-
     title: 'Staff Deactivated',
-
     description: 'staff account was deactivated',
-
-    subjectName: staff.name,
-
+    subjectName: user.name ?? user.username,
     actorName: await getCurrentActorName(),
-
     actionLabel: 'Deactivated by',
-
-    staffId: staff.id,
+    userId: user.id,
   })
+}
+
+/* -------------------------------------------------------------------------- */
+/* INTERNAL: manage join table assignments                                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Clears and re-assigns ClusterManager / BranchManager records for a user
+ * based on their role and provided names.
+ *
+ * - CLUSTER_MANAGER + clusterName  → creates ClusterManager record
+ * - BRANCH_MANAGER  + branchName   → creates BranchManager record
+ * - Role change away from either   → clears the stale record
+ */
+async function assignBranchOrCluster(
+  userId: number,
+  role: StaffRole,
+  branchName?: string,
+  clusterName?: string
+) {
+  if (role === 'CLUSTER_MANAGER') {
+    // Clear any old branch assignment
+    await prisma.branchManager.deleteMany({ where: { userId } })
+
+    if (clusterName) {
+      const cluster = await prisma.cluster.findUnique({ where: { name: clusterName } })
+
+      if (cluster) {
+        // Replace with new cluster (delete first to avoid unique conflict)
+        await prisma.clusterManager.deleteMany({ where: { userId } })
+        await prisma.clusterManager.create({ data: { userId, clusterId: cluster.id } })
+      }
+    } else {
+      await prisma.clusterManager.deleteMany({ where: { userId } })
+    }
+  } else if (role === 'BRANCH_MANAGER') {
+    // Clear any old cluster assignment
+    await prisma.clusterManager.deleteMany({ where: { userId } })
+
+    if (branchName) {
+      const branch = await prisma.branch.findUnique({ where: { name: branchName } })
+
+      if (branch) {
+        // Replace with new branch (delete first to avoid unique conflict)
+        await prisma.branchManager.deleteMany({ where: { userId } })
+        await prisma.branchManager.create({ data: { userId, branchId: branch.id } })
+      }
+    } else {
+      await prisma.branchManager.deleteMany({ where: { userId } })
+    }
+  } else {
+    // Any other role — clear both
+    await prisma.clusterManager.deleteMany({ where: { userId } })
+    await prisma.branchManager.deleteMany({ where: { userId } })
+  }
 }

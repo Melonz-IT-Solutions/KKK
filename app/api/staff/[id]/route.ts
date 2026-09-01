@@ -21,6 +21,8 @@ const staffUpdateSchema = z.object({
 
   branch: z.string().optional(),
 
+  cluster: z.string().optional(),
+
   role: z.enum(CONFIGURABLE_ROLES).optional(),
 
   active: z.boolean().optional(),

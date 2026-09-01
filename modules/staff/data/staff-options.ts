@@ -5,6 +5,7 @@ export const EMPTY_STAFF_FORM: StaffFormValues = {
   department: '',
   role: '',
   branch: '',
+  cluster: '',
   name: '',
   email: '',
   password: '',

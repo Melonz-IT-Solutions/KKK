@@ -94,6 +94,10 @@ export default function StaffTable({ data, loading, onAddStaff, onUpdateStaff }:
 
   const canEditStaff = role ? hasPermission(role, 'staff:change_permission') : false
 
+  const isCurrentUser = (staffId: number | string) => {
+    return session?.user?.id !== undefined && String(session.user.id) === String(staffId)
+  }
+
   const handleSearchChange = (value: string) => {
     setSearch(value)
     setPage(1)
@@ -159,11 +163,11 @@ export default function StaffTable({ data, loading, onAddStaff, onUpdateStaff }:
             <TableHeader className="bg-slate-50/60">
               <TableRow>
                 <TableHead className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
-                  Department
+                  Name
                 </TableHead>
 
                 <TableHead className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
-                  Name
+                  Username
                 </TableHead>
 
                 <TableHead className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
@@ -209,17 +213,18 @@ export default function StaffTable({ data, loading, onAddStaff, onUpdateStaff }:
 
               {!loading &&
                 pageRows.map(row => (
-                  <TableRow key={row.id} className="hover:bg-slate-50/70">
-                    <TableCell>
-                      <DepartmentBadge value={row.department} />
-                    </TableCell>
-
+                  <TableRow
+                    key={row.id}
+                    className={`font-medium text-slate-700 ${isCurrentUser(row.id) ? 'hidden' : 'hover:bg-slate-50/70'}`}
+                  >
                     <TableCell className="font-medium text-slate-700">{row.name}</TableCell>
+
+                    <TableCell className="font-medium text-slate-700">{row.username}</TableCell>
 
                     <TableCell className="text-slate-600">{row.email}</TableCell>
 
                     <TableCell className="text-slate-600">
-                      {row.role.replaceAll('_', ' ')}
+                      <DepartmentBadge value={row.role.replaceAll('_', ' ')} />
                     </TableCell>
 
                     <TableCell className="text-slate-600">{row.status}</TableCell>

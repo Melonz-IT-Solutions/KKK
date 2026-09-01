@@ -466,16 +466,42 @@ export async function listMembers(params: MemberListParams = {}) {
 
   const status: MemberStatusFilter = actor.role === 'SUPER_ADMIN' ? requestedStatus : 'active'
 
-  const ownershipFilter: Prisma.MemberWhereInput | null =
-    actor.role === 'SUPER_ADMIN'
-      ? null
-      : actor.role === 'FINANCE' || actor.role === 'BRANCH_MANAGER'
-        ? {
-            createdById: actor.id,
-          }
-        : {
-            id: -1,
-          }
+  let ownershipFilter: Prisma.MemberWhereInput | null = null
+
+  if (actor.role === 'SUPER_ADMIN') {
+    ownershipFilter = null
+  } else if (actor.role === 'BRANCH_MANAGER' && actor.branch) {
+    ownershipFilter = {
+      branch: {
+        equals: actor.branch,
+        mode: Prisma.QueryMode.insensitive,
+      },
+    }
+  } else if (actor.role === 'CLUSTER_MANAGER') {
+    const clusterBranches = await prisma.clusterManager.findMany({
+      where: { userId: actor.id },
+      include: { cluster: { include: { branches: true } } },
+    })
+
+    const branchNames = clusterBranches.flatMap(cm =>
+      cm.cluster.branches.map(b => b.name)
+    )
+
+    ownershipFilter = branchNames.length > 0
+      ? {
+          OR: branchNames.map(name => ({
+            branch: {
+              equals: name,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          })),
+        }
+      : { id: -1 }
+  } else if (actor.role === 'FINANCE') {
+    ownershipFilter = { createdById: actor.id }
+  } else {
+    ownershipFilter = { id: -1 }
+  }
 
   const visibilityFilter: Prisma.MemberWhereInput =
     status === 'active'

@@ -14,7 +14,6 @@ const activityLogSchema = z.object({
   date: z.string().min(1, 'Date is required'),
 
   memberId: z.number().optional(),
-  staffId: z.number().optional(),
   userId: z.number().optional(),
 })
 

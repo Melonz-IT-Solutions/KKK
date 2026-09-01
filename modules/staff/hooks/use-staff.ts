@@ -47,6 +47,7 @@ export function useStaff() {
           body: JSON.stringify({
             ...values,
             branch: values.branch || undefined,
+            cluster: values.cluster || undefined,
           }),
         })
 

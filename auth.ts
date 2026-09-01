@@ -59,13 +59,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           where: {
             username,
           },
-
           include: {
-            staff: {
-              select: {
-                branch: true,
-              },
-            },
+            branchManagers: { include: { branch: true }, take: 1 },
           },
         })
 
@@ -102,7 +97,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
           role: user.roles,
 
-          branch: user.branch ?? user.staff?.branch ?? null,
+          branch: user.branchManagers[0]?.branch.name ?? null,
         }
       },
     }),

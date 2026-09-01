@@ -34,6 +34,8 @@ const createStaffSchema = z.object({
 
   branch: z.string().trim().optional(),
 
+  cluster: z.string().trim().optional(),
+
   role: z.enum(CONFIGURABLE_ROLES),
 })
 

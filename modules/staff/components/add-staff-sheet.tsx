@@ -26,6 +26,9 @@ import type { StaffFormValues, AddStaffSheetProps } from '@/modules/staff/types/
 
 import { EMPTY_STAFF_FORM } from '@/modules/staff/data/staff-options'
 
+import { BranchCombobox } from '@/modules/members/components/add-member/branch-combobox'
+import { useClusters } from '@/modules/members/hooks/use-clusters'
+
 interface DepartmentOption {
   name: StaffFormValues['role']
   label: string
@@ -37,6 +40,8 @@ export function AddStaffSheet({ open, onOpenChange, onSave }: AddStaffSheetProps
   const [errors, setErrors] = useState<Partial<Record<keyof StaffFormValues, string>>>({})
 
   const [departmentOptions, setDepartmentOptions] = useState<DepartmentOption[]>([])
+
+  const { clusters } = useClusters()
 
   useEffect(() => {
     if (!open) {
@@ -96,12 +101,16 @@ export function AddStaffSheet({ open, onOpenChange, onSave }: AddStaffSheetProps
       ...prev,
       department: option.label,
       role: option.name,
+      branch: '',
+      cluster: '',
     }))
 
     setErrors(prev => ({
       ...prev,
       department: undefined,
       role: undefined,
+      branch: undefined,
+      cluster: undefined,
     }))
   }
 
@@ -113,6 +122,8 @@ export function AddStaffSheet({ open, onOpenChange, onSave }: AddStaffSheetProps
     form.username.trim() !== '' &&
     !!form.department &&
     !!form.role &&
+    (form.role !== 'CLUSTER_MANAGER' || !!form.cluster) &&
+    (form.role !== 'BRANCH_MANAGER' || !!form.branch) &&
     form.name.trim() !== '' &&
     form.email.trim() !== '' &&
     form.password !== '' &&
@@ -135,6 +146,14 @@ export function AddStaffSheet({ open, onOpenChange, onSave }: AddStaffSheetProps
 
     if (!form.role) {
       next.role = 'A role could not be determined from the department.'
+    }
+
+    if (form.role === 'CLUSTER_MANAGER' && !form.cluster) {
+      next.cluster = 'Select a cluster.'
+    }
+
+    if (form.role === 'BRANCH_MANAGER' && !form.branch) {
+      next.branch = 'Select a branch.'
     }
 
     if (!form.name.trim()) {
@@ -194,7 +213,8 @@ export function AddStaffSheet({ open, onOpenChange, onSave }: AddStaffSheetProps
     try {
       await onSave?.({
         ...form,
-        branch: '',
+        branch: form.role === 'BRANCH_MANAGER' ? form.branch : '',
+        cluster: form.role === 'CLUSTER_MANAGER' ? form.cluster : '',
       })
 
       /**
@@ -286,6 +306,49 @@ export function AddStaffSheet({ open, onOpenChange, onSave }: AddStaffSheetProps
               {errors.department && <p className="text-destructive text-sm">{errors.department}</p>}
             </div>
 
+            {/* Cluster (Cluster Manager only) */}
+            {form.role === 'CLUSTER_MANAGER' && (
+              <div className="grid gap-2">
+                <Label htmlFor="cluster">Cluster</Label>
+
+                <Select
+                  value={form.cluster}
+                  onValueChange={value => update('cluster', value)}
+                  disabled={isSaving}
+                >
+                  <SelectTrigger id="cluster" aria-invalid={!!errors.cluster} className="w-full">
+                    <SelectValue placeholder="Select Cluster" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {clusters.map(cluster => (
+                      <SelectItem key={cluster.id} value={cluster.name}>
+                        {cluster.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {errors.cluster && <p className="text-destructive text-sm">{errors.cluster}</p>}
+              </div>
+            )}
+
+            {/* Branch (Branch Manager only) */}
+            {form.role === 'BRANCH_MANAGER' && (
+              <div className="grid gap-2">
+                <Label htmlFor="branch">Branch</Label>
+
+                <BranchCombobox
+                  id="branch"
+                  value={form.branch}
+                  onChange={value => update('branch', value)}
+                  invalid={!!errors.branch}
+                />
+
+                {errors.branch && <p className="text-destructive text-sm">{errors.branch}</p>}
+              </div>
+            )}
+
             {/* Username */}
             <div className="grid gap-2">
               <Label htmlFor="username">Username</Label>
@@ -294,7 +357,14 @@ export function AddStaffSheet({ open, onOpenChange, onSave }: AddStaffSheetProps
                 id="username"
                 placeholder="Username"
                 value={form.username}
-                onChange={event => update('username', event.target.value)}
+                onChange={event => {
+                  const value = event.target.value.toLowerCase()
+
+                  // Only allow letters, no spaces or special characters
+                  if (/^[a-z]*$/.test(value)) {
+                    update('username', value)
+                  }
+                }}
                 aria-invalid={!!errors.username}
                 disabled={isSaving}
               />

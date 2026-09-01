@@ -34,7 +34,7 @@ export async function GET() {
         actionLabel: true,
         createdAt: true,
         memberId: true,
-        staffId: true,
+        userId: true,
       },
     })
 

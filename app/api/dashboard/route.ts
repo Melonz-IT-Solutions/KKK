@@ -13,18 +13,16 @@ export async function GET() {
     ] = await Promise.all([
       prisma.member.count(),
 
-      prisma.staff.count(),
-
-      prisma.staff.count({
-        where: {
-          active: true,
-        },
+      prisma.user.count({
+        where: { isDeleted: false, roles: { not: 'GUEST' } },
       }),
 
-      prisma.staff.count({
-        where: {
-          active: false,
-        },
+      prisma.user.count({
+        where: { isDeleted: false, roles: { not: 'GUEST' }, active: true },
+      }),
+
+      prisma.user.count({
+        where: { isDeleted: false, roles: { not: 'GUEST' }, active: false },
       }),
 
       prisma.member.findMany({

@@ -13,6 +13,7 @@ export interface StaffRow {
   role: StaffRole
   status: StaffStatus
   branch?: string
+  cluster?: string
 }
 
 export interface StaffFormValues {
@@ -20,6 +21,7 @@ export interface StaffFormValues {
   department: Department | ''
   role: Exclude<StaffRole, 'SUPER_ADMIN'> | ''
   branch: string
+  cluster: string
   name: string
   email: string
   password: string

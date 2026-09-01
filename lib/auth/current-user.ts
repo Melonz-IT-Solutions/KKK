@@ -26,7 +26,9 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
 
   const user = await prisma.user.findUnique({
     where: { id },
-    include: { staff: { select: { branch: true } } },
+    include: {
+      branchManagers: { include: { branch: true }, take: 1 },
+    },
   })
 
   if (!user || !user.active || user.isDeleted || !isStaffRole(user.roles)) return null
@@ -35,8 +37,8 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     id: String(user.id),
     name: user.name ?? '',
     email: user.email,
-    department: user.departments[0] ?? '',
-    branch: user.staff?.branch ?? null,
+    department: user.department ?? '',
+    branch: user.branchManagers[0]?.branch.name ?? null,
     role: user.roles,
   }
 }

@@ -1289,6 +1289,21 @@ function parseMemberRow(
 export async function importMembers(rows: Record<string, unknown>[]): Promise<ImportMembersResult> {
   const actor = await getCurrentActor()
 
+  // Determine allowed branch names for role-restricted actors
+  let allowedBranches: string[] | null = null
+
+  if (actor?.role === 'BRANCH_MANAGER' && actor.branch) {
+    allowedBranches = [actor.branch.toLowerCase()]
+  } else if (actor?.role === 'CLUSTER_MANAGER') {
+    const clusterManagers = await prisma.clusterManager.findMany({
+      where: { userId: actor.id },
+      include: { cluster: { include: { branches: true } } },
+    })
+    allowedBranches = clusterManagers.flatMap(cm =>
+      cm.cluster.branches.map(b => b.name.toLowerCase())
+    )
+  }
+
   const errors: {
     row: number
     message: string
@@ -1299,9 +1314,22 @@ export async function importMembers(rows: Record<string, unknown>[]): Promise<Im
   rows.forEach((row, index) => {
     const payload = parseMemberRow(row, index + 2, errors)
 
-    if (payload) {
-      validPayloads.push(payload)
+    if (!payload) {
+      return
     }
+
+    if (allowedBranches !== null) {
+      const rowBranch = payload.branch?.toLowerCase() ?? ''
+      if (!allowedBranches.includes(rowBranch)) {
+        errors.push({
+          row: index + 2,
+          message: `Branch "${payload.branch || '(none)'}" is not in your allowed branches.`,
+        })
+        return
+      }
+    }
+
+    validPayloads.push(payload)
   })
 
   if (validPayloads.length === 0) {

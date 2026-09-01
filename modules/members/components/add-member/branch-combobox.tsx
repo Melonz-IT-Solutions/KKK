@@ -25,11 +25,26 @@ interface BranchComboboxProps {
   onChange: (value: string) => void
   invalid?: boolean
   className?: string
+  readOnly?: boolean
 }
 
-export function BranchCombobox({ id, value, onChange, invalid, className }: BranchComboboxProps) {
+export function BranchCombobox({ id, value, onChange, invalid, className, readOnly }: BranchComboboxProps) {
   const [open, setOpen] = useState(false)
   const { clusters } = useClusters()
+
+  if (readOnly) {
+    return (
+      <div
+        id={id}
+        className={cn(
+          'border-input bg-muted text-muted-foreground flex h-10 w-full items-center rounded-md border px-3 text-sm',
+          className
+        )}
+      >
+        {value || 'No branch assigned'}
+      </div>
+    )
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

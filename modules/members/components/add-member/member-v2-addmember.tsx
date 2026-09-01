@@ -1,5 +1,9 @@
 'use client'
 
+import { useEffect } from 'react'
+
+import { useSession } from 'next-auth/react'
+
 import Button from '@/components/button-v2/button'
 
 import {
@@ -23,6 +27,9 @@ import { BeneficiariesTab } from '@/modules/members/components/add-member/benefi
 import { DependentTab } from '@/modules/members/components/add-member/dependents-tab'
 
 export function AddMemberSheet({ open, onOpenChange, onSave }: AddMemberSheetProps) {
+  const { data: session } = useSession()
+  const isBranchManager = session?.user.role === 'BRANCH_MANAGER'
+
   const {
     control,
     handleSubmit,
@@ -41,6 +48,13 @@ export function AddMemberSheet({ open, onOpenChange, onSave }: AddMemberSheetPro
     onSave,
     onOpenChange,
   })
+
+  // Auto-populate branch for Branch Manager when sheet opens
+  useEffect(() => {
+    if (open && isBranchManager && session?.user.branch) {
+      setValue('principal.branch', session.user.branch)
+    }
+  }, [open, isBranchManager, session?.user.branch, setValue])
 
   return (
     <Sheet
@@ -102,6 +116,7 @@ export function AddMemberSheet({ open, onOpenChange, onSave }: AddMemberSheetPro
                 errors={errors.principal}
                 watch={watch}
                 setValue={setValue}
+                readOnlyBranch={isBranchManager}
               />
             )}
 

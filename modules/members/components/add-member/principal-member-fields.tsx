@@ -32,6 +32,7 @@ interface PrincipalMemberFieldsProps {
   errors?: FieldErrors<MemberFormValues>['principal']
   watch: UseFormWatch<MemberFormValues>
   setValue: UseFormSetValue<MemberFormValues>
+  readOnlyBranch?: boolean
 }
 
 export function PrincipalMemberFields({
@@ -39,6 +40,7 @@ export function PrincipalMemberFields({
   errors,
   watch,
   setValue,
+  readOnlyBranch,
 }: PrincipalMemberFieldsProps) {
   useComputedAge(watch, setValue, 'principal.birthday', 'principal.age')
 
@@ -124,6 +126,7 @@ export function PrincipalMemberFields({
               value={field.value}
               onChange={field.onChange}
               invalid={!!errors?.branch}
+              readOnly={readOnlyBranch}
             />
           )}
         />

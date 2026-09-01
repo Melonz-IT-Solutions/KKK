@@ -26,5 +26,3 @@ export const MEMBER_TABLE_COLUMNS: MemberColumn[] = [
     label: 'Civil Status',
   },
 ]
-
-

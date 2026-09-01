@@ -174,11 +174,7 @@ export function StaffEditDialog({ staff, open, onOpenChange, onSave }: StaffEdit
               <div className="grid gap-2">
                 <Label>Cluster</Label>
 
-                <Select
-                  value={cluster}
-                  onValueChange={setCluster}
-                  disabled={isSaving}
-                >
+                <Select value={cluster} onValueChange={setCluster} disabled={isSaving}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select Cluster" />
                   </SelectTrigger>
@@ -199,10 +195,7 @@ export function StaffEditDialog({ staff, open, onOpenChange, onSave }: StaffEdit
               <div className="grid gap-2">
                 <Label>Branch</Label>
 
-                <BranchCombobox
-                  value={branch}
-                  onChange={setBranch}
-                />
+                <BranchCombobox value={branch} onChange={setBranch} />
               </div>
             )}
 

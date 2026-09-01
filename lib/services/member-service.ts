@@ -483,20 +483,19 @@ export async function listMembers(params: MemberListParams = {}) {
       include: { cluster: { include: { branches: true } } },
     })
 
-    const branchNames = clusterBranches.flatMap(cm =>
-      cm.cluster.branches.map(b => b.name)
-    )
+    const branchNames = clusterBranches.flatMap(cm => cm.cluster.branches.map(b => b.name))
 
-    ownershipFilter = branchNames.length > 0
-      ? {
-          OR: branchNames.map(name => ({
-            branch: {
-              equals: name,
-              mode: Prisma.QueryMode.insensitive,
-            },
-          })),
-        }
-      : { id: -1 }
+    ownershipFilter =
+      branchNames.length > 0
+        ? {
+            OR: branchNames.map(name => ({
+              branch: {
+                equals: name,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            })),
+          }
+        : { id: -1 }
   } else if (actor.role === 'FINANCE') {
     ownershipFilter = { createdById: actor.id }
   } else {

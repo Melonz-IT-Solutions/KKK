@@ -1,5 +1,5 @@
 -- AlterTable
-ALTER TABLE "User" ALTER COLUMN "roles" SET DEFAULT 'GUEST';
+ALTER TABLE "User" ALTER COLUMN "role" SET DEFAULT 'GUEST';
 
 -- DropTable
 DROP TABLE "RolePermission";

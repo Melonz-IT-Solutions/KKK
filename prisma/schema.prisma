@@ -14,7 +14,7 @@ model User {
   password  String
   contactNo String?
 
-  roles      String  @default("GUEST")
+  role       String  @default("GUEST")
   department String?
 
   active    Boolean @default(true)

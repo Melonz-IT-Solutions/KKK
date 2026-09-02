@@ -29,7 +29,7 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/in
 import { ChevronDown, SearchIcon, X } from 'lucide-react'
 
 import { useClusters } from '@/modules/members/hooks/use-clusters'
-import { useSession } from 'next-auth/react'
+import { useRoleStore } from '@/lib/stores/role-store'
 
 import type { StatusFilter } from '@/modules/members/types/member'
 
@@ -57,7 +57,7 @@ export default function MemberV2Filters({
   onStatusChange,
   onClearFilters,
 }: MemberV2FiltersProps) {
-  const { data: session } = useSession()
+  const { activeRole } = useRoleStore()
   const [branchSearch, setBranchSearch] = useState('')
   const { clusters: rawClusters } = useClusters()
 
@@ -106,7 +106,7 @@ export default function MemberV2Filters({
       <Combobox multiple value={selectedBranches} onValueChange={onBranchChange}>
         <ComboboxTrigger
           className={
-            session?.user.role === 'BRANCH_MANAGER' || session?.user.role === 'CLUSTER_MANAGER'
+            activeRole === 'BRANCH_MANAGER' || activeRole === 'CLUSTER_MANAGER'
               ? 'hidden'
               : 'flex h-10 items-center gap-2 rounded-md border px-3 text-sm whitespace-nowrap'
           }

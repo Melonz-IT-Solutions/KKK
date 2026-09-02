@@ -10,12 +10,8 @@ export interface AuthorizedUser {
   name: string
   email: string
   username: string
-
   role: StaffRole
-
   realRole: StaffRole
-
-  branch: string | null
 }
 
 export async function requireSession() {
@@ -71,7 +67,6 @@ export async function requireSession() {
       username: context.user.username,
       role: context.effectiveRole,
       realRole: context.authenticatedRole,
-      branch: context.user.branch ?? null,
     }
 
     return {

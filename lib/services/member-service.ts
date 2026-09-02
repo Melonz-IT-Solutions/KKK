@@ -2,7 +2,11 @@ import { prisma } from '@/lib/prisma'
 import { Prisma, type Member } from '@prisma/client'
 
 import { createActivityLog } from '@/lib/services/activity-log-service'
-import { getCurrentActor, getCurrentActorName } from '@/lib/auth/get-current-user'
+import {
+  getCurrentActor,
+  getCurrentActorName,
+  getManagedClusterIds,
+} from '@/lib/auth/get-current-user'
 
 export type MemberStatusFilter = 'active' | 'inactive' | 'all'
 
@@ -478,12 +482,14 @@ export async function listMembers(params: MemberListParams = {}) {
       },
     }
   } else if (actor.role === 'CLUSTER_MANAGER') {
-    const clusterBranches = await prisma.clusterManager.findMany({
-      where: { userId: actor.id },
-      include: { cluster: { include: { branches: true } } },
+    const clusterIds = await getManagedClusterIds(actor)
+
+    const clusters = await prisma.cluster.findMany({
+      where: { id: { in: clusterIds } },
+      include: { branches: true },
     })
 
-    const branchNames = clusterBranches.flatMap(cm => cm.cluster.branches.map(b => b.name))
+    const branchNames = clusters.flatMap(cluster => cluster.branches.map(b => b.name))
 
     ownershipFilter =
       branchNames.length > 0
@@ -1295,13 +1301,14 @@ export async function importMembers(rows: Record<string, unknown>[]): Promise<Im
   if (actor?.role === 'BRANCH_MANAGER' && actor.branch) {
     allowedBranches = [actor.branch.toLowerCase()]
   } else if (actor?.role === 'CLUSTER_MANAGER') {
-    const clusterManagers = await prisma.clusterManager.findMany({
-      where: { userId: actor.id },
-      include: { cluster: { include: { branches: true } } },
+    const clusterIds = await getManagedClusterIds(actor)
+
+    const clusters = await prisma.cluster.findMany({
+      where: { id: { in: clusterIds } },
+      include: { branches: true },
     })
-    allowedBranches = clusterManagers.flatMap(cm =>
-      cm.cluster.branches.map(b => b.name.toLowerCase())
-    )
+
+    allowedBranches = clusters.flatMap(cluster => cluster.branches.map(b => b.name.toLowerCase()))
   }
 
   const errors: {

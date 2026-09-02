@@ -58,7 +58,7 @@ function mapStaff(user: UserWithAssignments) {
     email: user.email,
     username: user.username,
     createdAt: user.createdAt.toISOString(),
-    role: normalizeStaffRole(user.roles),
+    role: normalizeStaffRole(user.role),
     status: user.active ? ('ACTIVE' as StaffStatus) : ('INACTIVE' as StaffStatus),
     branch: user.branchManagers[0]?.branch.name ?? '',
     cluster: user.clusterManagers[0]?.cluster.name ?? '',
@@ -107,7 +107,7 @@ export async function listStaff(params: StaffListParams = {}) {
 
   const where: Prisma.UserWhereInput = {
     isDeleted: false,
-    roles: {
+    role: {
       notIn: ['SUPER_ADMIN'],
     },
     AND: [
@@ -188,7 +188,7 @@ export async function createStaff(payload: StaffPayload) {
         username: payload.username,
         password: passwordHash,
         contactNo: payload.contactNo,
-        roles: role,
+        role: role,
         department: payload.department,
         active,
         isDeleted: false,
@@ -306,7 +306,7 @@ export async function updateStaff(id: number, payload: Partial<StaffPayload>) {
       ...(typeof payload.active === 'boolean'
         ? { active: payload.active, isDeleted: !payload.active }
         : {}),
-      ...(normalizedRole ? { roles: normalizedRole } : {}),
+      ...(normalizedRole ? { role: normalizedRole } : {}),
       ...(payload.password ? { password: await hashPassword(payload.password) } : {}),
     },
   })
@@ -315,7 +315,7 @@ export async function updateStaff(id: number, payload: Partial<StaffPayload>) {
   const roleForAssignment =
     normalizedRole ??
     normalizeStaffRole(
-      (await prisma.user.findUniqueOrThrow({ where: { id }, select: { roles: true } })).roles
+      (await prisma.user.findUniqueOrThrow({ where: { id }, select: { role: true } })).role
     )
 
   if (normalizedRole || typeof payload.branch === 'string' || typeof payload.cluster === 'string') {

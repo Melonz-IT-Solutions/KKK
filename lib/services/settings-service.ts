@@ -48,7 +48,7 @@ export async function getSettingsAccount(userId: number) {
       name: true,
       email: true,
       contactNo: true,
-      roles: true,
+      role: true,
       active: true,
       isDeleted: true,
     },
@@ -68,7 +68,7 @@ export async function getSettingsAccount(userId: number) {
       email: user.email,
       contactNumber: user.contactNo ?? '',
     },
-    roles: user.roles,
+    role: user.role,
   }
 }
 
@@ -127,7 +127,7 @@ export async function updateSettingsAccount(userId: number, accountInfo: Account
       name: true,
       email: true,
       contactNo: true,
-      roles: true,
+      role: true,
     },
   })
 
@@ -141,7 +141,7 @@ export async function updateSettingsAccount(userId: number, accountInfo: Account
       email: user.email,
       contactNumber: user.contactNo ?? '',
     },
-    roles: user.roles,
+    role: user.role,
   }
 }
 

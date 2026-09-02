@@ -31,7 +31,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     },
   })
 
-  if (!user || !user.active || user.isDeleted || !isStaffRole(user.roles)) return null
+  if (!user || !user.active || user.isDeleted || !isStaffRole(user.role)) return null
 
   return {
     id: String(user.id),
@@ -39,7 +39,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     email: user.email,
     department: user.department ?? '',
     branch: user.branchManagers[0]?.branch.name ?? null,
-    role: user.roles,
+    role: user.role,
   }
 }
 

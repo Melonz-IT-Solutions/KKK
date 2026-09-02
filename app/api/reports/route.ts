@@ -71,12 +71,6 @@ export async function POST(request: Request) {
       select: {
         id: true,
         name: true,
-
-        staff: {
-          select: {
-            id: true,
-          },
-        },
       },
     })
 

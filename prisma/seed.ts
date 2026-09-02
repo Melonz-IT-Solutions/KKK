@@ -96,27 +96,28 @@ const ROLES = [
       PERMISSIONS.MEMBER_VIEW.name,
       PERMISSIONS.MEMBER_CREATE.name,
       PERMISSIONS.MEMBER_EDIT.name,
+      PERMISSIONS.MEMBER_IMPORT.name,
       PERMISSIONS.REPORTS_VIEW.name,
       PERMISSIONS.REPORTS_GENERATE.name,
     ],
   },
   {
-    name: 'Operations',
+    name: 'OPERATIONS',
     label: 'Operations Director',
     permissions: [PERMISSIONS.MEMBER_VIEW.name, PERMISSIONS.REPORTS_VIEW.name],
   },
   {
-    name: 'Admin and HR',
+    name: 'ADMIN_AND_HR',
     label: 'Admin and HR Director',
     permissions: [PERMISSIONS.MEMBER_VIEW.name, PERMISSIONS.REPORTS_VIEW.name],
   },
   {
-    name: 'Accounting',
+    name: 'ACCOUNTING',
     label: 'Accounting Dept Head',
     permissions: [PERMISSIONS.MEMBER_VIEW.name, PERMISSIONS.REPORTS_VIEW.name],
   },
   {
-    name: 'Audit Department',
+    name: 'AUDIT_DEPARTMENT',
     label: 'Audit Department',
     permissions: [PERMISSIONS.MEMBER_VIEW.name, PERMISSIONS.REPORTS_VIEW.name],
   },
@@ -174,23 +175,7 @@ const USERS = [
     username: 'superadmin',
     contactNo: '09123456789',
     role: 'SUPER_ADMIN',
-    department: 'Central Operations',
-  },
-  {
-    name: 'Finance User',
-    email: 'finance@kkk.com',
-    username: 'finance',
-    contactNo: '09123456780',
-    role: 'FINANCE',
-    department: 'Finance',
-  },
-  {
-    name: 'Branch Manager',
-    email: 'manager@kkk.com',
-    username: 'branchmanager',
-    contactNo: '09123456781',
-    role: 'BRANCH_MANAGER',
-    department: 'Branch Management',
+    department: 'President & CEO',
   },
 ]
 
@@ -236,7 +221,7 @@ async function main() {
     }
 
     // Upsert default users
-    const hashedPassword = await bcrypt.hash('123123123', 10)
+    const hashedPassword = await bcrypt.hash('superadmin@kkk2026', 10)
     console.log('  → Seeding users...')
     for (const user of USERS) {
       const existing = await prisma.user.findUnique({ where: { username: user.username } })
@@ -251,7 +236,7 @@ async function main() {
           contactNo: user.contactNo,
           username: user.username,
           password: hashedPassword,
-          roles: user.role,
+          role: user.role,
           department: user.department,
           active: true,
           isDeleted: false,

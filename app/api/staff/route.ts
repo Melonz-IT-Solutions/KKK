@@ -52,9 +52,6 @@ export async function GET(request: Request) {
 
   try {
     const canViewAll = hasPermission(user.role, 'staff:view_all')
-
-    const canViewOwnBranch = hasPermission(user.role, 'staff:view_own_branch')
-
     // -------------------------------------------------------------------------
     // Determine branch filter
     // -------------------------------------------------------------------------
@@ -68,25 +65,6 @@ export async function GET(request: Request) {
        * No branch filter.
        */
       branch = undefined
-    } else if (canViewOwnBranch) {
-      /**
-       * Branch Manager
-       *
-       * Must have a branch.
-       */
-      if (!user.branch) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: 'Your account is not assigned to a branch.',
-          },
-          {
-            status: 403,
-          }
-        )
-      }
-
-      branch = user.branch
     } else {
       return NextResponse.json(
         {

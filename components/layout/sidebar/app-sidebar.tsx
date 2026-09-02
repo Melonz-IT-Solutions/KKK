@@ -27,10 +27,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const {
     activeRole,
     realRole,
+    activeEntityName,
     permissions,
     roleLoading,
     setActiveRole,
     setRealRole,
+    setActiveEntityName,
     setPermissions,
     setRoleLoading,
   } = useRoleStore()
@@ -65,6 +67,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         setActiveRole(data.role ?? null)
         setRealRole(data.realRole ?? null)
         setPermissions(data.permissions ?? [])
+        setActiveEntityName(data.entityName ?? null)
       } catch (error) {
         console.error('Failed to load active role:', error)
       } finally {
@@ -79,7 +82,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     return () => {
       cancelled = true
     }
-  }, [status, setActiveRole, setRealRole, setPermissions, setRoleLoading])
+  }, [status, setActiveRole, setRealRole, setPermissions, setActiveEntityName, setRoleLoading])
 
   const can = React.useCallback(
     (permission: Permission) => permissions.includes(permission),
@@ -127,11 +130,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         const data = await response.json()
         if (!data.success) return
         setPermissions(data.permissions ?? [])
+        setActiveEntityName(data.entityName ?? null)
       } catch (error) {
         console.error('Failed to refresh permissions after role change:', error)
       }
     },
-    [setActiveRole, setPermissions]
+    [setActiveRole, setPermissions, setActiveEntityName]
   )
 
   const user = React.useMemo(
@@ -150,6 +154,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           <DepartmentSwitcher
             activeRole={activeRole}
             realRole={realRole}
+            activeEntityName={activeEntityName}
             onRoleChange={handleRoleChange}
           />
         </SidebarHeader>
@@ -171,6 +176,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <DepartmentSwitcher
           activeRole={activeRole}
           realRole={realRole}
+          activeEntityName={activeEntityName}
           onRoleChange={handleRoleChange}
         />
       </SidebarHeader>

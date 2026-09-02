@@ -68,7 +68,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // ACCOUNT CHECK
         // -------------------------------------------------------------------
 
-        if (!user || !user.active || user.isDeleted || !isStaffRole(user.roles)) {
+        if (!user || !user.active || user.isDeleted || !isStaffRole(user.role)) {
           return null
         }
 
@@ -95,7 +95,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
           username: user.username,
 
-          role: user.roles,
+          role: user.role,
 
           branch: user.branchManagers[0]?.branch.name ?? null,
         }

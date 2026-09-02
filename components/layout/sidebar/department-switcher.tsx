@@ -8,8 +8,13 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+
+import type { ClusterWithBranches } from '@/modules/members/hooks/use-clusters'
 
 import {
   SidebarMenu,
@@ -36,6 +41,7 @@ interface RoleOption {
 interface DepartmentSwitcherProps {
   activeRole: ActiveRole | null
   realRole: ActiveRole | null
+  activeEntityName: string | null
   onRoleChange: (role: ActiveRole) => void
 }
 
@@ -58,16 +64,21 @@ const DEFAULT_ROLE_ICON = Building2
 export function DepartmentSwitcher({
   activeRole,
   realRole,
+  activeEntityName,
   onRoleChange,
 }: DepartmentSwitcherProps) {
   const { isMobile } = useSidebar()
 
   const [changing, setChanging] = React.useState(false)
   const [roleOptions, setRoleOptions] = React.useState<RoleOption[]>([])
+  const [clusters, setClusters] = React.useState<ClusterWithBranches[]>([])
 
   const selectedRole = activeRole ?? realRole ?? 'SUPER_ADMIN'
 
-  const selectedName = ROLE_LABELS[selectedRole]
+  const selectedName =
+    (selectedRole === 'CLUSTER_MANAGER' || selectedRole === 'BRANCH_MANAGER') && activeEntityName
+      ? `${ROLE_LABELS[selectedRole]} (${activeEntityName})`
+      : ROLE_LABELS[selectedRole]
 
   React.useEffect(() => {
     if (realRole !== 'SUPER_ADMIN') {
@@ -111,8 +122,41 @@ export function DepartmentSwitcher({
     }
   }, [realRole])
 
-  const handleRoleChange = async (role: ActiveRole) => {
-    if (changing || role === activeRole || realRole !== 'SUPER_ADMIN') {
+  React.useEffect(() => {
+    if (realRole !== 'SUPER_ADMIN') {
+      return
+    }
+
+    let cancelled = false
+
+    fetch('/api/clusters', { cache: 'no-store' })
+      .then(async response => {
+        const data = await response.json()
+
+        if (!response.ok || !Array.isArray(data)) {
+          throw new Error('Failed to load clusters')
+        }
+
+        return data as ClusterWithBranches[]
+      })
+      .then(data => {
+        if (!cancelled) {
+          setClusters(data)
+        }
+      })
+      .catch(error => {
+        console.error('Failed to load clusters:', error)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [realRole])
+
+  const handleRoleChange = async (role: ActiveRole, entityId?: number) => {
+    const isEntityRole = role === 'CLUSTER_MANAGER' || role === 'BRANCH_MANAGER'
+
+    if (changing || realRole !== 'SUPER_ADMIN' || (role === activeRole && !isEntityRole)) {
       return
     }
 
@@ -128,6 +172,8 @@ export function DepartmentSwitcher({
         },
         body: JSON.stringify({
           role,
+          ...(role === 'CLUSTER_MANAGER' && entityId ? { clusterId: entityId } : {}),
+          ...(role === 'BRANCH_MANAGER' && entityId ? { branchId: entityId } : {}),
         }),
       })
 
@@ -205,17 +251,8 @@ export function DepartmentSwitcher({
               const Icon = role.icon
               const isSelected = activeRole === role.value
 
-              return (
-                <DropdownMenuItem
-                  key={role.value}
-                  disabled={changing}
-                  onClick={() => handleRoleChange(role.value)}
-                  className={`cursor-pointer gap-2 p-2 ${
-                    isSelected
-                      ? 'bg-green-50 text-green-700 focus:bg-green-50 focus:text-green-700'
-                      : ''
-                  }`}
-                >
+              const itemContent = (
+                <>
                   <div
                     className={`flex size-7 shrink-0 items-center justify-center rounded-md border ${
                       isSelected ? 'border-green-200 bg-green-100 text-green-700' : 'border-border'
@@ -235,6 +272,120 @@ export function DepartmentSwitcher({
                       {role.description}
                     </span>
                   </div>
+                </>
+              )
+
+              const itemClassName = `cursor-pointer gap-2 p-2 ${
+                isSelected
+                  ? 'bg-green-50 text-green-700 focus:bg-green-50 focus:text-green-700'
+                  : ''
+              }`
+
+              if (role.value === 'CLUSTER_MANAGER') {
+                return (
+                  <DropdownMenuSub key={role.value}>
+                    <DropdownMenuSubTrigger disabled={changing} className={itemClassName}>
+                      {itemContent}
+                    </DropdownMenuSubTrigger>
+
+                    <DropdownMenuSubContent className="min-w-56 rounded-lg">
+                      <DropdownMenuLabel className="text-muted-foreground text-sm">
+                        Select Cluster
+                      </DropdownMenuLabel>
+
+                      <DropdownMenuSeparator />
+
+                      {clusters.length === 0 ? (
+                        <DropdownMenuItem disabled className="text-muted-foreground text-sm">
+                          No clusters found
+                        </DropdownMenuItem>
+                      ) : (
+                        clusters.map(cluster => {
+                          const isClusterSelected = isSelected && activeEntityName === cluster.name
+
+                          return (
+                            <DropdownMenuItem
+                              key={cluster.id}
+                              disabled={changing}
+                              onClick={() => handleRoleChange('CLUSTER_MANAGER', cluster.id)}
+                              className={`cursor-pointer gap-2 p-2 text-sm ${
+                                isClusterSelected
+                                  ? 'bg-green-50 text-green-700 focus:bg-green-50 focus:text-green-700'
+                                  : ''
+                              }`}
+                            >
+                              {cluster.name}
+                            </DropdownMenuItem>
+                          )
+                        })
+                      )}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                )
+              }
+
+              if (role.value === 'BRANCH_MANAGER') {
+                return (
+                  <DropdownMenuSub key={role.value}>
+                    <DropdownMenuSubTrigger disabled={changing} className={itemClassName}>
+                      {itemContent}
+                    </DropdownMenuSubTrigger>
+
+                    <DropdownMenuSubContent className="[&::-webkit-scrollbar-thumb]:bg-border h-72 min-w-56 scrollbar-thin [scrollbar-color:var(--border)_transparent] overflow-y-auto rounded-lg [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
+                      <DropdownMenuLabel className="text-muted-foreground text-sm">
+                        Select Branch
+                      </DropdownMenuLabel>
+
+                      <DropdownMenuSeparator />
+
+                      {clusters.every(cluster => cluster.branches.length === 0) ? (
+                        <DropdownMenuItem disabled className="text-muted-foreground text-sm">
+                          No branches found
+                        </DropdownMenuItem>
+                      ) : (
+                        clusters.map(cluster =>
+                          cluster.branches.length === 0 ? null : (
+                            <React.Fragment key={cluster.id}>
+                              {/* <DropdownMenuLabel className="text-muted-foreground px-1.5 py-1 text-xs">
+                                {cluster.name}
+                              </DropdownMenuLabel> */}
+
+                              {cluster.branches.map(branch => {
+                                const isBranchSelected =
+                                  isSelected && activeEntityName === branch.name
+
+                                return (
+                                  <DropdownMenuItem
+                                    key={branch.id}
+                                    disabled={changing}
+                                    onClick={() => handleRoleChange('BRANCH_MANAGER', branch.id)}
+                                    className={`cursor-pointer gap-2 p-2 pl-4 text-sm ${
+                                      isBranchSelected
+                                        ? 'bg-green-50 text-green-700 focus:bg-green-50 focus:text-green-700'
+                                        : ''
+                                    }`}
+                                  >
+                                    {branch.name}
+                                  </DropdownMenuItem>
+                                )
+                              })}
+                            </React.Fragment>
+                          )
+                        )
+                      )}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                )
+              }
+
+              return (
+                <DropdownMenuItem
+                  key={role.value}
+                  disabled={changing}
+                  onClick={() => handleRoleChange(role.value)}
+                  className={itemClassName}
+                >
+                  {itemContent}
                 </DropdownMenuItem>
               )
             })}

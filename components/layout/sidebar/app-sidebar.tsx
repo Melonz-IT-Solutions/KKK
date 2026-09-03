@@ -94,7 +94,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     return () => {
       cancelled = true
     }
-  }, [status, setActiveRole, setRealRole, setPermissions, setActiveEntityName, setRoleLoading, setClusters])
+  }, [
+    status,
+    setActiveRole,
+    setRealRole,
+    setPermissions,
+    setActiveEntityName,
+    setRoleLoading,
+    setClusters,
+  ])
 
   const can = React.useCallback(
     (permission: Permission) => permissions.includes(permission),

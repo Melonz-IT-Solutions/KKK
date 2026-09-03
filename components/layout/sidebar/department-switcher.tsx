@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import { useRouter } from 'next/navigation'
 
 import {
   DropdownMenu,
@@ -56,7 +55,6 @@ const DEFAULT_ROLE_ICON = Building2
 
 export function DepartmentSwitcher() {
   const { isMobile } = useSidebar()
-  const router = useRouter()
 
   const {
     activeRole,
@@ -73,10 +71,20 @@ export function DepartmentSwitcher() {
 
   const selectedRole = activeRole ?? realRole ?? 'SUPER_ADMIN'
 
-  const selectedName =
-    (selectedRole === 'CLUSTER_MANAGER' || selectedRole === 'BRANCH_MANAGER') && activeEntityName
-      ? `${ROLE_LABELS[selectedRole]} (${activeEntityName})`
-      : ROLE_LABELS[selectedRole]
+  const formatRole = (role: string | null): string => {
+    if (!role) {
+      return ''
+    }
+
+    return role
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+  }
+
+  const selectedName = activeEntityName
+    ? `${ROLE_LABELS[selectedRole]} (${activeEntityName})`
+    : formatRole(activeRole)
 
   // Fetch available role options (only needed for SUPER_ADMIN)
   React.useEffect(() => {

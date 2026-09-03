@@ -1,8 +1,35 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentActor, getManagedClusterIds } from '@/lib/auth/get-current-user'
+import { getAuthenticatedRole } from '@/lib/auth/effective-role'
 
-export async function GET() {
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url)
+
+  // ?scope=admin — returns all clusters regardless of effective role.
+  // Only honored for real SUPER_ADMIN (reads from DB, not the active-role cookie).
+  // Used by the department switcher so a SUPER_ADMIN who has already switched to
+  // BRANCH_MANAGER can still see all branches when switching again.
+  if (searchParams.get('scope') === 'admin') {
+    const realRole = await getAuthenticatedRole()
+
+    if (realRole !== 'SUPER_ADMIN') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const clusters = await prisma.cluster.findMany({
+      include: {
+        branches: {
+          select: { id: true, name: true },
+          orderBy: { name: 'asc' },
+        },
+      },
+      orderBy: { name: 'asc' },
+    })
+
+    return NextResponse.json(clusters)
+  }
+
   const actor = await getCurrentActor()
 
   if (!actor) {

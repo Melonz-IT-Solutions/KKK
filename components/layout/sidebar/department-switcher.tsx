@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from 'react'
+import { useRouter } from 'next/navigation'
 
 import {
   DropdownMenu,
@@ -14,8 +15,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-import type { ClusterWithBranches } from '@/modules/members/hooks/use-clusters'
-
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -28,6 +27,7 @@ import { ChevronsUpDown, Undo2, Wallet, Users, Building2, Network, UserCheck } f
 import Logo from '../logo'
 
 import { ROLE_LABELS, isStaffRole, type ActiveRole } from '@/lib/auth/permissions'
+import { useRoleStore } from '@/lib/stores/role-store'
 
 interface RoleOption {
   value: ActiveRole
@@ -36,13 +36,6 @@ interface RoleOption {
   icon: React.ComponentType<{
     className?: string
   }>
-}
-
-interface DepartmentSwitcherProps {
-  activeRole: ActiveRole | null
-  realRole: ActiveRole | null
-  activeEntityName: string | null
-  onRoleChange: (role: ActiveRole) => void
 }
 
 interface RoleApiItem {
@@ -61,17 +54,22 @@ const ROLE_ICONS: Partial<Record<ActiveRole, React.ComponentType<{ className?: s
 
 const DEFAULT_ROLE_ICON = Building2
 
-export function DepartmentSwitcher({
-  activeRole,
-  realRole,
-  activeEntityName,
-  onRoleChange,
-}: DepartmentSwitcherProps) {
+export function DepartmentSwitcher() {
   const { isMobile } = useSidebar()
+  const router = useRouter()
+
+  const {
+    activeRole,
+    realRole,
+    activeEntityName,
+    clusters,
+    setActiveRole,
+    setActiveEntityName,
+    setPermissions,
+  } = useRoleStore()
 
   const [changing, setChanging] = React.useState(false)
   const [roleOptions, setRoleOptions] = React.useState<RoleOption[]>([])
-  const [clusters, setClusters] = React.useState<ClusterWithBranches[]>([])
 
   const selectedRole = activeRole ?? realRole ?? 'SUPER_ADMIN'
 
@@ -80,6 +78,7 @@ export function DepartmentSwitcher({
       ? `${ROLE_LABELS[selectedRole]} (${activeEntityName})`
       : ROLE_LABELS[selectedRole]
 
+  // Fetch available role options (only needed for SUPER_ADMIN)
   React.useEffect(() => {
     if (realRole !== 'SUPER_ADMIN') {
       return
@@ -103,11 +102,18 @@ export function DepartmentSwitcher({
         }
 
         const options = roles
-          .filter(role => isStaffRole(role.name) && role.name !== 'SUPER_ADMIN')
+          .filter(
+            role =>
+              isStaffRole(role.name) &&
+              (role.name === 'FINANCE' ||
+                role.name === 'MIS' ||
+                role.name === 'CLUSTER_MANAGER' ||
+                role.name === 'BRANCH_MANAGER')
+          )
           .map(role => ({
             value: role.name as ActiveRole,
             name: role.label,
-            description: `${role.label} department`,
+            description: `${role.label} Department`,
             icon: ROLE_ICONS[role.name as ActiveRole] ?? DEFAULT_ROLE_ICON,
           }))
 
@@ -115,37 +121,6 @@ export function DepartmentSwitcher({
       })
       .catch(error => {
         console.error('Failed to load department roles:', error)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [realRole])
-
-  React.useEffect(() => {
-    if (realRole !== 'SUPER_ADMIN') {
-      return
-    }
-
-    let cancelled = false
-
-    fetch('/api/clusters', { cache: 'no-store' })
-      .then(async response => {
-        const data = await response.json()
-
-        if (!response.ok || !Array.isArray(data)) {
-          throw new Error('Failed to load clusters')
-        }
-
-        return data as ClusterWithBranches[]
-      })
-      .then(data => {
-        if (!cancelled) {
-          setClusters(data)
-        }
-      })
-      .catch(error => {
-        console.error('Failed to load clusters:', error)
       })
 
     return () => {
@@ -162,7 +137,6 @@ export function DepartmentSwitcher({
 
     try {
       setChanging(true)
-
       const response = await fetch('/api/auth/active-role', {
         method: 'POST',
         credentials: 'include',
@@ -182,8 +156,26 @@ export function DepartmentSwitcher({
       if (!response.ok || !data.success) {
         throw new Error(data.message ?? 'Failed to switch role')
       }
+      // Update store with the new active role and entity
+      setActiveRole(role)
+      setActiveEntityName(data.entityName ?? null)
 
-      onRoleChange(role)
+      // Refresh permissions for the new role
+      const permResponse = await fetch('/api/auth/active-role', {
+        method: 'GET',
+        credentials: 'include',
+        cache: 'no-store',
+      })
+
+      if (permResponse.ok) {
+        const permData = await permResponse.json()
+
+        if (permData.success) {
+          setPermissions(permData.permissions ?? [])
+        }
+      }
+
+      window.location.reload()
     } catch (error) {
       console.error('Failed to switch role:', error)
     } finally {
@@ -346,10 +338,6 @@ export function DepartmentSwitcher({
                         clusters.map(cluster =>
                           cluster.branches.length === 0 ? null : (
                             <React.Fragment key={cluster.id}>
-                              {/* <DropdownMenuLabel className="text-muted-foreground px-1.5 py-1 text-xs">
-                                {cluster.name}
-                              </DropdownMenuLabel> */}
-
                               {cluster.branches.map(branch => {
                                 const isBranchSelected =
                                   isSelected && activeEntityName === branch.name

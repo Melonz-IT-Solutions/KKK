@@ -215,7 +215,7 @@ export default function StaffTable({ data, loading, onAddStaff, onUpdateStaff }:
                 pageRows.map(row => (
                   <TableRow
                     key={row.id}
-                    className={`font-medium text-slate-700 ${isCurrentUser(row.id) ? 'hidden' : 'hover:bg-slate-50/70'}`}
+                    className="font-medium text-slate-700 hover:bg-slate-50/70"
                   >
                     <TableCell className="font-medium text-slate-700">{row.name}</TableCell>
 
@@ -237,7 +237,7 @@ export default function StaffTable({ data, loading, onAddStaff, onUpdateStaff }:
                             setSelectedStaff(row)
                             setIsEditOpen(true)
                           }}
-                          className="inline-flex items-center justify-center rounded-md p-1 hover:bg-slate-100"
+                          className={`font-medium text-slate-700 ${isCurrentUser(row.id) ? 'hidden' : 'inline-flex items-center justify-center rounded-md p-1 hover:bg-slate-100'}`}
                         >
                           <Pencil className="h-4 w-4" />
                         </button>

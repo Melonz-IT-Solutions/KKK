@@ -14,15 +14,15 @@ export async function GET() {
       prisma.member.count(),
 
       prisma.user.count({
-        where: { isDeleted: false, role: { not: 'GUEST' } },
+        where: { isDeleted: false, role: { notIn: ['SUPER_ADMIN', 'GUEST'] } },
       }),
 
       prisma.user.count({
-        where: { isDeleted: false, role: { not: 'GUEST' }, active: true },
+        where: { isDeleted: false, role: { notIn: ['SUPER_ADMIN', 'GUEST'] }, active: true },
       }),
 
       prisma.user.count({
-        where: { isDeleted: false, role: { not: 'GUEST' }, active: false },
+        where: { isDeleted: false, role: { notIn: ['SUPER_ADMIN', 'GUEST'] }, active: false },
       }),
 
       prisma.member.findMany({

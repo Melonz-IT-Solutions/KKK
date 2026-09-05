@@ -6,9 +6,12 @@ export type Department = string
 export interface StaffRow {
   id: number
   department: string
-  name: string
+  // name: string
   email: string
   username: string
+  firstName: string
+  lastName: string
+  clientId: string
   createdAt: string
   role: StaffRole
   status: StaffStatus

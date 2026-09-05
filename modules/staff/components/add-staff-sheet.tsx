@@ -202,7 +202,11 @@ export function AddStaffSheet({ open, onOpenChange, onSave }: AddStaffSheetProps
               <Label htmlFor="department">Department</Label>
 
               <Select value={form.role} onValueChange={handleDepartmentChange} disabled={isSaving}>
-                <SelectTrigger id="department" aria-invalid={!!errors.department} className="w-full">
+                <SelectTrigger
+                  id="department"
+                  aria-invalid={!!errors.department}
+                  className="w-full"
+                >
                   <SelectValue placeholder="Select Department" />
                 </SelectTrigger>
 

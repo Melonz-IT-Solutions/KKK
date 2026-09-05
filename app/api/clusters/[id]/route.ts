@@ -2,10 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedRole } from '@/lib/auth/effective-role'
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const realRole = await getAuthenticatedRole()
 
   if (realRole !== 'SUPER_ADMIN') {
@@ -19,7 +16,7 @@ export async function PATCH(
     return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
   }
 
-  const body = await request.json() as { name?: string }
+  const body = (await request.json()) as { name?: string }
   const name = body.name?.trim()
 
   if (!name) {
@@ -41,7 +38,10 @@ export async function PATCH(
       (error as { code: string }).code === 'P2002'
 
     if (isUniqueViolation) {
-      return NextResponse.json({ error: 'A cluster with that name already exists' }, { status: 409 })
+      return NextResponse.json(
+        { error: 'A cluster with that name already exists' },
+        { status: 409 }
+      )
     }
 
     return NextResponse.json({ error: 'Failed to update cluster' }, { status: 500 })

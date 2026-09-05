@@ -69,7 +69,8 @@ export default function StaffTable({ data, loading, onAddStaff, onUpdateStaff }:
     const searchValue = search.toLowerCase()
 
     const matchesSearch =
-      row.name.toLowerCase().includes(searchValue) ||
+      row.firstName.toLowerCase().includes(searchValue) ||
+      row.lastName.toLowerCase().includes(searchValue) ||
       row.email.toLowerCase().includes(searchValue) ||
       row.department.toLowerCase().includes(searchValue)
 
@@ -217,7 +218,9 @@ export default function StaffTable({ data, loading, onAddStaff, onUpdateStaff }:
                     key={row.id}
                     className="font-medium text-slate-700 hover:bg-slate-50/70"
                   >
-                    <TableCell className="font-medium text-slate-700">{row.name}</TableCell>
+                    <TableCell className="font-medium text-slate-700">
+                      {row.firstName} {row.lastName}
+                    </TableCell>
 
                     <TableCell className="font-medium text-slate-700">{row.username}</TableCell>
 

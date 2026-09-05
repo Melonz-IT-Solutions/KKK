@@ -5,13 +5,15 @@ import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 import { hashPassword } from '@/lib/auth/password'
 
-const schema = z.object({
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  confirmPassword: z.string(),
-}).refine(data => data.password === data.confirmPassword, {
-  message: 'Passwords do not match',
-  path: ['confirmPassword'],
-})
+const schema = z
+  .object({
+    password: z.string().min(8, 'Password must be at least 8 characters'),
+    confirmPassword: z.string(),
+  })
+  .refine(data => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  })
 
 export async function POST(request: Request) {
   const session = await auth()

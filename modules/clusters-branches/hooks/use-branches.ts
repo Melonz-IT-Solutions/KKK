@@ -37,7 +37,7 @@ export function useBranches() {
       })
 
       if (!res.ok) {
-        const data = await res.json() as { error?: string }
+        const data = (await res.json()) as { error?: string }
         throw new Error(data.error ?? 'Failed to create branch')
       }
 
@@ -55,7 +55,7 @@ export function useBranches() {
       })
 
       if (!res.ok) {
-        const data = await res.json() as { error?: string }
+        const data = (await res.json()) as { error?: string }
         throw new Error(data.error ?? 'Failed to update branch')
       }
 

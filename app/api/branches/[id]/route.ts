@@ -2,10 +2,7 @@ import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getAuthenticatedRole } from '@/lib/auth/effective-role'
 
-export async function PATCH(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const realRole = await getAuthenticatedRole()
 
   if (realRole !== 'SUPER_ADMIN') {
@@ -19,7 +16,7 @@ export async function PATCH(
     return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
   }
 
-  const body = await request.json() as { name?: string; clusterId?: number }
+  const body = (await request.json()) as { name?: string; clusterId?: number }
   const name = body.name?.trim()
   const clusterId = body.clusterId
 

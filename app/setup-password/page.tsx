@@ -178,9 +178,7 @@ export default function SetupPasswordPage() {
             )}
           </div>
 
-          {serverError && (
-            <p className="text-xs text-red-600">{serverError}</p>
-          )}
+          {serverError && <p className="text-xs text-red-600">{serverError}</p>}
 
           <Button type="submit" size="lg" className="w-full" disabled={loading}>
             {loading ? 'Saving...' : 'Submit'}

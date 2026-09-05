@@ -126,7 +126,11 @@ export default function AddBranchSheet({
                 }}
                 disabled={isSaving}
               >
-                <SelectTrigger id="branch-cluster" aria-invalid={!!errors.clusterId} className="w-full">
+                <SelectTrigger
+                  id="branch-cluster"
+                  aria-invalid={!!errors.clusterId}
+                  className="w-full"
+                >
                   <SelectValue placeholder="Select Cluster" />
                 </SelectTrigger>
                 <SelectContent>

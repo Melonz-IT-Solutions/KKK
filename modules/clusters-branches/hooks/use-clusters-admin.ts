@@ -36,7 +36,7 @@ export function useClustersAdmin() {
       })
 
       if (!res.ok) {
-        const data = await res.json() as { error?: string }
+        const data = (await res.json()) as { error?: string }
         throw new Error(data.error ?? 'Failed to create cluster')
       }
 
@@ -54,7 +54,7 @@ export function useClustersAdmin() {
       })
 
       if (!res.ok) {
-        const data = await res.json() as { error?: string }
+        const data = (await res.json()) as { error?: string }
         throw new Error(data.error ?? 'Failed to update cluster')
       }
 

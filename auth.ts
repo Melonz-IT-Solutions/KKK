@@ -140,7 +140,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
         session.user.username = username
 
-        session.user.mustChangePassword = token.mustChangePassword ?? false
+        session.user.mustChangePassword = token.mustChangePassword === true
       }
 
       return session

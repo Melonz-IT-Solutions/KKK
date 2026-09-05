@@ -39,7 +39,13 @@ function formatDate(value: string | null | undefined) {
   })
 }
 
-export default function BranchesTable({ data, loading, clusters, onAdd, onUpdate }: BranchesTableProps) {
+export default function BranchesTable({
+  data,
+  loading,
+  clusters,
+  onAdd,
+  onUpdate,
+}: BranchesTableProps) {
   const [isAddOpen, setIsAddOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<BranchRow | null>(null)
 
@@ -98,7 +104,10 @@ export default function BranchesTable({ data, loading, clusters, onAdd, onUpdate
 
               {!loading &&
                 data.map(row => (
-                  <TableRow key={row.id} className="font-medium text-slate-700 hover:bg-slate-50/70">
+                  <TableRow
+                    key={row.id}
+                    className="font-medium text-slate-700 hover:bg-slate-50/70"
+                  >
                     <TableCell className="font-medium text-slate-700">{row.name}</TableCell>
                     <TableCell className="text-slate-600">{row.cluster.name}</TableCell>
                     <TableCell className="text-slate-600">{formatDate(row.createdAt)}</TableCell>
@@ -129,7 +138,9 @@ export default function BranchesTable({ data, loading, clusters, onAdd, onUpdate
       <EditBranchSheet
         branch={editTarget}
         open={!!editTarget}
-        onOpenChange={open => { if (!open) setEditTarget(null) }}
+        onOpenChange={open => {
+          if (!open) setEditTarget(null)
+        }}
         clusters={clusters}
         onSave={onUpdate}
       />

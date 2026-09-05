@@ -46,8 +46,8 @@ interface RoleOption {
 export function StaffEditDialog({ staff, open, onOpenChange, onSave }: StaffEditDialogProps) {
   const { data: session } = useSession()
 
-  const [firstName, setFirstName] = useState(() => staff.name.split(' ')[0] ?? '')
-  const [lastName, setLastName] = useState(() => staff.name.split(' ').slice(1).join(' '))
+  const [firstName, setFirstName] = useState(() => staff.firstName)
+  const [lastName, setLastName] = useState(() => staff.lastName)
   const [username, setUsername] = useState(staff.username)
   const [email, setEmail] = useState(staff.email)
   const [status, setStatus] = useState(staff.status)
@@ -68,8 +68,8 @@ export function StaffEditDialog({ staff, open, onOpenChange, onSave }: StaffEdit
   // Reset form fields when the sheet opens with a (possibly different) staff
   useEffect(() => {
     if (open) {
-      setFirstName(staff.name.split(' ')[0] ?? '')
-      setLastName(staff.name.split(' ').slice(1).join(' '))
+      setFirstName(staff.firstName)
+      setLastName(staff.lastName)
       setUsername(staff.username)
       setEmail(staff.email)
       setStatus(staff.status)

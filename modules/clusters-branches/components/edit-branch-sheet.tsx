@@ -132,7 +132,11 @@ export default function EditBranchSheet({
                 }}
                 disabled={isSaving}
               >
-                <SelectTrigger id="edit-branch-cluster" aria-invalid={!!errors.clusterId} className="w-full">
+                <SelectTrigger
+                  id="edit-branch-cluster"
+                  aria-invalid={!!errors.clusterId}
+                  className="w-full"
+                >
                   <SelectValue placeholder="Select Cluster" />
                 </SelectTrigger>
                 <SelectContent>

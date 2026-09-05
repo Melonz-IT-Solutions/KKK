@@ -98,7 +98,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const body = await request.json() as { name?: string }
+  const body = (await request.json()) as { name?: string }
   const name = body.name?.trim()
 
   if (!name) {
@@ -116,7 +116,10 @@ export async function POST(request: Request) {
       (error as { code: string }).code === 'P2002'
 
     if (isUniqueViolation) {
-      return NextResponse.json({ error: 'A cluster with that name already exists' }, { status: 409 })
+      return NextResponse.json(
+        { error: 'A cluster with that name already exists' },
+        { status: 409 }
+      )
     }
 
     return NextResponse.json({ error: 'Failed to create cluster' }, { status: 500 })

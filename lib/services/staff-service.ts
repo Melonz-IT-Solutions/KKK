@@ -53,11 +53,19 @@ const normalizeStaffRole = (role?: string): StaffRole => {
 }
 
 function mapStaff(user: UserWithAssignments) {
+  const fullName = user.name ?? ''
+  const spaceIndex = fullName.indexOf(' ')
+  const firstName = spaceIndex === -1 ? fullName : fullName.slice(0, spaceIndex)
+  const lastName = spaceIndex === -1 ? '' : fullName.slice(spaceIndex + 1)
+
   return {
     id: user.id,
-    name: user.name ?? '',
+    firstName,
+    lastName,
+    clientId: user.clientId ?? '',
     email: user.email,
     username: user.username,
+    department: user.department ?? '',
     createdAt: user.createdAt.toISOString(),
     role: normalizeStaffRole(user.role),
     status: user.active ? ('ACTIVE' as StaffStatus) : ('INACTIVE' as StaffStatus),

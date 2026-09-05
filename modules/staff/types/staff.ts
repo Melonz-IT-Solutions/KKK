@@ -34,8 +34,6 @@ export interface StaffFormValues {
 }
 
 export interface StaffUpdateValues extends StaffRow {
-  firstName: string
-  lastName: string
   newPassword?: string
 }
 

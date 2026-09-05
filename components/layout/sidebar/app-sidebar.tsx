@@ -31,8 +31,10 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     roleLoading,
     setActiveRole,
     setRealRole,
+    setActiveEntityName,
     setPermissions,
     setRoleLoading,
+    setClusters,
   } = useRoleStore()
 
   React.useEffect(() => {
@@ -65,6 +67,20 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         setActiveRole(data.role ?? null)
         setRealRole(data.realRole ?? null)
         setPermissions(data.permissions ?? [])
+        setActiveEntityName(data.entityName ?? null)
+
+        // For SUPER_ADMIN, pre-load all clusters so the department switcher
+        // always has the full list — even after switching to a scoped role.
+        if (data.isSuperAdmin) {
+          fetch('/api/clusters?scope=admin', { cache: 'no-store' })
+            .then(r => r.json())
+            .then(clusters => {
+              if (!cancelled && Array.isArray(clusters)) {
+                setClusters(clusters)
+              }
+            })
+            .catch(() => {})
+        }
       } catch (error) {
         console.error('Failed to load active role:', error)
       } finally {
@@ -79,7 +95,15 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     return () => {
       cancelled = true
     }
-  }, [status, setActiveRole, setRealRole, setPermissions, setRoleLoading])
+  }, [
+    status,
+    setActiveRole,
+    setRealRole,
+    setPermissions,
+    setActiveEntityName,
+    setRoleLoading,
+    setClusters,
+  ])
 
   const can = React.useCallback(
     (permission: Permission) => permissions.includes(permission),
@@ -108,37 +132,22 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         case 'Staff':
           return can('staff:view_all') || can('staff:view_own_branch')
 
+        case 'Clusters':
+          return can('cluster:view')
+
+        case 'Branches':
+          return can('branch:view')
+
         default:
           return true
       }
     })
   }, [activeRole, permissions, can])
 
-  const handleRoleChange = React.useCallback(
-    async (role: Parameters<typeof setActiveRole>[0]) => {
-      setActiveRole(role)
-      try {
-        const response = await fetch('/api/auth/active-role', {
-          method: 'GET',
-          credentials: 'include',
-          cache: 'no-store',
-        })
-        if (!response.ok) return
-        const data = await response.json()
-        if (!data.success) return
-        setPermissions(data.permissions ?? [])
-      } catch (error) {
-        console.error('Failed to refresh permissions after role change:', error)
-      }
-    },
-    [setActiveRole, setPermissions]
-  )
-
   const user = React.useMemo(
     () => ({
       name: session?.user?.name ?? 'Loading user',
       email: session?.user?.email ?? '',
-      // avatar: '/avatars/avatar.jpg',
     }),
     [session?.user?.name, session?.user?.email]
   )
@@ -147,11 +156,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     return (
       <Sidebar collapsible="icon" {...props}>
         <SidebarHeader>
-          <DepartmentSwitcher
-            activeRole={activeRole}
-            realRole={realRole}
-            onRoleChange={handleRoleChange}
-          />
+          <DepartmentSwitcher />
         </SidebarHeader>
 
         <SidebarContent />
@@ -168,11 +173,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <DepartmentSwitcher
-          activeRole={activeRole}
-          realRole={realRole}
-          onRoleChange={handleRoleChange}
-        />
+        <DepartmentSwitcher />
       </SidebarHeader>
 
       <SidebarContent>

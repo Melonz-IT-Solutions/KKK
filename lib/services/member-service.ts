@@ -2,7 +2,11 @@ import { prisma } from '@/lib/prisma'
 import { Prisma, type Member } from '@prisma/client'
 
 import { createActivityLog } from '@/lib/services/activity-log-service'
-import { getCurrentActor, getCurrentActorName } from '@/lib/auth/get-current-user'
+import {
+  getCurrentActor,
+  getCurrentActorName,
+  getManagedClusterIds,
+} from '@/lib/auth/get-current-user'
 
 export type MemberStatusFilter = 'active' | 'inactive' | 'all'
 
@@ -466,16 +470,43 @@ export async function listMembers(params: MemberListParams = {}) {
 
   const status: MemberStatusFilter = actor.role === 'SUPER_ADMIN' ? requestedStatus : 'active'
 
-  const ownershipFilter: Prisma.MemberWhereInput | null =
-    actor.role === 'SUPER_ADMIN'
-      ? null
-      : actor.role === 'FINANCE' || actor.role === 'BRANCH_MANAGER'
+  let ownershipFilter: Prisma.MemberWhereInput | null = null
+
+  if (actor.role === 'SUPER_ADMIN') {
+    ownershipFilter = null
+  } else if (actor.role === 'BRANCH_MANAGER' && actor.branch) {
+    ownershipFilter = {
+      branch: {
+        equals: actor.branch,
+        mode: Prisma.QueryMode.insensitive,
+      },
+    }
+  } else if (actor.role === 'CLUSTER_MANAGER') {
+    const clusterIds = await getManagedClusterIds(actor)
+
+    const clusters = await prisma.cluster.findMany({
+      where: { id: { in: clusterIds } },
+      include: { branches: true },
+    })
+
+    const branchNames = clusters.flatMap(cluster => cluster.branches.map(b => b.name))
+
+    ownershipFilter =
+      branchNames.length > 0
         ? {
-            createdById: actor.id,
+            OR: branchNames.map(name => ({
+              branch: {
+                equals: name,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            })),
           }
-        : {
-            id: -1,
-          }
+        : { id: -1 }
+  } else if (actor.role === 'FINANCE') {
+    ownershipFilter = { createdById: actor.id }
+  } else {
+    ownershipFilter = { id: -1 }
+  }
 
   const visibilityFilter: Prisma.MemberWhereInput =
     status === 'active'
@@ -1264,6 +1295,22 @@ function parseMemberRow(
 export async function importMembers(rows: Record<string, unknown>[]): Promise<ImportMembersResult> {
   const actor = await getCurrentActor()
 
+  // Determine allowed branch names for role-restricted actors
+  let allowedBranches: string[] | null = null
+
+  if (actor?.role === 'BRANCH_MANAGER' && actor.branch) {
+    allowedBranches = [actor.branch.toLowerCase()]
+  } else if (actor?.role === 'CLUSTER_MANAGER') {
+    const clusterIds = await getManagedClusterIds(actor)
+
+    const clusters = await prisma.cluster.findMany({
+      where: { id: { in: clusterIds } },
+      include: { branches: true },
+    })
+
+    allowedBranches = clusters.flatMap(cluster => cluster.branches.map(b => b.name.toLowerCase()))
+  }
+
   const errors: {
     row: number
     message: string
@@ -1274,9 +1321,22 @@ export async function importMembers(rows: Record<string, unknown>[]): Promise<Im
   rows.forEach((row, index) => {
     const payload = parseMemberRow(row, index + 2, errors)
 
-    if (payload) {
-      validPayloads.push(payload)
+    if (!payload) {
+      return
     }
+
+    if (allowedBranches !== null) {
+      const rowBranch = payload.branch?.toLowerCase() ?? ''
+      if (!allowedBranches.includes(rowBranch)) {
+        errors.push({
+          row: index + 2,
+          message: `Branch "${payload.branch || '(none)'}" is not in your allowed branches.`,
+        })
+        return
+      }
+    }
+
+    validPayloads.push(payload)
   })
 
   if (validPayloads.length === 0) {

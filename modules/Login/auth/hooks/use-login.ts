@@ -3,7 +3,7 @@
 import { useState } from 'react'
 
 import { useRouter } from 'next/navigation'
-import { signIn } from 'next-auth/react'
+import { signIn, getSession } from 'next-auth/react'
 
 import type { LoginFormValues } from '@/lib/validation/login'
 
@@ -32,7 +32,13 @@ export function useLogin() {
       }
 
       if (result?.ok) {
-        router.replace('/dashboard')
+        const session = await getSession()
+
+        if (session?.user?.mustChangePassword) {
+          router.replace('/setup-password')
+        } else {
+          router.replace('/dashboard')
+        }
       }
     } catch (error) {
       console.error('Login failed:', error)

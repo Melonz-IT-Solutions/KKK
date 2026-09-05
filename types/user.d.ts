@@ -7,8 +7,7 @@ type UserType = {
   contact_no: string
   username: string
   password: string
-  roles: string
-  departments: string[]
+  role: string
   active?: boolean
   is_deleted: boolean
 }

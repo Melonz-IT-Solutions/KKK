@@ -8,7 +8,7 @@ import { auth } from '@/auth'
 import { prisma } from '@/lib/prisma'
 
 const reportSchema = z.object({
-  type: z.enum(['Total Members', 'Total Mortality']),
+  type: z.enum(['Total Members', 'Total Active Users', 'Total Inactive Users']),
 
   dateRangeStart: z.string().min(1),
 
@@ -71,12 +71,6 @@ export async function POST(request: Request) {
       select: {
         id: true,
         name: true,
-
-        staff: {
-          select: {
-            id: true,
-          },
-        },
       },
     })
 
@@ -132,12 +126,31 @@ export async function POST(request: Request) {
     }
 
     // ------------------------------------------------------------
-    // TOTAL MORTALITY
-    // Uses Member.statusChangedAt
-    // when member becomes Inactive.
+    // TOTAL ACTIVE USERS
+    // Members with status 'Active', filtered by transactionDate.
     // ------------------------------------------------------------
 
-    if (payload.type === 'Total Mortality') {
+    if (payload.type === 'Total Active Users') {
+      total = await prisma.member.count({
+        where: {
+          isDeleted: false,
+
+          status: 'Active',
+
+          transactionDate: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+      })
+    }
+
+    // ------------------------------------------------------------
+    // TOTAL INACTIVE USERS
+    // Members with status 'Inactive', filtered by statusChangedAt.
+    // ------------------------------------------------------------
+
+    if (payload.type === 'Total Inactive Users') {
       total = await prisma.member.count({
         where: {
           isDeleted: false,
@@ -152,9 +165,15 @@ export async function POST(request: Request) {
       })
     }
 
+    const typeMap: Record<string, string> = {
+      'Total Members': 'MEMBER',
+      'Total Active Users': 'ACTIVE_USERS',
+      'Total Inactive Users': 'INACTIVE_USERS',
+    }
+
     const report = await createReport(
       {
-        type: payload.type === 'Total Members' ? 'MEMBER' : 'MORTALITY',
+        type: typeMap[payload.type] ?? 'MEMBER',
 
         total,
 
@@ -166,8 +185,6 @@ export async function POST(request: Request) {
       },
 
       user.name ?? 'System',
-
-      user.staff?.id ?? null,
 
       user.id
     )

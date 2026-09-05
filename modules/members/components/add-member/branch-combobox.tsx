@@ -16,23 +16,8 @@ import {
   CommandList,
 } from '@/components/ui/command'
 
-import { BRANCH_CLUSTERS } from '@/modules/members/constants/members'
+import { useClusters } from '@/modules/members/hooks/use-clusters'
 import { cn } from '@/lib/utils'
-
-const CLUSTER_LABELS: Record<string, string> = {
-  city_proper_cluster: 'City Proper',
-  east_coast_cluster: 'East Coast',
-  west_coast_cluster: 'West Coast',
-  sibugay_cluster: 'Sibugay',
-  north_cluster: 'North',
-  basulta_cluster: 'Basulta',
-}
-
-const BRANCH_LABEL_BY_VALUE = new Map(
-  Object.values(BRANCH_CLUSTERS)
-    .flat()
-    .map(option => [option.value, option.label])
-)
 
 interface BranchComboboxProps {
   id?: string
@@ -40,10 +25,33 @@ interface BranchComboboxProps {
   onChange: (value: string) => void
   invalid?: boolean
   className?: string
+  readOnly?: boolean
 }
 
-export function BranchCombobox({ id, value, onChange, invalid, className }: BranchComboboxProps) {
+export function BranchCombobox({
+  id,
+  value,
+  onChange,
+  invalid,
+  className,
+  readOnly,
+}: BranchComboboxProps) {
   const [open, setOpen] = useState(false)
+  const { clusters } = useClusters()
+
+  if (readOnly) {
+    return (
+      <div
+        id={id}
+        className={cn(
+          'border-input bg-muted text-muted-foreground flex h-10 w-full items-center rounded-md border px-3 text-sm',
+          className
+        )}
+      >
+        {value || 'No branch assigned'}
+      </div>
+    )
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -61,7 +69,7 @@ export function BranchCombobox({ id, value, onChange, invalid, className }: Bran
             className
           )}
         >
-          {value ? (BRANCH_LABEL_BY_VALUE.get(value) ?? value) : 'Select Branch'}
+          {value ? value : 'Select Branch'}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -76,24 +84,24 @@ export function BranchCombobox({ id, value, onChange, invalid, className }: Bran
           <CommandList className="">
             <CommandEmpty>No branch found.</CommandEmpty>
 
-            {Object.entries(BRANCH_CLUSTERS).map(([clusterKey, options]) => (
-              <CommandGroup key={clusterKey} heading={CLUSTER_LABELS[clusterKey] ?? clusterKey}>
-                {options.map(option => (
+            {clusters.map(cluster => (
+              <CommandGroup key={cluster.id} heading={cluster.name}>
+                {cluster.branches.map(branch => (
                   <CommandItem
-                    key={option.value}
-                    value={option.label}
+                    key={branch.id}
+                    value={branch.name}
                     onSelect={() => {
-                      onChange(option.value)
+                      onChange(branch.name)
                       setOpen(false)
                     }}
                   >
                     <Check
                       className={cn(
                         'mr-2 h-4 w-4',
-                        value === option.value ? 'opacity-100' : 'opacity-0'
+                        value === branch.name ? 'opacity-100' : 'opacity-0'
                       )}
                     />
-                    {option.label}
+                    {branch.name}
                   </CommandItem>
                 ))}
               </CommandGroup>

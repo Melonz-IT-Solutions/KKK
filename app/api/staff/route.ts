@@ -20,7 +20,11 @@ const CONFIGURABLE_ROLES = ROLES.filter(
 ) as [ConfigurableRole, ...ConfigurableRole[]]
 
 const createStaffSchema = z.object({
-  name: z.string().trim().min(1, 'Name is required'),
+  firstName: z.string().trim().min(1, 'First name is required'),
+
+  lastName: z.string().trim().min(1, 'Last name is required'),
+
+  clientId: z.string().trim().optional(),
 
   email: z.string().trim().email('Invalid email'),
 
@@ -33,6 +37,8 @@ const createStaffSchema = z.object({
   department: z.string().trim().min(1, 'Department is required'),
 
   branch: z.string().trim().optional(),
+
+  cluster: z.string().trim().optional(),
 
   role: z.enum(CONFIGURABLE_ROLES),
 })
@@ -50,9 +56,6 @@ export async function GET(request: Request) {
 
   try {
     const canViewAll = hasPermission(user.role, 'staff:view_all')
-
-    const canViewOwnBranch = hasPermission(user.role, 'staff:view_own_branch')
-
     // -------------------------------------------------------------------------
     // Determine branch filter
     // -------------------------------------------------------------------------
@@ -66,25 +69,6 @@ export async function GET(request: Request) {
        * No branch filter.
        */
       branch = undefined
-    } else if (canViewOwnBranch) {
-      /**
-       * Branch Manager
-       *
-       * Must have a branch.
-       */
-      if (!user.branch) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: 'Your account is not assigned to a branch.',
-          },
-          {
-            status: 403,
-          }
-        )
-      }
-
-      branch = user.branch
     } else {
       return NextResponse.json(
         {
@@ -158,9 +142,12 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
 
-    const payload = createStaffSchema.parse(body)
+    const { firstName, lastName, ...rest } = createStaffSchema.parse(body)
 
-    const staff = await createStaff(payload)
+    const staff = await createStaff({
+      ...rest,
+      name: `${firstName} ${lastName}`.trim(),
+    })
 
     return NextResponse.json(
       {

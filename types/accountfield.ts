@@ -7,7 +7,18 @@ export type { Department } from '@/constants/departments'
 // ENUM TYPES
 // =====================
 
-export type StaffRole = 'SUPER_ADMIN' | 'FINANCE' | 'BRANCH_MANAGER' | 'FDO'
+export type StaffRole =
+  | 'SUPER_ADMIN'
+  | 'FINANCE'
+  | 'MIS'
+  | 'CLUSTER_MANAGER'
+  | 'BRANCH_MANAGER'
+  | 'FDO'
+  | 'OPERATIONS'
+  | 'ADMIN_AND_HR'
+  | 'ACCOUNTING'
+  | 'AUDIT_DEPARTMENT'
+  | 'GUEST'
 
 export type StaffStatus = 'ACTIVE' | 'INACTIVE'
 
@@ -69,7 +80,7 @@ export type AccountInfo = {
 export type AccountStatus = StaffStatus
 
 export interface AccountSectionProps {
-  roles: StaffRole[]
+  role: StaffRole[]
 
   addRole: (role: StaffRole) => void
 
@@ -118,6 +129,18 @@ export interface StaffTableColumn {
 // DATA
 // =====================
 
-export const STAFF_ROLES: StaffRole[] = ['SUPER_ADMIN', 'FINANCE', 'BRANCH_MANAGER', 'FDO']
+export const STAFF_ROLES: StaffRole[] = [
+  'SUPER_ADMIN',
+  'FINANCE',
+  'MIS',
+  'CLUSTER_MANAGER',
+  'BRANCH_MANAGER',
+  'FDO',
+  'OPERATIONS',
+  'ADMIN_AND_HR',
+  'ACCOUNTING',
+  'AUDIT_DEPARTMENT',
+  'GUEST',
+]
 
 export const DEPARTMENTS = DEPARTMENT_NAMES

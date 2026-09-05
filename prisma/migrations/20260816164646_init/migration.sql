@@ -6,7 +6,7 @@ CREATE TABLE "User" (
     "name" TEXT,
     "password" TEXT NOT NULL,
     "contactNo" TEXT,
-    "roles" TEXT NOT NULL DEFAULT 'STAFF',
+    "role" TEXT NOT NULL DEFAULT 'STAFF',
     "branch" TEXT,
     "active" BOOLEAN NOT NULL DEFAULT true,
     "isDeleted" BOOLEAN NOT NULL DEFAULT false,

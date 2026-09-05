@@ -26,6 +26,9 @@ import type { StaffFormValues, AddStaffSheetProps } from '@/modules/staff/types/
 
 import { EMPTY_STAFF_FORM } from '@/modules/staff/data/staff-options'
 
+import { BranchCombobox } from '@/modules/members/components/add-member/branch-combobox'
+import { useClusters } from '@/modules/members/hooks/use-clusters'
+
 interface DepartmentOption {
   name: StaffFormValues['role']
   label: string
@@ -37,6 +40,8 @@ export function AddStaffSheet({ open, onOpenChange, onSave }: AddStaffSheetProps
   const [errors, setErrors] = useState<Partial<Record<keyof StaffFormValues, string>>>({})
 
   const [departmentOptions, setDepartmentOptions] = useState<DepartmentOption[]>([])
+
+  const { clusters } = useClusters()
 
   useEffect(() => {
     if (!open) {
@@ -59,75 +64,48 @@ export function AddStaffSheet({ open, onOpenChange, onSave }: AddStaffSheetProps
       })
   }, [open])
 
-  // ---------------------------------------------------------------------------
-  // Saving state
-  // ---------------------------------------------------------------------------
-
   const [isSaving, setIsSaving] = useState(false)
 
-  // ---------------------------------------------------------------------------
-  // Update field
-  // ---------------------------------------------------------------------------
-
   const update = <K extends keyof StaffFormValues>(key: K, value: StaffFormValues[K]) => {
-    setForm(prev => ({
-      ...prev,
-      [key]: value,
-    }))
-
-    setErrors(prev => ({
-      ...prev,
-      [key]: undefined,
-    }))
+    setForm(prev => ({ ...prev, [key]: value }))
+    setErrors(prev => ({ ...prev, [key]: undefined }))
   }
-
-  // ---------------------------------------------------------------------------
-  // Department change
-  // ---------------------------------------------------------------------------
 
   const handleDepartmentChange = (roleName: string) => {
     const option = departmentOptions.find(item => item.name === roleName)
 
-    if (!option) {
-      return
-    }
+    if (!option) return
 
     setForm(prev => ({
       ...prev,
       department: option.label,
       role: option.name,
+      branch: '',
+      cluster: '',
     }))
 
     setErrors(prev => ({
       ...prev,
       department: undefined,
       role: undefined,
+      branch: undefined,
+      cluster: undefined,
     }))
   }
-
-  // ---------------------------------------------------------------------------
-  // Form completeness
-  // ---------------------------------------------------------------------------
 
   const isFormComplete =
     form.username.trim() !== '' &&
     !!form.department &&
     !!form.role &&
-    form.name.trim() !== '' &&
-    form.email.trim() !== '' &&
-    form.password !== '' &&
-    form.confirmPassword !== ''
-
-  // ---------------------------------------------------------------------------
-  // Validation
-  // ---------------------------------------------------------------------------
+    (form.role !== 'CLUSTER_MANAGER' || !!form.cluster) &&
+    (form.role !== 'BRANCH_MANAGER' || !!form.branch) &&
+    form.clientId.trim() !== '' &&
+    form.firstName.trim() !== '' &&
+    form.lastName.trim() !== '' &&
+    form.email.trim() !== ''
 
   const validate = () => {
     const next: Partial<Record<keyof StaffFormValues, string>> = {}
-
-    if (!form.username.trim()) {
-      next.username = 'Username is required.'
-    }
 
     if (!form.department) {
       next.department = 'Select a department.'
@@ -137,8 +115,28 @@ export function AddStaffSheet({ open, onOpenChange, onSave }: AddStaffSheetProps
       next.role = 'A role could not be determined from the department.'
     }
 
-    if (!form.name.trim()) {
-      next.name = 'Name is required.'
+    if (form.role === 'CLUSTER_MANAGER' && !form.cluster) {
+      next.cluster = 'Select a cluster.'
+    }
+
+    if (form.role === 'BRANCH_MANAGER' && !form.branch) {
+      next.branch = 'Select a branch.'
+    }
+
+    if (!form.username.trim()) {
+      next.username = 'Username is required.'
+    }
+
+    if (!form.clientId.trim()) {
+      next.clientId = 'Client ID is required.'
+    }
+
+    if (!form.firstName.trim()) {
+      next.firstName = 'First name is required.'
+    }
+
+    if (!form.lastName.trim()) {
+      next.lastName = 'Last name is required.'
     }
 
     if (!form.email.trim()) {
@@ -147,115 +145,53 @@ export function AddStaffSheet({ open, onOpenChange, onSave }: AddStaffSheetProps
       next.email = 'Enter a valid email.'
     }
 
-    if (!form.password) {
-      next.password = 'Password is required.'
-    } else if (form.password.length < 8) {
-      next.password = 'Password must be at least 8 characters.'
-    }
-
-    if (!form.confirmPassword) {
-      next.confirmPassword = 'Confirm your password.'
-    } else if (form.confirmPassword !== form.password) {
-      next.confirmPassword = 'Passwords do not match.'
-    }
-
     setErrors(next)
 
     return Object.keys(next).length === 0
   }
 
-  // ---------------------------------------------------------------------------
-  // Save
-  // ---------------------------------------------------------------------------
-
   const handleSave = async () => {
-    /**
-     * IMPORTANT:
-     *
-     * This guard prevents a second click while the
-     * first save request is still running.
-     */
-    if (isSaving) {
-      return
-    }
+    if (isSaving) return
 
-    /**
-     * Validate before starting the saving state.
-     */
-    if (!validate()) {
-      return
-    }
+    if (!validate()) return
 
-    /**
-     * Lock the Save button immediately.
-     */
     setIsSaving(true)
 
     try {
       await onSave?.({
         ...form,
-        branch: '',
+        branch: form.role === 'BRANCH_MANAGER' ? form.branch : '',
+        cluster: form.role === 'CLUSTER_MANAGER' ? form.cluster : '',
       })
 
-      /**
-       * Only reset and close after the save
-       * successfully finishes.
-       */
       setForm(EMPTY_STAFF_FORM)
       setErrors({})
       onOpenChange(false)
     } catch (error) {
       console.error('Failed to save staff:', error)
     } finally {
-      /**
-       * Always unlock the form.
-       *
-       * This also handles API errors.
-       */
       setIsSaving(false)
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Cancel
-  // ---------------------------------------------------------------------------
-
   const handleCancel = () => {
-    /**
-     * Do not allow the user to cancel while
-     * the API request is still running.
-     */
-    if (isSaving) {
-      return
-    }
-
+    if (isSaving) return
     setForm(EMPTY_STAFF_FORM)
     setErrors({})
     onOpenChange(false)
   }
 
-  // ---------------------------------------------------------------------------
-  // Render
-  // ---------------------------------------------------------------------------
-
   return (
     <Sheet
       open={open}
       onOpenChange={nextOpen => {
-        /**
-         * Prevent closing the Sheet while saving.
-         */
-        if (!nextOpen && isSaving) {
-          return
-        }
-
+        if (!nextOpen && isSaving) return
         onOpenChange(nextOpen)
       }}
     >
       <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-md">
         <SheetHeader className="border-b px-6 py-5">
           <SheetTitle className="text-xl font-semibold">Add Staff</SheetTitle>
-
           <SheetDescription className="sr-only">Form to add a new staff member.</SheetDescription>
         </SheetHeader>
 
@@ -286,6 +222,49 @@ export function AddStaffSheet({ open, onOpenChange, onSave }: AddStaffSheetProps
               {errors.department && <p className="text-destructive text-sm">{errors.department}</p>}
             </div>
 
+            {/* Cluster (Cluster Manager only) */}
+            {form.role === 'CLUSTER_MANAGER' && (
+              <div className="grid gap-2">
+                <Label htmlFor="cluster">Cluster</Label>
+
+                <Select
+                  value={form.cluster}
+                  onValueChange={value => update('cluster', value)}
+                  disabled={isSaving}
+                >
+                  <SelectTrigger id="cluster" aria-invalid={!!errors.cluster} className="w-full">
+                    <SelectValue placeholder="Select Cluster" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    {clusters.map(cluster => (
+                      <SelectItem key={cluster.id} value={cluster.name}>
+                        {cluster.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {errors.cluster && <p className="text-destructive text-sm">{errors.cluster}</p>}
+              </div>
+            )}
+
+            {/* Branch (Branch Manager only) */}
+            {form.role === 'BRANCH_MANAGER' && (
+              <div className="grid gap-2">
+                <Label htmlFor="branch">Branch</Label>
+
+                <BranchCombobox
+                  id="branch"
+                  value={form.branch}
+                  onChange={value => update('branch', value)}
+                  invalid={!!errors.branch}
+                />
+
+                {errors.branch && <p className="text-destructive text-sm">{errors.branch}</p>}
+              </div>
+            )}
+
             {/* Username */}
             <div className="grid gap-2">
               <Label htmlFor="username">Username</Label>
@@ -294,7 +273,12 @@ export function AddStaffSheet({ open, onOpenChange, onSave }: AddStaffSheetProps
                 id="username"
                 placeholder="Username"
                 value={form.username}
-                onChange={event => update('username', event.target.value)}
+                onChange={e => {
+                  const value = e.target.value.toLowerCase()
+                  if (/^[a-z]*$/.test(value)) {
+                    update('username', value)
+                  }
+                }}
                 aria-invalid={!!errors.username}
                 disabled={isSaving}
               />
@@ -302,20 +286,52 @@ export function AddStaffSheet({ open, onOpenChange, onSave }: AddStaffSheetProps
               {errors.username && <p className="text-destructive text-sm">{errors.username}</p>}
             </div>
 
-            {/* Name */}
+            {/* Client ID */}
             <div className="grid gap-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="clientId">Client ID</Label>
 
               <Input
-                id="name"
-                placeholder="Full name"
-                value={form.name}
-                onChange={event => update('name', event.target.value)}
-                aria-invalid={!!errors.name}
+                id="clientId"
+                placeholder="Client ID"
+                value={form.clientId}
+                onChange={e => update('clientId', e.target.value)}
+                aria-invalid={!!errors.clientId}
                 disabled={isSaving}
               />
 
-              {errors.name && <p className="text-destructive text-sm">{errors.name}</p>}
+              {errors.clientId && <p className="text-destructive text-sm">{errors.clientId}</p>}
+            </div>
+
+            {/* First Name */}
+            <div className="grid gap-2">
+              <Label htmlFor="firstName">First Name</Label>
+
+              <Input
+                id="firstName"
+                placeholder="First name"
+                value={form.firstName}
+                onChange={e => update('firstName', e.target.value)}
+                aria-invalid={!!errors.firstName}
+                disabled={isSaving}
+              />
+
+              {errors.firstName && <p className="text-destructive text-sm">{errors.firstName}</p>}
+            </div>
+
+            {/* Last Name */}
+            <div className="grid gap-2">
+              <Label htmlFor="lastName">Last Name</Label>
+
+              <Input
+                id="lastName"
+                placeholder="Last name"
+                value={form.lastName}
+                onChange={e => update('lastName', e.target.value)}
+                aria-invalid={!!errors.lastName}
+                disabled={isSaving}
+              />
+
+              {errors.lastName && <p className="text-destructive text-sm">{errors.lastName}</p>}
             </div>
 
             {/* Email */}
@@ -327,7 +343,7 @@ export function AddStaffSheet({ open, onOpenChange, onSave }: AddStaffSheetProps
                 type="email"
                 placeholder="name@example.com"
                 value={form.email}
-                onChange={event => update('email', event.target.value)}
+                onChange={e => update('email', e.target.value)}
                 aria-invalid={!!errors.email}
                 disabled={isSaving}
               />
@@ -335,46 +351,42 @@ export function AddStaffSheet({ open, onOpenChange, onSave }: AddStaffSheetProps
               {errors.email && <p className="text-destructive text-sm">{errors.email}</p>}
             </div>
 
-            {/* Password */}
-            <div className="grid gap-2">
+            {/* Password — hidden, generated automatically as lastName + clientId */}
+            {/* <div className="grid gap-2">
               <Label htmlFor="password">Password</Label>
-
               <Input
                 id="password"
                 type="password"
                 placeholder="Password"
                 value={form.password}
-                onChange={event => update('password', event.target.value)}
+                onChange={e => update('password', e.target.value)}
                 aria-invalid={!!errors.password}
                 disabled={isSaving}
               />
-
               {errors.password && <p className="text-destructive text-sm">{errors.password}</p>}
-            </div>
+            </div> */}
 
-            {/* Confirm Password */}
-            <div className="grid gap-2">
+            {/* Confirm Password — hidden, generated automatically */}
+            {/* <div className="grid gap-2">
               <Label htmlFor="confirmPassword">Confirm Password</Label>
-
               <Input
                 id="confirmPassword"
                 type="password"
                 placeholder="Confirm Password"
                 value={form.confirmPassword}
-                onChange={event => update('confirmPassword', event.target.value)}
+                onChange={e => update('confirmPassword', e.target.value)}
                 aria-invalid={!!errors.confirmPassword}
                 disabled={isSaving}
               />
-
               {errors.confirmPassword && (
                 <p className="text-destructive text-sm">{errors.confirmPassword}</p>
               )}
-            </div>
+            </div> */}
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex flex-col gap-4 space-y-2 border-t p-6 px-6 py-4">
+        <div className="flex flex-col gap-4 border-t px-6 py-4">
           <Button
             variant="primary"
             size="full"

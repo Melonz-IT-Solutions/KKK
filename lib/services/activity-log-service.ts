@@ -8,7 +8,6 @@ export type ActivityLogCreatePayload = {
   actorName: string
   actionLabel: string
   memberId?: number | null
-  staffId?: number | null
   userId?: number | null
 }
 
@@ -112,7 +111,6 @@ export async function createActivityLog(
       date: formatActivityDate(now),
 
       memberId: payload.memberId ?? null,
-      staffId: payload.staffId ?? null,
       userId: payload.userId ?? null,
     },
   })

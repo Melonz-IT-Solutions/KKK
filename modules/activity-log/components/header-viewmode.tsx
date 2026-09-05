@@ -1,13 +1,14 @@
-import { Button } from '@/components/ui/button'
-import { LayoutGrid, Table2 } from 'lucide-react'
+import { Table2, Timeline } from 'lucide-react'
 import { ActivityViewMode } from '@/types/activelog'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 interface ActivityLogsHeaderProps {
-  view: ActivityViewMode
   onViewChange: (view: ActivityViewMode) => void
+  tab: ActivityViewMode
+  setTab: (tab: 'timeline' | 'table') => void
 }
 
-export function ActivityLogsHeader({ view, onViewChange }: ActivityLogsHeaderProps) {
+export function ActivityLogsHeader({ tab, setTab }: ActivityLogsHeaderProps) {
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div>
@@ -18,29 +19,31 @@ export function ActivityLogsHeader({ view, onViewChange }: ActivityLogsHeaderPro
       </div>
 
       <div className="flex gap-2">
-        <Button
-          size="sm"
-          variant={view === 'timeline' ? 'default' : 'outline'}
-          className={
-            view === 'timeline' ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''
-          }
-          onClick={() => onViewChange('timeline')}
-        >
-          Timeline View
-          <LayoutGrid className="h-4 w-4" />
-        </Button>
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <Tabs
+            value={tab}
+            onValueChange={value => setTab(value as 'timeline' | 'table')}
+            className="p-4"
+          >
+            <TabsList className="flex w-full justify-center rounded-sm">
+              <TabsTrigger
+                value="timeline"
+                className="data-[state=active]:bg-primary rounded-sm data-[state=active]:text-white"
+              >
+                Timeline View
+                <Timeline className="mr-1.5 size-4" />
+              </TabsTrigger>
 
-        <Button
-          size="sm"
-          variant={view === 'table' ? 'default' : 'outline'}
-          className={
-            view === 'table' ? 'bg-primary text-primary-foreground hover:bg-primary/90' : ''
-          }
-          onClick={() => onViewChange('table')}
-        >
-          Table View
-          <Table2 className="h-4 w-4" />
-        </Button>
+              <TabsTrigger
+                value="table"
+                className="data-[state=active]:bg-primary rounded-sm data-[state=active]:text-white"
+              >
+                Table View
+                <Table2 className="mr-1.5 size-4" />
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </div>
     </div>
   )

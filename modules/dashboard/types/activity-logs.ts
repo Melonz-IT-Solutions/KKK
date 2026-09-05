@@ -8,5 +8,5 @@ export interface DashboardActivityLog {
   actionLabel: string
   createdAt: string
   memberId: number | null
-  staffId: number | null
+  userId: number | null
 }

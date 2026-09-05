@@ -27,7 +27,7 @@ db-shell:
 
 # ── Prisma ────────────────────────────────────────────────────────────────────
 prisma-gui:
-	docker compose exec app npx prisma studio --port 51212 --browser none
+	docker compose exec -T app sh -c "sed -i 's/var cO=\"127\.0\.0\.1\"/var cO=\"0.0.0.0\"/' node_modules/prisma/build/cli.js && npx prisma studio --port 51212 --browser none"
 
 migrate:
 	docker compose exec -T app npx prisma migrate deploy

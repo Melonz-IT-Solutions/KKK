@@ -28,7 +28,8 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/in
 
 import { ChevronDown, SearchIcon, X } from 'lucide-react'
 
-import { BRANCH_CLUSTERS } from '@/modules/members/constants/members'
+import { useClusters } from '@/modules/members/hooks/use-clusters'
+import { useRoleStore } from '@/lib/stores/role-store'
 
 import type { StatusFilter } from '@/modules/members/types/member'
 
@@ -56,21 +57,18 @@ export default function MemberV2Filters({
   onStatusChange,
   onClearFilters,
 }: MemberV2FiltersProps) {
+  const { activeRole } = useRoleStore()
   const [branchSearch, setBranchSearch] = useState('')
+  const { clusters: rawClusters } = useClusters()
 
   const q = branchSearch.toLowerCase()
 
-  const filter = (options: { label: string; value: string }[]) =>
-    options.filter(o => o.label.toLowerCase().includes(q))
-
-  const clusters = [
-    { label: 'City Proper', options: filter(BRANCH_CLUSTERS.city_proper_cluster) },
-    { label: 'East Coast', options: filter(BRANCH_CLUSTERS.east_coast_cluster) },
-    { label: 'West Coast', options: filter(BRANCH_CLUSTERS.west_coast_cluster) },
-    { label: 'Sibugay', options: filter(BRANCH_CLUSTERS.sibugay_cluster) },
-    { label: 'North', options: filter(BRANCH_CLUSTERS.north_cluster) },
-    { label: 'Basulta', options: filter(BRANCH_CLUSTERS.basulta_cluster) },
-  ]
+  const clusters = rawClusters.map(cluster => ({
+    label: cluster.name,
+    options: cluster.branches
+      .map(b => ({ label: b.name, value: b.name }))
+      .filter(o => o.label.toLowerCase().includes(q)),
+  }))
 
   const hasResults = clusters.some(c => c.options.length > 0)
 
@@ -105,9 +103,14 @@ export default function MemberV2Filters({
       </InputGroup>
 
       {/* BRANCH — multi-select combobox */}
-
       <Combobox multiple value={selectedBranches} onValueChange={onBranchChange}>
-        <ComboboxTrigger className="flex h-10 items-center gap-2 rounded-md border px-3 text-sm whitespace-nowrap">
+        <ComboboxTrigger
+          className={
+            activeRole === 'BRANCH_MANAGER' || activeRole === 'CLUSTER_MANAGER'
+              ? 'hidden'
+              : 'flex h-10 items-center gap-2 rounded-md border px-3 text-sm whitespace-nowrap'
+          }
+        >
           {selectedBranches.length === 0
             ? 'Filter by Cluster / Branch'
             : `${selectedBranches.length} branch${selectedBranches.length !== 1 ? 'es' : ''} selected`}

@@ -5,6 +5,10 @@ export const ROLES = [
   'CLUSTER_MANAGER',
   'BRANCH_MANAGER',
   'FDO',
+  'OPERATIONS',
+  'ADMIN_AND_HR',
+  'ACCOUNTING',
+  'AUDIT_DEPARTMENT',
   'GUEST',
 ] as const
 
@@ -56,6 +60,9 @@ export const PERMISSIONS = [
   'reports:view',
   'reports:generate',
   'reports:delete',
+
+  'cluster:view',
+  'branch:view',
 ] as const
 
 export type Permission = (typeof PERMISSIONS)[number]
@@ -67,6 +74,10 @@ export const ROLE_LABELS: Record<StaffRole, string> = {
   CLUSTER_MANAGER: 'Cluster Manager',
   BRANCH_MANAGER: 'Branch Manager',
   FDO: 'FDO',
+  OPERATIONS: 'Operations',
+  ADMIN_AND_HR: 'Admin and HR',
+  ACCOUNTING: 'Accounting',
+  AUDIT_DEPARTMENT: 'Audit Department',
   GUEST: 'Guest',
 }
 
@@ -95,7 +106,15 @@ export const ROLE_PERMISSIONS: Record<StaffRole, readonly Permission[]> = {
 
   BRANCH_MANAGER: ['member:view'],
 
-  FDO: ['member:view', 'member:create'],
+  FDO: ['member:view', 'member:create', 'member:import', 'reports:view', 'reports:generate'],
+
+  OPERATIONS: ['member:view', 'reports:view'],
+
+  ADMIN_AND_HR: ['member:view', 'reports:view'],
+
+  ACCOUNTING: ['member:view', 'reports:view'],
+
+  AUDIT_DEPARTMENT: ['member:view', 'reports:view'],
 
   GUEST: ['member:view'],
 }

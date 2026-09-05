@@ -8,6 +8,9 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
@@ -23,6 +26,7 @@ import { ChevronsUpDown, Undo2, Wallet, Users, Building2, Network, UserCheck } f
 import Logo from '../logo'
 
 import { ROLE_LABELS, isStaffRole, type ActiveRole } from '@/lib/auth/permissions'
+import { useRoleStore } from '@/lib/stores/role-store'
 
 interface RoleOption {
   value: ActiveRole
@@ -31,12 +35,6 @@ interface RoleOption {
   icon: React.ComponentType<{
     className?: string
   }>
-}
-
-interface DepartmentSwitcherProps {
-  activeRole: ActiveRole | null
-  realRole: ActiveRole | null
-  onRoleChange: (role: ActiveRole) => void
 }
 
 interface RoleApiItem {
@@ -55,20 +53,40 @@ const ROLE_ICONS: Partial<Record<ActiveRole, React.ComponentType<{ className?: s
 
 const DEFAULT_ROLE_ICON = Building2
 
-export function DepartmentSwitcher({
-  activeRole,
-  realRole,
-  onRoleChange,
-}: DepartmentSwitcherProps) {
+export function DepartmentSwitcher() {
   const { isMobile } = useSidebar()
+
+  const {
+    activeRole,
+    realRole,
+    activeEntityName,
+    clusters,
+    setActiveRole,
+    setActiveEntityName,
+    setPermissions,
+  } = useRoleStore()
 
   const [changing, setChanging] = React.useState(false)
   const [roleOptions, setRoleOptions] = React.useState<RoleOption[]>([])
 
   const selectedRole = activeRole ?? realRole ?? 'SUPER_ADMIN'
 
-  const selectedName = ROLE_LABELS[selectedRole]
+  const formatRole = (role: string | null): string => {
+    if (!role) {
+      return ''
+    }
 
+    return role
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
+  }
+
+  const selectedName = activeEntityName
+    ? `${ROLE_LABELS[selectedRole]} (${activeEntityName})`
+    : formatRole(activeRole)
+
+  // Fetch available role options (only needed for SUPER_ADMIN)
   React.useEffect(() => {
     if (realRole !== 'SUPER_ADMIN') {
       return
@@ -92,11 +110,18 @@ export function DepartmentSwitcher({
         }
 
         const options = roles
-          .filter(role => isStaffRole(role.name) && role.name !== 'SUPER_ADMIN')
+          .filter(
+            role =>
+              isStaffRole(role.name) &&
+              (role.name === 'FINANCE' ||
+                role.name === 'MIS' ||
+                role.name === 'CLUSTER_MANAGER' ||
+                role.name === 'BRANCH_MANAGER')
+          )
           .map(role => ({
             value: role.name as ActiveRole,
             name: role.label,
-            description: `${role.label} department`,
+            description: `${role.label} Department`,
             icon: ROLE_ICONS[role.name as ActiveRole] ?? DEFAULT_ROLE_ICON,
           }))
 
@@ -111,14 +136,15 @@ export function DepartmentSwitcher({
     }
   }, [realRole])
 
-  const handleRoleChange = async (role: ActiveRole) => {
-    if (changing || role === activeRole || realRole !== 'SUPER_ADMIN') {
+  const handleRoleChange = async (role: ActiveRole, entityId?: number) => {
+    const isEntityRole = role === 'CLUSTER_MANAGER' || role === 'BRANCH_MANAGER'
+
+    if (changing || realRole !== 'SUPER_ADMIN' || (role === activeRole && !isEntityRole)) {
       return
     }
 
     try {
       setChanging(true)
-
       const response = await fetch('/api/auth/active-role', {
         method: 'POST',
         credentials: 'include',
@@ -128,6 +154,8 @@ export function DepartmentSwitcher({
         },
         body: JSON.stringify({
           role,
+          ...(role === 'CLUSTER_MANAGER' && entityId ? { clusterId: entityId } : {}),
+          ...(role === 'BRANCH_MANAGER' && entityId ? { branchId: entityId } : {}),
         }),
       })
 
@@ -136,8 +164,26 @@ export function DepartmentSwitcher({
       if (!response.ok || !data.success) {
         throw new Error(data.message ?? 'Failed to switch role')
       }
+      // Update store with the new active role and entity
+      setActiveRole(role)
+      setActiveEntityName(data.entityName ?? null)
 
-      onRoleChange(role)
+      // Refresh permissions for the new role
+      const permResponse = await fetch('/api/auth/active-role', {
+        method: 'GET',
+        credentials: 'include',
+        cache: 'no-store',
+      })
+
+      if (permResponse.ok) {
+        const permData = await permResponse.json()
+
+        if (permData.success) {
+          setPermissions(permData.permissions ?? [])
+        }
+      }
+
+      window.location.reload()
     } catch (error) {
       console.error('Failed to switch role:', error)
     } finally {
@@ -205,17 +251,8 @@ export function DepartmentSwitcher({
               const Icon = role.icon
               const isSelected = activeRole === role.value
 
-              return (
-                <DropdownMenuItem
-                  key={role.value}
-                  disabled={changing}
-                  onClick={() => handleRoleChange(role.value)}
-                  className={`cursor-pointer gap-2 p-2 ${
-                    isSelected
-                      ? 'bg-green-50 text-green-700 focus:bg-green-50 focus:text-green-700'
-                      : ''
-                  }`}
-                >
+              const itemContent = (
+                <>
                   <div
                     className={`flex size-7 shrink-0 items-center justify-center rounded-md border ${
                       isSelected ? 'border-green-200 bg-green-100 text-green-700' : 'border-border'
@@ -235,6 +272,116 @@ export function DepartmentSwitcher({
                       {role.description}
                     </span>
                   </div>
+                </>
+              )
+
+              const itemClassName = `cursor-pointer gap-2 p-2 ${
+                isSelected
+                  ? 'bg-green-50 text-green-700 focus:bg-green-50 focus:text-green-700'
+                  : ''
+              }`
+
+              if (role.value === 'CLUSTER_MANAGER') {
+                return (
+                  <DropdownMenuSub key={role.value}>
+                    <DropdownMenuSubTrigger disabled={changing} className={itemClassName}>
+                      {itemContent}
+                    </DropdownMenuSubTrigger>
+
+                    <DropdownMenuSubContent className="min-w-56 rounded-lg">
+                      <DropdownMenuLabel className="text-muted-foreground text-sm">
+                        Select Cluster
+                      </DropdownMenuLabel>
+
+                      <DropdownMenuSeparator />
+
+                      {clusters.length === 0 ? (
+                        <DropdownMenuItem disabled className="text-muted-foreground text-sm">
+                          No clusters found
+                        </DropdownMenuItem>
+                      ) : (
+                        clusters.map(cluster => {
+                          const isClusterSelected = isSelected && activeEntityName === cluster.name
+
+                          return (
+                            <DropdownMenuItem
+                              key={cluster.id}
+                              disabled={changing}
+                              onClick={() => handleRoleChange('CLUSTER_MANAGER', cluster.id)}
+                              className={`cursor-pointer gap-2 p-2 text-sm ${
+                                isClusterSelected
+                                  ? 'bg-green-50 text-green-700 focus:bg-green-50 focus:text-green-700'
+                                  : ''
+                              }`}
+                            >
+                              {cluster.name}
+                            </DropdownMenuItem>
+                          )
+                        })
+                      )}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                )
+              }
+
+              if (role.value === 'BRANCH_MANAGER') {
+                return (
+                  <DropdownMenuSub key={role.value}>
+                    <DropdownMenuSubTrigger disabled={changing} className={itemClassName}>
+                      {itemContent}
+                    </DropdownMenuSubTrigger>
+
+                    <DropdownMenuSubContent className="[&::-webkit-scrollbar-thumb]:bg-border h-72 min-w-56 scrollbar-thin [scrollbar-color:var(--border)_transparent] overflow-y-auto rounded-lg [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-track]:bg-transparent">
+                      <DropdownMenuLabel className="text-muted-foreground text-sm">
+                        Select Branch
+                      </DropdownMenuLabel>
+
+                      <DropdownMenuSeparator />
+
+                      {clusters.every(cluster => cluster.branches.length === 0) ? (
+                        <DropdownMenuItem disabled className="text-muted-foreground text-sm">
+                          No branches found
+                        </DropdownMenuItem>
+                      ) : (
+                        clusters.map(cluster =>
+                          cluster.branches.length === 0 ? null : (
+                            <React.Fragment key={cluster.id}>
+                              {cluster.branches.map(branch => {
+                                const isBranchSelected =
+                                  isSelected && activeEntityName === branch.name
+
+                                return (
+                                  <DropdownMenuItem
+                                    key={branch.id}
+                                    disabled={changing}
+                                    onClick={() => handleRoleChange('BRANCH_MANAGER', branch.id)}
+                                    className={`cursor-pointer gap-2 p-2 pl-4 text-sm ${
+                                      isBranchSelected
+                                        ? 'bg-green-50 text-green-700 focus:bg-green-50 focus:text-green-700'
+                                        : ''
+                                    }`}
+                                  >
+                                    {branch.name}
+                                  </DropdownMenuItem>
+                                )
+                              })}
+                            </React.Fragment>
+                          )
+                        )
+                      )}
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                )
+              }
+
+              return (
+                <DropdownMenuItem
+                  key={role.value}
+                  disabled={changing}
+                  onClick={() => handleRoleChange(role.value)}
+                  className={itemClassName}
+                >
+                  {itemContent}
                 </DropdownMenuItem>
               )
             })}

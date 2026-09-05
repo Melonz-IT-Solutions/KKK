@@ -19,14 +19,8 @@ export async function getUserById(userId: number): Promise<CurrentUser | null> {
       id: true,
       name: true,
       email: true,
-      roles: true,
-      departments: true,
-      staff: {
-        select: {
-          department: true,
-          branch: true,
-        },
-      },
+      role: true,
+      department: true,
     },
   })
 
@@ -38,11 +32,7 @@ export async function getUserById(userId: number): Promise<CurrentUser | null> {
     id: String(user.id),
     name: user.name ?? '',
     email: user.email,
-
-    department: user.staff?.department ?? user.departments[0] ?? '',
-
-    branch: user.staff?.branch ?? user.departments[0] ?? undefined,
-
-    role: user.roles as StaffRole,
+    department: user.department ?? '',
+    role: user.role as StaffRole,
   }
 }

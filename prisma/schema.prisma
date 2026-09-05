@@ -14,19 +14,21 @@ model User {
   password  String
   contactNo String?
 
-  roles String @default("GUEST")
+  role       String  @default("GUEST")
+  department String?
+  clientId   String?
 
-  branch      String?
-  active      Boolean  @default(true)
-  isDeleted   Boolean  @default(false)
-  departments String[] @default([])
+  active             Boolean @default(true)
+  isDeleted          Boolean @default(false)
+  mustChangePassword Boolean @default(false)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime? @updatedAt
 
-  staff          Staff?
-  activityLogs   ActivityLog[]
-  createdMembers Member[]
+  activityLogs    ActivityLog[]
+  createdMembers  Member[]
+  clusterManagers ClusterManager[]
+  branchManagers  BranchManager[]
 }
 
 model Role {
@@ -100,23 +102,6 @@ model Dependent {
   gender   String
 }
 
-model Staff {
-  id         Int     @id @default(autoincrement())
-  name       String
-  email      String  @unique
-  department String
-  branch     String?
-  active     Boolean @default(true)
-
-  userId Int?  @unique
-  user   User? @relation(fields: [userId], references: [id])
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime? @updatedAt
-
-  activityLogs ActivityLog[]
-}
-
 model Report {
   id              Int       @id @default(autoincrement())
   type            String
@@ -145,9 +130,47 @@ model ActivityLog {
   memberId Int?
   member   Member? @relation(fields: [memberId], references: [id])
 
-  staffId Int?
-  staff   Staff? @relation(fields: [staffId], references: [id])
-
   userId Int?
   user   User? @relation(fields: [userId], references: [id])
+}
+
+model Cluster {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+
+  branches        Branch[]
+  clusterManagers ClusterManager[]
+}
+
+model Branch {
+  id        Int       @id @default(autoincrement())
+  clusterId Int
+  cluster   Cluster   @relation(fields: [clusterId], references: [id])
+  name      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+
+  branchManagers BranchManager[]
+}
+
+model ClusterManager {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  user      User    @relation(fields: [userId], references: [id])
+  clusterId Int
+  cluster   Cluster @relation(fields: [clusterId], references: [id])
+
+  @@unique([userId, clusterId])
+}
+
+model BranchManager {
+  id       Int    @id @default(autoincrement())
+  userId   Int
+  user     User   @relation(fields: [userId], references: [id])
+  branchId Int
+  branch   Branch @relation(fields: [branchId], references: [id])
+
+  @@unique([userId, branchId])
 }

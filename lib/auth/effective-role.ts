@@ -6,6 +6,32 @@ import { prisma } from '@/lib/prisma'
 import { parseRole, normalizeRole, type ActiveRole, type StaffRole } from './permissions'
 
 export const ACTIVE_ROLE_COOKIE = 'active-role'
+export const ACTIVE_ROLE_CONTEXT_COOKIE = 'active-role-context'
+
+export interface ActiveRoleContext {
+  clusterId: number | null
+  branchId: number | null
+}
+
+export async function getActiveRoleContext(): Promise<ActiveRoleContext> {
+  const cookieStore = await cookies()
+  const raw = cookieStore.get(ACTIVE_ROLE_CONTEXT_COOKIE)?.value
+
+  if (!raw) {
+    return { clusterId: null, branchId: null }
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<ActiveRoleContext>
+
+    return {
+      clusterId: Number.isInteger(parsed.clusterId) ? (parsed.clusterId as number) : null,
+      branchId: Number.isInteger(parsed.branchId) ? (parsed.branchId as number) : null,
+    }
+  } catch {
+    return { clusterId: null, branchId: null }
+  }
+}
 
 async function getAuthenticatedUser() {
   const session = await auth()
@@ -29,8 +55,7 @@ async function getAuthenticatedUser() {
       name: true,
       email: true,
       username: true,
-      roles: true,
-      branch: true,
+      role: true,
       active: true,
       isDeleted: true,
     },
@@ -54,7 +79,7 @@ export async function getAuthenticatedRole(): Promise<StaffRole | null> {
     return null
   }
 
-  return parseRole(user.roles)
+  return parseRole(user.role)
 }
 
 export async function getEffectiveRole(): Promise<ActiveRole | null> {
@@ -77,7 +102,14 @@ export async function getEffectiveRole(): Promise<ActiveRole | null> {
 
   const normalizedRole = normalizeRole(selectedRole)
 
-  const allowedRoles: ActiveRole[] = ['SUPER_ADMIN', 'FINANCE', 'BRANCH_MANAGER', 'FDO']
+  const allowedRoles: ActiveRole[] = [
+    'SUPER_ADMIN',
+    'FINANCE',
+    'MIS',
+    'CLUSTER_MANAGER',
+    'BRANCH_MANAGER',
+    'FDO',
+  ]
 
   if (!allowedRoles.includes(normalizedRole)) {
     return 'SUPER_ADMIN'
@@ -99,7 +131,7 @@ export async function getRoleContext() {
     }
   }
 
-  const authenticatedRole = parseRole(user.roles)
+  const authenticatedRole = parseRole(user.role)
 
   if (!authenticatedRole) {
     return {

@@ -13,13 +13,21 @@ const CONFIGURABLE_ROLES = ROLES.filter(
 ) as [ConfigurableRole, ...ConfigurableRole[]]
 
 const staffUpdateSchema = z.object({
-  name: z.string().min(1).optional(),
+  firstName: z.string().trim().min(1).optional(),
+
+  lastName: z.string().trim().min(1).optional(),
+
+  username: z.string().trim().min(1).optional(),
+
+  email: z.string().trim().email().optional(),
 
   contactNo: z.string().optional(),
 
   department: z.string().min(1).optional(),
 
   branch: z.string().optional(),
+
+  cluster: z.string().optional(),
 
   role: z.enum(CONFIGURABLE_ROLES).optional(),
 
@@ -58,9 +66,14 @@ export async function PATCH(request: Request, { params }: StaffRouteContext) {
 
     const body = await request.json()
 
-    const payload = staffUpdateSchema.parse(body)
+    const { firstName, lastName, ...rest } = staffUpdateSchema.parse(body)
 
-    const staff = await updateStaff(staffId, payload)
+    const name =
+      firstName !== undefined || lastName !== undefined
+        ? `${firstName ?? ''} ${lastName ?? ''}`.trim()
+        : undefined
+
+    const staff = await updateStaff(staffId, { ...rest, ...(name !== undefined ? { name } : {}) })
 
     return NextResponse.json({
       success: true,

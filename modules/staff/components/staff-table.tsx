@@ -69,7 +69,8 @@ export default function StaffTable({ data, loading, onAddStaff, onUpdateStaff }:
     const searchValue = search.toLowerCase()
 
     const matchesSearch =
-      row.name.toLowerCase().includes(searchValue) ||
+      row.firstName.toLowerCase().includes(searchValue) ||
+      row.lastName.toLowerCase().includes(searchValue) ||
       row.email.toLowerCase().includes(searchValue) ||
       row.department.toLowerCase().includes(searchValue)
 
@@ -93,6 +94,10 @@ export default function StaffTable({ data, loading, onAddStaff, onUpdateStaff }:
   const canAddStaff = role ? hasPermission(role, 'staff:create') : false
 
   const canEditStaff = role ? hasPermission(role, 'staff:change_permission') : false
+
+  const isCurrentUser = (staffId: number | string) => {
+    return session?.user?.id !== undefined && String(session.user.id) === String(staffId)
+  }
 
   const handleSearchChange = (value: string) => {
     setSearch(value)
@@ -159,11 +164,11 @@ export default function StaffTable({ data, loading, onAddStaff, onUpdateStaff }:
             <TableHeader className="bg-slate-50/60">
               <TableRow>
                 <TableHead className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
-                  Department
+                  Name
                 </TableHead>
 
                 <TableHead className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
-                  Name
+                  Username
                 </TableHead>
 
                 <TableHead className="text-xs font-semibold tracking-wide text-slate-500 uppercase">
@@ -209,17 +214,20 @@ export default function StaffTable({ data, loading, onAddStaff, onUpdateStaff }:
 
               {!loading &&
                 pageRows.map(row => (
-                  <TableRow key={row.id} className="hover:bg-slate-50/70">
-                    <TableCell>
-                      <DepartmentBadge value={row.department} />
+                  <TableRow
+                    key={row.id}
+                    className="font-medium text-slate-700 hover:bg-slate-50/70"
+                  >
+                    <TableCell className="font-medium text-slate-700">
+                      {row.firstName} {row.lastName}
                     </TableCell>
 
-                    <TableCell className="font-medium text-slate-700">{row.name}</TableCell>
+                    <TableCell className="font-medium text-slate-700">{row.username}</TableCell>
 
                     <TableCell className="text-slate-600">{row.email}</TableCell>
 
                     <TableCell className="text-slate-600">
-                      {row.role.replaceAll('_', ' ')}
+                      <DepartmentBadge value={row.role.replaceAll('_', ' ')} />
                     </TableCell>
 
                     <TableCell className="text-slate-600">{row.status}</TableCell>
@@ -232,7 +240,7 @@ export default function StaffTable({ data, loading, onAddStaff, onUpdateStaff }:
                             setSelectedStaff(row)
                             setIsEditOpen(true)
                           }}
-                          className="inline-flex items-center justify-center rounded-md p-1 hover:bg-slate-100"
+                          className={`font-medium text-slate-700 ${isCurrentUser(row.id) ? 'hidden' : 'inline-flex items-center justify-center rounded-md p-1 hover:bg-slate-100'}`}
                         >
                           <Pencil className="h-4 w-4" />
                         </button>

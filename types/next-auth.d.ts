@@ -6,6 +6,7 @@ declare module 'next-auth' {
     username: string
     role: StaffRole
     branch: string | null
+    mustChangePassword: boolean
   }
 
   interface Session {
@@ -14,6 +15,7 @@ declare module 'next-auth' {
       username: string
       role: StaffRole
       branch: string | null
+      mustChangePassword: boolean
     }
   }
 }
@@ -23,5 +25,6 @@ declare module 'next-auth/jwt' {
     username?: string
     role?: StaffRole
     branch?: string | null
+    mustChangePassword?: boolean
   }
 }

@@ -6,13 +6,17 @@ export type Department = string
 export interface StaffRow {
   id: number
   department: string
-  name: string
+  // name: string
   email: string
   username: string
+  firstName: string
+  lastName: string
+  clientId: string
   createdAt: string
   role: StaffRole
   status: StaffStatus
   branch?: string
+  cluster?: string
 }
 
 export interface StaffFormValues {
@@ -20,13 +24,18 @@ export interface StaffFormValues {
   department: Department | ''
   role: Exclude<StaffRole, 'SUPER_ADMIN'> | ''
   branch: string
-  name: string
+  cluster: string
+  firstName: string
+  lastName: string
+  clientId: string
   email: string
   password: string
   confirmPassword: string
 }
 
 export interface StaffUpdateValues extends StaffRow {
+  firstName: string
+  lastName: string
   newPassword?: string
 }
 

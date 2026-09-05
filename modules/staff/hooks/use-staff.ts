@@ -47,6 +47,7 @@ export function useStaff() {
           body: JSON.stringify({
             ...values,
             branch: values.branch || undefined,
+            cluster: values.cluster || undefined,
           }),
         })
 
@@ -77,9 +78,14 @@ export function useStaff() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            id: values.id,
+            firstName: values.firstName,
+            lastName: values.lastName,
+            username: values.username,
+            email: values.email,
             role: values.role,
             active: values.status === 'ACTIVE',
+            branch: values.branch || undefined,
+            cluster: values.cluster || undefined,
             password: values.newPassword || undefined,
           }),
         })

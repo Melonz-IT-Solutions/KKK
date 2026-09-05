@@ -56,16 +56,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         }
 
         const user = await prisma.user.findUnique({
-          where: {
-            username,
-          },
-
+          where: { username },
           include: {
-            staff: {
-              select: {
-                branch: true,
-              },
-            },
+            branchManagers: { include: { branch: true }, take: 1 },
           },
         })
 
@@ -73,7 +66,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // ACCOUNT CHECK
         // -------------------------------------------------------------------
 
-        if (!user || !user.active || user.isDeleted || !isStaffRole(user.roles)) {
+        if (!user || !user.active || user.isDeleted || !isStaffRole(user.role)) {
           return null
         }
 
@@ -100,9 +93,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
           username: user.username,
 
-          role: user.roles,
+          role: user.role,
 
-          branch: user.branch ?? user.staff?.branch ?? null,
+          branch: user.branchManagers[0]?.branch.name ?? null,
+
+          mustChangePassword: user.mustChangePassword,
         }
       },
     }),
@@ -120,6 +115,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         token.branch = user.branch
 
         token.username = user.username
+
+        token.mustChangePassword = user.mustChangePassword
       }
 
       return token
@@ -142,6 +139,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         session.user.branch = branch
 
         session.user.username = username
+
+        session.user.mustChangePassword = token.mustChangePassword === true
       }
 
       return session

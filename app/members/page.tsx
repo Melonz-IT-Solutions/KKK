@@ -1,10 +1,10 @@
-import { auth } from '@/auth'
+import { getRoleContext } from '@/lib/auth/effective-role'
 import MemberV2Page from '@/modules/members'
 
 export default async function MembersPage() {
-  const session = await auth()
+  const { effectiveRole } = await getRoleContext()
 
-  const userRole = session?.user?.role ?? 'FDO'
+  const userRole = effectiveRole ?? ''
 
   return <MemberV2Page userRole={userRole} />
 }

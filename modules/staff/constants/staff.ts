@@ -38,8 +38,11 @@ export const emptyForm: StaffFormValues = {
   department: '',
   role: '',
   branch: '',
-  name: '',
+  cluster: '',
   email: '',
+  firstName: '',
+  lastName: '',
+  clientId: '',
   password: '',
   confirmPassword: '',
 }

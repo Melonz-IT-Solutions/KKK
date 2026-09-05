@@ -1,11 +1,5 @@
-/*
-  Warnings:
-
-  - You are about to drop the `RolePermission` table. If the table is not empty, all the data it contains will be lost.
-
-*/
 -- AlterTable
-ALTER TABLE "User" ALTER COLUMN "roles" SET DEFAULT 'GUEST';
+ALTER TABLE "User" ALTER COLUMN "role" SET DEFAULT 'GUEST';
 
 -- DropTable
 DROP TABLE "RolePermission";

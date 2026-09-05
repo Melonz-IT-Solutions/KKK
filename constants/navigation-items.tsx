@@ -1,4 +1,4 @@
-import { Home, Users, Settings2Icon, History, IdCard, FilePenLine } from 'lucide-react'
+import { Home, Users, Settings2Icon, History, IdCard, FilePenLine, Building2, GitBranch } from 'lucide-react'
 
 export const NavigationItems = [
   {
@@ -16,6 +16,16 @@ export const NavigationItems = [
     title: 'Staff',
     url: '/staff',
     icon: <IdCard />,
+  },
+  {
+    title: 'Clusters',
+    url: '/clusters',
+    icon: <Building2 />,
+  },
+  {
+    title: 'Branches',
+    url: '/branches',
+    icon: <GitBranch />,
   },
   {
     title: 'Settings',

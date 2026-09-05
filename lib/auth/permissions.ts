@@ -60,6 +60,9 @@ export const PERMISSIONS = [
   'reports:view',
   'reports:generate',
   'reports:delete',
+
+  'cluster:view',
+  'branch:view',
 ] as const
 
 export type Permission = (typeof PERMISSIONS)[number]

@@ -90,3 +90,35 @@ export async function GET(request: Request) {
 
   return NextResponse.json(clusters)
 }
+
+export async function POST(request: Request) {
+  const realRole = await getAuthenticatedRole()
+
+  if (realRole !== 'SUPER_ADMIN') {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
+  const body = await request.json() as { name?: string }
+  const name = body.name?.trim()
+
+  if (!name) {
+    return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+  }
+
+  try {
+    const cluster = await prisma.cluster.create({ data: { name } })
+    return NextResponse.json(cluster, { status: 201 })
+  } catch (error: unknown) {
+    const isUniqueViolation =
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      (error as { code: string }).code === 'P2002'
+
+    if (isUniqueViolation) {
+      return NextResponse.json({ error: 'A cluster with that name already exists' }, { status: 409 })
+    }
+
+    return NextResponse.json({ error: 'Failed to create cluster' }, { status: 500 })
+  }
+}

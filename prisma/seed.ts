@@ -46,13 +46,17 @@ const PERMISSIONS = {
   REPORTS_DELETE: { name: 'reports:delete', label: 'Delete Reports', category: 'Reports' },
 
   CLUSTER_VIEW: { name: 'cluster:view', label: 'View Clusters', category: 'Clusters' },
+  BRANCH_VIEW: { name: 'branch:view', label: 'View Branches', category: 'Branches' },
 } as const
 
 const PERMISSIONS_LIST = Object.values(PERMISSIONS)
 
-const ALL = PERMISSIONS_LIST.map(p => p.name)
-const ALL_EXCEPT_ACTIVITY_LOGS = PERMISSIONS_LIST.map(p => p.name).filter(
-  n => n !== PERMISSIONS.ACTIVITY_LOGS_VIEW.name
+const SUPER_ADMIN_PERMISSIONS = PERMISSIONS_LIST.map(p => p.name)
+const ADMIN_PERMISSIONS = PERMISSIONS_LIST.map(p => p.name).filter(
+  n =>
+    n !== PERMISSIONS.ACTIVITY_LOGS_VIEW.name &&
+    n !== PERMISSIONS.CLUSTER_VIEW.name &&
+    n !== PERMISSIONS.BRANCH_VIEW.name
 )
 
 // ---------------------------------------------------------------------------
@@ -63,17 +67,17 @@ const ROLES = [
   {
     name: 'SUPER_ADMIN',
     label: 'Super Admin',
-    permissions: ALL,
+    permissions: SUPER_ADMIN_PERMISSIONS,
   },
   {
     name: 'FINANCE',
     label: 'Finance',
-    permissions: ALL_EXCEPT_ACTIVITY_LOGS,
+    permissions: ADMIN_PERMISSIONS,
   },
   {
     name: 'MIS',
     label: 'MIS',
-    permissions: ALL_EXCEPT_ACTIVITY_LOGS,
+    permissions: ADMIN_PERMISSIONS,
   },
   {
     name: 'CLUSTER_MANAGER',
@@ -240,6 +244,7 @@ async function main() {
           department: user.department,
           active: true,
           isDeleted: false,
+          mustChangePassword: false,
         },
       })
       console.log(`  ✓ Created user ${user.username} (${user.role})`)

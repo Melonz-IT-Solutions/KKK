@@ -21,7 +21,7 @@ export function ActivityLogsClient({ logs }: ActivityLogsClientProps) {
 
   return (
     <>
-      <ActivityLogsHeader view={view} onViewChange={setView} />
+      <ActivityLogsHeader tab={view} setTab={setView} onViewChange={setView} />
 
       <div className="mt-8">
         {view === 'timeline' ? (

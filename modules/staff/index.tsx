@@ -15,14 +15,12 @@ export default function StaffModule() {
   const { staff, loading, addStaff, updateStaff } = useStaff()
 
   const handleSaveStaff = async (values: StaffFormValues) => {
-    const username = values.email
-      .split('@')[0]
-      ?.replace(/[^a-zA-Z0-9._-]/g, '')
-      .toLowerCase()
+    const password = `${values.lastName.trim()}${values.clientId.trim()}`
 
     await addStaff({
       ...values,
-      username,
+      password,
+      confirmPassword: password,
     })
 
     setIsAddStaffOpen(false)

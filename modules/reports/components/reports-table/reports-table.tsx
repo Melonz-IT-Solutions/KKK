@@ -1,3 +1,5 @@
+import { Download } from 'lucide-react'
+
 import {
   Table,
   TableBody,
@@ -15,7 +17,29 @@ interface ReportsTableProps {
   reports: ReportEntry[]
 }
 
-const REPORTS_TABLE_COLUMNS = ['Report Type', 'Total', 'Date Range', 'Generated'] as const
+const REPORTS_TABLE_COLUMNS = ['Report Type', 'Total', 'Date Range', 'Generated', 'Action'] as const
+
+function downloadCSV(report: ReportEntry) {
+  const headers = ['Report Type', 'Total', 'Date Range Start', 'Date Range End', 'Generated Date']
+  const row = [
+    report.type,
+    String(report.total),
+    report.dateRangeStart,
+    report.dateRangeEnd,
+    report.generatedDate,
+  ]
+
+  const csv = [headers.join(','), row.join(',')].join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `report-${report.type.toLowerCase().replace(/\s+/g, '-')}-${report.id}.csv`
+  link.click()
+
+  URL.revokeObjectURL(url)
+}
 
 export function ReportsTable({ reports }: ReportsTableProps) {
   return (
@@ -66,6 +90,17 @@ export function ReportsTable({ reports }: ReportsTableProps) {
                 </TableCell>
 
                 <TableCell className="text-sm text-slate-600">{report.generatedDate}</TableCell>
+
+                <TableCell>
+                  <button
+                    type="button"
+                    onClick={() => downloadCSV(report)}
+                    className="inline-flex items-center justify-center rounded-md p-1 text-slate-700 hover:bg-slate-100"
+                    title="Download CSV"
+                  >
+                    <Download className="h-4 w-4" />
+                  </button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

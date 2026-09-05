@@ -22,13 +22,17 @@ export interface StaffFormValues {
   role: Exclude<StaffRole, 'SUPER_ADMIN'> | ''
   branch: string
   cluster: string
-  name: string
+  firstName: string
+  lastName: string
+  clientId: string
   email: string
   password: string
   confirmPassword: string
 }
 
 export interface StaffUpdateValues extends StaffRow {
+  firstName: string
+  lastName: string
   newPassword?: string
 }
 

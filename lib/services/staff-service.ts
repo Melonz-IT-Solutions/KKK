@@ -18,6 +18,7 @@ export interface StaffPayload {
   email: string
   username: string
   department: string
+  clientId?: string
   branch?: string
   cluster?: string
   contactNo?: string
@@ -188,10 +189,12 @@ export async function createStaff(payload: StaffPayload) {
         username: payload.username,
         password: passwordHash,
         contactNo: payload.contactNo,
+        clientId: payload.clientId,
         role: role,
         department: payload.department,
         active,
         isDeleted: false,
+        mustChangePassword: true,
       },
     })
 

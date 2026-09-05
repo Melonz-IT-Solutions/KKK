@@ -26,6 +26,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
   const {
     activeRole,
+    realRole,
     permissions,
     roleLoading,
     setActiveRole,
@@ -130,6 +131,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
         case 'Staff':
           return can('staff:view_all') || can('staff:view_own_branch')
+
+        case 'Clusters':
+          return can('cluster:view')
+
+        case 'Branches':
+          return can('branch:view')
 
         default:
           return true

@@ -78,6 +78,10 @@ export function useStaff() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
+            firstName: values.firstName,
+            lastName: values.lastName,
+            username: values.username,
+            email: values.email,
             role: values.role,
             active: values.status === 'ACTIVE',
             branch: values.branch || undefined,

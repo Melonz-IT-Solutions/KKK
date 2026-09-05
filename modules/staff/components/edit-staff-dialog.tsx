@@ -46,6 +46,10 @@ interface RoleOption {
 export function StaffEditDialog({ staff, open, onOpenChange, onSave }: StaffEditDialogProps) {
   const { data: session } = useSession()
 
+  const [firstName, setFirstName] = useState(() => staff.name.split(' ')[0] ?? '')
+  const [lastName, setLastName] = useState(() => staff.name.split(' ').slice(1).join(' '))
+  const [username, setUsername] = useState(staff.username)
+  const [email, setEmail] = useState(staff.email)
   const [status, setStatus] = useState(staff.status)
   const [role, setRole] = useState(staff.role)
   const [cluster, setCluster] = useState(staff.cluster ?? '')
@@ -64,6 +68,10 @@ export function StaffEditDialog({ staff, open, onOpenChange, onSave }: StaffEdit
   // Reset form fields when the sheet opens with a (possibly different) staff
   useEffect(() => {
     if (open) {
+      setFirstName(staff.name.split(' ')[0] ?? '')
+      setLastName(staff.name.split(' ').slice(1).join(' '))
+      setUsername(staff.username)
+      setEmail(staff.email)
       setStatus(staff.status)
       setRole(staff.role)
       setCluster(staff.cluster ?? '')
@@ -107,6 +115,10 @@ export function StaffEditDialog({ staff, open, onOpenChange, onSave }: StaffEdit
     try {
       await onSave({
         ...staff,
+        firstName,
+        lastName,
+        username,
+        email,
         role,
         status,
         cluster: role === 'CLUSTER_MANAGER' ? cluster : '',
@@ -140,6 +152,59 @@ export function StaffEditDialog({ staff, open, onOpenChange, onSave }: StaffEdit
 
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="grid gap-4 p-6">
+            {/* First Name */}
+            <div className="grid gap-2">
+              <Label htmlFor="edit-firstName">First Name</Label>
+              <Input
+                id="edit-firstName"
+                placeholder="First name"
+                value={firstName}
+                className="h-10"
+                disabled={isSaving}
+                onChange={e => setFirstName(e.target.value)}
+              />
+            </div>
+
+            {/* Last Name */}
+            <div className="grid gap-2">
+              <Label htmlFor="edit-lastName">Last Name</Label>
+              <Input
+                id="edit-lastName"
+                placeholder="Last name"
+                value={lastName}
+                className="h-10"
+                disabled={isSaving}
+                onChange={e => setLastName(e.target.value)}
+              />
+            </div>
+
+            {/* Username */}
+            <div className="grid gap-2">
+              <Label htmlFor="edit-username">Username</Label>
+              <Input
+                id="edit-username"
+                placeholder="Username"
+                value={username}
+                className="h-10"
+                disabled={isSaving}
+                onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z]/g, ''))}
+              />
+            </div>
+
+            {/* Email */}
+            <div className="grid gap-2">
+              <Label htmlFor="edit-email">Email</Label>
+              <Input
+                id="edit-email"
+                type="email"
+                placeholder="name@example.com"
+                value={email}
+                className="h-10"
+                disabled={isSaving}
+                onChange={e => setEmail(e.target.value)}
+              />
+            </div>
+
             {/* Role */}
             <div className="grid gap-2">
               <Label>Role</Label>

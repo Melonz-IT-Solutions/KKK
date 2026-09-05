@@ -1,9 +1,9 @@
 // modules/reports/types/report.ts
-export type ReportType = 'Total Members' | 'Total Mortality'
+export type ReportType = 'Total Members' | 'Total Active Users' | 'Total Inactive Users'
 
 export interface ReportEntry {
   id: number
-  type: 'MEMBER' | 'MORTALITY'
+  type: 'MEMBER' | 'ACTIVE_USERS' | 'INACTIVE_USERS'
   total: number
   dateRangeStart: string
   dateRangeEnd: string

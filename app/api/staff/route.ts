@@ -20,7 +20,11 @@ const CONFIGURABLE_ROLES = ROLES.filter(
 ) as [ConfigurableRole, ...ConfigurableRole[]]
 
 const createStaffSchema = z.object({
-  name: z.string().trim().min(1, 'Name is required'),
+  firstName: z.string().trim().min(1, 'First name is required'),
+
+  lastName: z.string().trim().min(1, 'Last name is required'),
+
+  clientId: z.string().trim().optional(),
 
   email: z.string().trim().email('Invalid email'),
 
@@ -138,9 +142,12 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
 
-    const payload = createStaffSchema.parse(body)
+    const { firstName, lastName, ...rest } = createStaffSchema.parse(body)
 
-    const staff = await createStaff(payload)
+    const staff = await createStaff({
+      ...rest,
+      name: `${firstName} ${lastName}`.trim(),
+    })
 
     return NextResponse.json(
       {
